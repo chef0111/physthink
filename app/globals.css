@@ -160,7 +160,7 @@
 }
 
 @utility input-otp-slot {
-  @apply size-10! text-2xl! sm:size-12!;
+  @apply size-14! text-xl! sm:size-12! sm:text-2xl!;
 }
 
 @utility input-otp-group {

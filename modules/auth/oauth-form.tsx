@@ -11,7 +11,7 @@ interface OAuthFormProps {
 
 export const OAuthForm = (props: OAuthFormProps) => {
   return (
-    <div className="space-y-2">
+    <div className="mx-6 space-y-2">
       <Button
         variant="secondary"
         className="w-full"

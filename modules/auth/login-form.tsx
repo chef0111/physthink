@@ -1,47 +1,69 @@
 'use client';
 
 import z from 'zod';
+import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { LoginSchema } from '@/lib/validations';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ButtonState } from './login-steps';
 import { OAuthForm } from './oauth-form';
-import { FieldDescription, FieldGroup } from '@/components/ui/field';
+import {
+  FieldDescription,
+  FieldGroup,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field';
 import { FormInputGroup } from '@/components/form';
-import { AtSignIcon } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { AlertCircleIcon, AtSignIcon } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { useTransition } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader } from '@/components/ui/loader';
-import { Route } from 'next';
+import { useLoginStep } from '@/context/login-step';
 
 type FormValue = z.infer<typeof LoginSchema>;
 
-export const LoginForm = () => {
-  const router = useRouter();
+type LoginFormProps = {
+  formId: string;
+  onStateChange: (state: ButtonState) => void;
+};
+
+export const LoginForm = ({ formId, onStateChange }: LoginFormProps) => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackURL') ?? '/';
   const [googlePending, startGoogleTransition] = useTransition();
   const [githubPending, startGithubTransition] = useTransition();
   const [emailPending, startEmailTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const { goToVerify } = useLoginStep();
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
-    await authClient.signIn.social({
+  const form = useForm<FormValue>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: { email: '' },
+  });
+
+  const pending = emailPending || googlePending || githubPending;
+  const disabled = pending || !form.formState.isDirty;
+
+  useEffect(() => {
+    onStateChange({ pending, disabled });
+  }, [pending, disabled, onStateChange]);
+
+  const handleSocialLogin = (provider: 'google' | 'github') =>
+    authClient.signIn.social({
       provider,
       callbackURL: callbackUrl,
       errorCallbackURL: '/banned',
       fetchOptions: {
         onError: (ctx) => {
-          if (ctx.error?.message?.toLowerCase().includes('banned')) {
-            toast.error('Your account has been suspended');
-          } else {
-            toast.error('Authentication failed. Please try again.');
-          }
+          toast.error(
+            ctx.error?.message?.toLowerCase().includes('banned')
+              ? 'Your account has been suspended'
+              : 'Authentication failed. Please try again.'
+          );
         },
       },
     });
-  };
 
   const handleGoogleLogin = async () => {
     startGoogleTransition(async () => {
@@ -55,14 +77,7 @@ export const LoginForm = () => {
     });
   };
 
-  const form = useForm<FormValue>({
-    resolver: zodResolver(LoginSchema),
-    defaultValues: {
-      email: '',
-    },
-  });
-
-  const handleLogin = async (data: FormValue) => {
+  const handleLogin = (data: FormValue) => {
     startEmailTransition(async () => {
       await authClient.emailOtp.sendVerificationOtp({
         email: data.email,
@@ -73,29 +88,29 @@ export const LoginForm = () => {
               description: 'Sign-in code sent! Please check your email.',
             });
             form.reset();
-            router.push(
-              `/verify-email?email=${encodeURIComponent(data.email)}&callbackURL=${encodeURIComponent(callbackUrl)}` as Route
-            );
+            goToVerify(data.email);
           },
-          onError: () => {
-            toast.error('Error sending sign-in code');
+          onError: (err) => {
+            setError(
+              err.error?.message ||
+                'Failed to send sign-in code. Please try again.'
+            );
           },
         },
       });
     });
   };
 
-  const loginPending =
-    emailPending || googlePending || githubPending || !form.formState.isDirty;
-
   return (
     <FieldGroup className="gap-4">
-      <div className="flex flex-col space-y-1">
-        <h1 className="text-2xl font-bold tracking-wide">Welcome back</h1>
-        <p className="text-muted-foreground text-base">
+      <FieldSet className="w-full space-y-1 px-6 max-lg:items-center max-lg:text-center">
+        <FieldLegend className="text-2xl! font-bold tracking-wide">
+          Welcome back
+        </FieldLegend>
+        <FieldDescription className="text-muted-foreground text-base">
           Sign in to your account to continue
-        </p>
-      </div>
+        </FieldDescription>
+      </FieldSet>
 
       <OAuthForm
         googlePending={googlePending}
@@ -104,50 +119,36 @@ export const LoginForm = () => {
         githubLogin={handleGithubLogin}
       />
 
-      <div className="flex w-full items-center justify-center">
+      <div className="flex w-full items-center justify-center px-6">
         <div className="bg-border h-px w-full" />
         <span className="text-muted-foreground px-2 text-xs">OR</span>
         <div className="bg-border h-px w-full" />
       </div>
 
-      <form onSubmit={form.handleSubmit(handleLogin)}>
-        <FieldGroup className="gap-4">
-          <FormInputGroup
-            name="email"
-            control={form.control}
-            placeholder="your.email@example.com"
-            description="Enter your email to receive a sign-in code"
-            leftAddon={<AtSignIcon />}
-          />
-
-          <Button
-            type="submit"
-            className="w-full gap-2"
-            disabled={loginPending}
-          >
-            {emailPending ? (
-              <>
-                <Loader />
-                <span>Sending...</span>
-              </>
-            ) : (
-              'Continue With Email'
-            )}
-          </Button>
-        </FieldGroup>
+      <form
+        id={formId}
+        onSubmit={form.handleSubmit(handleLogin)}
+        className="px-6"
+      >
+        <FormInputGroup
+          name="email"
+          control={form.control}
+          placeholder="your.email@example.com"
+          description="Enter your email to receive a sign-in code"
+          leftAddon={<AtSignIcon />}
+        />
       </form>
 
-      <FieldDescription className="w-full">
-        By clicking continue, you agree to our{' '}
-        <span className="hover:text-foreground cursor-pointer p-0 underline-offset-4 hover:underline">
-          Terms of Service
-        </span>{' '}
-        and{' '}
-        <span className="hover:text-foreground cursor-pointer p-0 underline-offset-4 hover:underline">
-          Privacy Policy
-        </span>
-        .
-      </FieldDescription>
+      {!!error && (
+        <Alert
+          variant="destructive"
+          className="bg-destructive/10 border-destructive/20 border"
+        >
+          <AlertCircleIcon />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
     </FieldGroup>
   );
 };

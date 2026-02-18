@@ -37,7 +37,7 @@ export default function AuthLayout({
           </Suspense>
         </div>
       </div>
-      <div className="relative flex min-h-screen flex-col justify-center px-8">
+      <div className="relative flex min-h-screen flex-col justify-start px-8">
         {/* Top Shades */}
         <div
           aria-hidden
@@ -55,10 +55,12 @@ export default function AuthLayout({
           </Link>
         </Button>
 
-        <div className="mx-auto space-y-4 sm:w-sm">
+        <div className="mx-auto w-full pt-[25vh] sm:w-md">
           <Brand
             href={null}
-            containerClassName="mx-auto h-4.5 pb-12 md:hidden"
+            size={24}
+            containerClassName="mx-auto h-4.5 pb-12 lg:hidden"
+            textClassName="text-3xl sm:text-4xl flex!"
           />
           {children}
         </div>

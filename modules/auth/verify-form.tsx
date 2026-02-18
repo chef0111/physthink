@@ -1,11 +1,13 @@
 'use client';
 
 import z from 'zod';
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Route } from 'next';
+import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { authClient } from '@/lib/auth-client';
 import { OTPSchema } from '@/lib/validations';
 import {
   FieldDescription,
@@ -13,45 +15,43 @@ import {
   FieldLegend,
   FieldSet,
 } from '@/components/ui/field';
-import { authClient } from '@/lib/auth-client';
 import { FormInputOTP } from '@/components/form';
 import { Button } from '@/components/ui/button';
-import { AlertCircleIcon, RefreshCcw } from 'lucide-react';
-import { toast } from 'sonner';
 import { Loader } from '@/components/ui/loader';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-const RESEND_COOLDOWN = 60;
+import { AlertCircleIcon, RefreshCcw } from 'lucide-react';
+import { useLoginStep } from '@/context/login-step';
+import { ButtonState } from './login-steps';
 
 type FormValue = z.infer<typeof OTPSchema>;
 
-export const VerifyForm = () => {
+type VerifyFormProps = {
+  formId: string;
+  onStateChange: (state: ButtonState) => void;
+};
+
+export const VerifyForm = ({ formId, onStateChange }: VerifyFormProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get('email') as string;
-  const callbackUrl = searchParams.get('callbackURL') ?? '/';
+  const { email, callbackUrl, goToLogin } = useLoginStep();
   const [verifyPending, startVerifyTransition] = useTransition();
   const [resendPending, startResendTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(RESEND_COOLDOWN);
-
-  useEffect(() => {
-    if (countdown <= 0) return;
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [countdown]);
 
   const form = useForm<FormValue>({
     resolver: zodResolver(OTPSchema),
-    defaultValues: {
-      otp: '',
-    },
+    defaultValues: { otp: '' },
   });
 
-  const handleVerify = async (data: FormValue) => {
+  const pending = verifyPending;
+  const disabled = verifyPending || resendPending || !form.formState.isDirty;
+
+  useEffect(() => {
+    onStateChange({ pending, disabled });
+  }, [pending, disabled, onStateChange]);
+
+  const handleVerify = (data: FormValue) => {
+    setError(null);
+
     startVerifyTransition(async () => {
       await authClient.signIn.emailOtp({
         email,
@@ -64,15 +64,17 @@ export const VerifyForm = () => {
             form.reset();
             router.push(callbackUrl as Route);
           },
-          onError: (error) => {
-            setError(error.error?.message || 'Login failed. Please try again.');
+          onError: (err) => {
+            setError(err.error?.message || 'Login failed. Please try again.');
           },
         },
       });
     });
   };
 
-  const handleResend = async () => {
+  const handleResend = () => {
+    setError(null);
+
     startResendTransition(async () => {
       if (!email) {
         toast.error('Error', {
@@ -95,30 +97,32 @@ export const VerifyForm = () => {
           },
         },
       });
-
-      setCountdown(RESEND_COOLDOWN);
     });
   };
 
   return (
-    <FieldSet>
-      <FieldLegend>Verify your login</FieldLegend>
-      <FieldDescription>
-        Enter the verification code we sent to your email address:{' '}
-        <span className="text-foreground">{email}</span>.
-      </FieldDescription>
-      <form onSubmit={form.handleSubmit(handleVerify)}>
-        <FieldGroup>
+    <FieldGroup className="gap-4">
+      <FieldSet className="px-6 max-lg:text-center">
+        <FieldLegend>Verify your login</FieldLegend>
+        <FieldDescription className="max-lg:text-center">
+          Enter the verification code we sent to{' '}
+          <span className="text-foreground">{email}</span>
+        </FieldDescription>
+      </FieldSet>
+
+      <form id={formId} onSubmit={form.handleSubmit(handleVerify)}>
+        <FieldGroup className="items-center px-6 pt-2">
           <FormInputOTP
             name="otp"
             control={form.control}
             label="Verification Code"
-            fieldClassName=""
+            fieldClassName="items-center"
             labelAction={
               <Button
                 variant="outline"
                 size="xs"
-                disabled={resendPending || countdown > 0 || verifyPending}
+                type="button"
+                disabled={resendPending || verifyPending}
                 onClick={handleResend}
               >
                 {resendPending ? (
@@ -135,8 +139,13 @@ export const VerifyForm = () => {
               </Button>
             }
           >
-            <FieldDescription className="-ml-5 flex w-full items-center justify-start">
-              <Button variant="link" className="text-muted-foreground">
+            <FieldDescription className="-ml-2.5 flex w-full items-center justify-start">
+              <Button
+                variant="link"
+                type="button"
+                className="text-muted-foreground"
+                onClick={goToLogin}
+              >
                 Use a different email address
               </Button>
             </FieldDescription>
@@ -152,35 +161,8 @@ export const VerifyForm = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          <div className="flex flex-col items-center gap-2">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={verifyPending || resendPending}
-            >
-              {verifyPending ? (
-                <>
-                  <Loader />
-                  <span>Verifying...</span>
-                </>
-              ) : (
-                'Verify Email'
-              )}
-            </Button>
-            <div className="text-muted-foreground">
-              Having trouble signing in?{' '}
-              <Button
-                type="button"
-                variant="link"
-                className="text-muted-foreground px-0"
-              >
-                Contact support
-              </Button>
-            </div>
-          </div>
         </FieldGroup>
       </form>
-    </FieldSet>
+    </FieldGroup>
   );
 };

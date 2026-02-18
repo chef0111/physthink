@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
   {
     rules: {
       'react-hooks/purity': 'off',
+      'react-hooks/set-state-in-effect': 'warn',
     },
   },
 ]);
