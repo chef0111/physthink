@@ -71,14 +71,14 @@ Replace the placeholder values with your actual credentials. You can obtain thes
 This project uses PostgreSQL hosted on Neon for the database, with Prisma ORM for schema management.
 
 **Generate Prisma Client**
-Run the following command to generate the Prisma client:
+- Run the following command to generate the Prisma client:
 
 ```bash
 bunx prisma generate
 ```
 
 **Run Database Migrations**
-To apply the database schema defined in `prisma/schema.prisma`, run the following command (only run when there're new changes made to the schema):
+- To apply the database schema defined in `prisma/schema.prisma`, run the following command (only run when there're new changes made to the schema):
 
 ```bash
 bunx prisma db push
