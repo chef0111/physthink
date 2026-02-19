@@ -10,19 +10,19 @@ export const DesktopNav = () => {
     <NavigationMenu className="hidden md:flex">
       <NavigationMenuList className="gap-2">
         <NavigationMenuItem
-          className="hover:bg-accent rounded-md px-2 py-1.5"
+          className="hover:bg-muted rounded-md px-2 py-1.5"
           asChild
         >
           <Link href="/">Home</Link>
         </NavigationMenuItem>
         <NavigationMenuItem
-          className="hover:bg-accent rounded-md px-2 py-1.5"
+          className="hover:bg-muted rounded-md px-2 py-1.5"
           asChild
         >
           <Link href="/courses">Courses</Link>
         </NavigationMenuItem>
         <NavigationMenuItem
-          className="hover:bg-accent rounded-md px-2 py-1.5"
+          className="hover:bg-muted rounded-md px-2 py-1.5"
           asChild
         >
           <Link href="/dashboard">Dashboard</Link>
