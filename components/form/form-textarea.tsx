@@ -7,10 +7,12 @@ import {
   InputGroupTextarea,
 } from '@/components/ui/input-group';
 import { FormBase, FormControlFn } from './form-base';
+import { cn } from '@/lib/utils';
 
 export const FormTextarea: FormControlFn<
   Omit<ComponentPropsWithoutRef<typeof Textarea>, 'children'> & {
     children?: ReactNode;
+    itemClassName?: string;
   }
 > = ({
   children,
@@ -20,6 +22,7 @@ export const FormTextarea: FormControlFn<
   description,
   labelAction,
   fieldClassName,
+  itemClassName,
   orientation,
   descPosition,
   ...textareaProps
@@ -36,10 +39,10 @@ export const FormTextarea: FormControlFn<
       descPosition={descPosition}
     >
       {(field) => (
-        <>
+        <div className={cn('flex', itemClassName)}>
           <Textarea {...field} {...textareaProps} />
           {children}
-        </>
+        </div>
       )}
     </FormBase>
   );
@@ -50,6 +53,7 @@ export const FormTextareaGroup: FormControlFn<
     children?: ReactNode;
     leftAddon?: ReactNode;
     rightAddon?: ReactNode;
+    itemClassName?: string;
   }
 > = ({
   children,
@@ -59,6 +63,7 @@ export const FormTextareaGroup: FormControlFn<
   description,
   labelAction,
   fieldClassName,
+  itemClassName,
   descPosition,
   orientation,
   leftAddon,
@@ -77,7 +82,7 @@ export const FormTextareaGroup: FormControlFn<
       descPosition={descPosition}
     >
       {(field) => (
-        <>
+        <div className={cn('flex', itemClassName)}>
           <InputGroup>
             {leftAddon && <InputGroupAddon>{leftAddon}</InputGroupAddon>}
             <InputGroupTextarea {...field} {...textareaProps} />
@@ -86,7 +91,7 @@ export const FormTextareaGroup: FormControlFn<
             )}
           </InputGroup>
           {children}
-        </>
+        </div>
       )}
     </FormBase>
   );

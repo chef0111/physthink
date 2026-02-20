@@ -11,8 +11,17 @@ import { FormBase, FormControlFn } from './form-base';
 export const FormSelect: FormControlFn<{
   children: ReactNode;
   fieldClassName?: string;
+  className?: string;
+  placeholder?: string;
   orientation?: 'horizontal' | 'vertical' | 'responsive' | null;
-}> = ({ children, fieldClassName, orientation, ...props }) => {
+}> = ({
+  children,
+  fieldClassName,
+  className,
+  orientation,
+  placeholder,
+  ...props
+}) => {
   return (
     <FormBase {...props} className={fieldClassName} orientation={orientation}>
       {({ onChange, onBlur, ...field }) => (
@@ -21,10 +30,11 @@ export const FormSelect: FormControlFn<{
             aria-invalid={field['aria-invalid']}
             id={field.id}
             onBlur={onBlur}
+            className={className}
           >
-            <SelectValue />
+            <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent>{children}</SelectContent>
+          <SelectContent className="w-full">{children}</SelectContent>
         </Select>
       )}
     </FormBase>

@@ -1,3 +1,4 @@
+import { courseLevels, courseStatus } from '@/common/constants';
 import z from 'zod';
 
 export const UsernameSchema = z
@@ -39,4 +40,31 @@ export const OTPSchema = z.object({
   otp: z
     .string()
     .min(6, { message: 'Your one-time password must be 6 numbers.' }),
+});
+
+export const CourseSchema = z.object({
+  title: z
+    .string()
+    .min(3, { message: 'Course title must be at least 3 characters long.' })
+    .max(100, { message: 'Course title cannot exceed 100 characters.' }),
+  description: z
+    .string()
+    .min(3, {
+      message: 'Course description must be at least 3 characters long.',
+    })
+    .max(200, { message: 'Course description cannot exceed 200 characters.' }),
+  thumbnail: z.string().min(1, { message: 'File key is required.' }),
+  duration: z.coerce
+    .number()
+    .min(1, { message: 'Course duration must be at least 1 hour.' })
+    .max(500, { message: 'Course duration cannot exceed 500 hours.' }),
+  level: z.enum(courseLevels, { message: 'Invalid course level.' }),
+  category: z.string(),
+  readme: z.string().min(3, {
+    message: 'Course README must be at least 3 characters long.',
+  }),
+  slug: z
+    .string()
+    .min(3, { message: 'Course slug must be at least 3 characters long.' }),
+  status: z.enum(courseStatus, { message: 'Invalid course status.' }),
 });

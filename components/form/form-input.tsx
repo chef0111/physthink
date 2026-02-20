@@ -7,10 +7,14 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { FormBase, FormControlFn } from './form-base';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export const FormInput: FormControlFn<
   Omit<ComponentPropsWithoutRef<typeof Input>, 'children'> & {
     children?: ReactNode;
+    itemClassName?: string;
   }
 > = ({
   children,
@@ -20,6 +24,7 @@ export const FormInput: FormControlFn<
   description,
   labelAction,
   fieldClassName,
+  itemClassName,
   descPosition,
   orientation,
   ...inputProps
@@ -36,10 +41,10 @@ export const FormInput: FormControlFn<
       descPosition={descPosition}
     >
       {(field) => (
-        <>
+        <div className={cn('flex', itemClassName)}>
           <Input {...field} {...inputProps} />
           {children}
-        </>
+        </div>
       )}
     </FormBase>
   );
@@ -50,6 +55,7 @@ export const FormInputGroup: FormControlFn<
     children?: ReactNode;
     leftAddon?: ReactNode;
     rightAddon?: ReactNode;
+    itemClassName?: string;
   }
 > = ({
   children,
@@ -59,6 +65,7 @@ export const FormInputGroup: FormControlFn<
   description,
   labelAction,
   fieldClassName,
+  itemClassName,
   orientation,
   descPosition,
   leftAddon,
@@ -77,7 +84,7 @@ export const FormInputGroup: FormControlFn<
       descPosition={descPosition}
     >
       {(field) => (
-        <>
+        <div className={cn('flex', itemClassName)}>
           <InputGroup className="min-h-10!">
             {leftAddon && <InputGroupAddon>{leftAddon}</InputGroupAddon>}
             <InputGroupInput {...field} {...inputProps} />
@@ -86,8 +93,107 @@ export const FormInputGroup: FormControlFn<
             )}
           </InputGroup>
           {children}
-        </>
+        </div>
       )}
+    </FormBase>
+  );
+};
+
+export const FormNumberInput: FormControlFn<
+  Omit<ComponentPropsWithoutRef<typeof Input>, 'children'> & {
+    step?: number;
+    min?: number;
+    max?: number;
+    children?: ReactNode;
+    itemClassName?: string;
+  }
+> = ({
+  children,
+  control,
+  name,
+  label,
+  description,
+  labelAction,
+  fieldClassName,
+  itemClassName,
+  descPosition,
+  orientation,
+  step = 1,
+  min,
+  max,
+  ...inputProps
+}) => {
+  return (
+    <FormBase
+      control={control}
+      name={name}
+      label={label}
+      description={description}
+      labelAction={labelAction}
+      className={fieldClassName}
+      orientation={orientation}
+      descPosition={descPosition}
+    >
+      {(field) => {
+        const handleIncrement = () => {
+          const newValue = (field.value || 0) + step;
+          if (max === undefined || newValue <= max) {
+            field.onChange(newValue);
+          }
+        };
+
+        const handleDecrement = () => {
+          const newValue = (field.value || 0) - step;
+          if (min === undefined || newValue >= min) {
+            field.onChange(newValue);
+          }
+        };
+        return (
+          <div className={cn('flex', itemClassName)}>
+            <div className="relative w-full">
+              <Input
+                type="number"
+                {...field}
+                {...inputProps}
+                onChange={(e) => {
+                  const value =
+                    e.target.value === '' ? 0 : Number(e.target.value);
+                  field.onChange(value);
+                }}
+                step={step}
+                min={min}
+                max={max}
+                className={cn(
+                  '[appearance:textfield] [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                  inputProps.className
+                )}
+              />
+              <div className="absolute top-1/4 right-0 flex h-1/2 -translate-y-1/2 flex-col">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-full w-5 rounded-b-none p-0 [&]:rounded-tl-none!"
+                  onClick={handleIncrement}
+                  disabled={max !== undefined && (field.value || 0) >= max}
+                >
+                  <ChevronUp className="size-3" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-full w-5 rounded-t-none p-0 [&]:rounded-bl-none!"
+                  style={{ borderBottomLeftRadius: 0 }}
+                  onClick={handleDecrement}
+                  disabled={min !== undefined && (field.value || 0) <= min}
+                >
+                  <ChevronDown className="size-3" />
+                </Button>
+              </div>
+            </div>
+            {children}
+          </div>
+        );
+      }}
     </FormBase>
   );
 };
