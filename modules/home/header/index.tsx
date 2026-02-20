@@ -6,7 +6,6 @@ import ThemeToggle from '@/components/ui/theme-toggle';
 import { Brand } from '@/components/ui/brand';
 import { LoginButton } from './login-button';
 import { DesktopNav } from './desktop-nav';
-import { MobileNav } from './mobile-nav';
 import { authClient } from '@/lib/auth-client';
 import { UserDropdown } from './user-dropdown';
 
@@ -24,7 +23,7 @@ export function Header() {
     >
       <nav className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
         <div className="flex items-center gap-5">
-          <Brand />
+          <Brand textClassName="flex!" />
           <DesktopNav />
         </div>
         <div className="flex items-center gap-2">
@@ -34,7 +33,6 @@ export function Header() {
           ) : (
             <LoginButton />
           )}
-          <MobileNav />
         </div>
       </nav>
     </header>
