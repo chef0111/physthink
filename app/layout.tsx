@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/context/theme-provider';
 import { Providers } from './providers';
 import NextTopLoader from 'nextjs-toploader';
 import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -41,7 +42,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <NextTopLoader showSpinner={false} />
-          <Providers>{children}</Providers>
+          <Providers>
+            <TooltipProvider>{children}</TooltipProvider>
+          </Providers>
           <Toaster richColors />
         </ThemeProvider>
       </body>

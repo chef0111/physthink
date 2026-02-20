@@ -7,7 +7,7 @@ import { Brand } from '@/components/ui/brand';
 import { LoginButton } from './login-button';
 import { DesktopNav } from './desktop-nav';
 import { authClient } from '@/lib/auth-client';
-import { UserDropdown } from './user-dropdown';
+import { UserDropdown } from '@/components/user/user-dropdown';
 
 export function Header() {
   const { data, isPending } = authClient.useSession();
@@ -23,7 +23,7 @@ export function Header() {
     >
       <nav className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
         <div className="flex items-center gap-5">
-          <Brand textClassName="flex!" />
+          <Brand />
           <DesktopNav />
         </div>
         <div className="flex items-center gap-2">

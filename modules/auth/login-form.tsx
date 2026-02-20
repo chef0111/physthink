@@ -42,8 +42,9 @@ export const LoginForm = ({ formId, onStateChange }: LoginFormProps) => {
     defaultValues: { email: '' },
   });
 
-  const pending = emailPending || googlePending || githubPending;
-  const disabled = pending || !form.formState.isDirty;
+  const pending = emailPending;
+  const disabled =
+    pending || githubPending || googlePending || !form.formState.isDirty;
 
   useEffect(() => {
     onStateChange({ pending, disabled });

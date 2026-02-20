@@ -1,13 +1,9 @@
 'use client';
 
-import { LogOutIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import { Route } from 'next';
 import Link from 'next/link';
 import UserAvatar from './user-avatar';
 import type { User } from '@/lib/auth';
-import { authClient } from '@/lib/auth-client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { LogOutIcon } from 'lucide-react';
 import { userItems } from '@/common/constants';
+import { useSignOut } from '@/hooks/use-sign-out';
+import { cn } from '@/lib/utils';
 
 interface UserDropdownProps {
   user: User;
@@ -26,6 +24,8 @@ interface UserDropdownProps {
 }
 
 export function UserDropdown({ user, className }: UserDropdownProps) {
+  const handleSignOut = useSignOut();
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger className={cn('no-focus', className)}>
@@ -44,7 +44,7 @@ export function UserDropdown({ user, className }: UserDropdownProps) {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             {userItems.map(({ href, icon: Icon, label }) => (
-              <DropdownMenuItem asChild key={href}>
+              <DropdownMenuItem asChild key={href} className="cursor-pointer">
                 <Link href={href as Route}>
                   <Icon className="opacity-60" aria-hidden="true" />
                   <span>{label}</span>
@@ -53,29 +53,11 @@ export function UserDropdown({ user, className }: UserDropdownProps) {
             ))}
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <SignOutItem />
+          <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
+            <LogOutIcon className="size-4" /> <span>Sign out</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenuGroup>
     </DropdownMenu>
-  );
-}
-
-function SignOutItem() {
-  const router = useRouter();
-
-  async function handleSignOut() {
-    const { error } = await authClient.signOut();
-    if (error) {
-      toast.error(error.message || 'Something went wrong');
-    } else {
-      toast.success('Signed out successfully');
-      router.push('/');
-    }
-  }
-
-  return (
-    <DropdownMenuItem onClick={handleSignOut}>
-      <LogOutIcon className="size-4" /> <span>Sign out</span>
-    </DropdownMenuItem>
   );
 }

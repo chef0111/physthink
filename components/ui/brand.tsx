@@ -27,11 +27,13 @@ export function Brand({
         containerClassName
       )}
     >
-      <div className={cn('bg-primary rounded-md p-2', className)}>
+      <div
+        className={cn('bg-primary flex items-center rounded-md p-2', className)}
+      >
         <LogoIcon width={size} height={size} className="invert dark:invert-0" />
       </div>
       {showText && (
-        <p className={cn('text-2xl font-bold max-sm:hidden', textClassName)}>
+        <p className={cn('hidden text-2xl font-bold sm:flex', textClassName)}>
           Next<span className="text-primary">Starter</span>
         </p>
       )}
