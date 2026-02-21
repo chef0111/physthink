@@ -1,7 +1,7 @@
 'use client';
 
 import z from 'zod';
-import { Activity, useRef, useState } from 'react';
+import { Activity, useCallback, useRef, useState } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CourseSchema } from '@/lib/validations';
@@ -16,6 +16,7 @@ import {
 } from '@/components/form';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, RotateCcw, Sparkles, Undo2 } from 'lucide-react';
+import { useCreateCourse } from '@/queries/course';
 import slugify from 'slugify';
 import { FormEditorMethods } from '@/components/editor/markdown/form-editor';
 import {
@@ -25,11 +26,14 @@ import {
 } from '@/common/constants';
 import { SelectGroup, SelectItem } from '@/components/ui/select';
 import { FileUploader } from './file-uploader';
+import { Loader } from '@/components/ui/loader';
 
 type FormData = z.infer<typeof CourseSchema>;
 
-export function CreateCourseForm() {
+export function CourseForm() {
   const editorRef = useRef<FormEditorMethods>(null);
+  const [editorKey, setEditorKey] = useState(0);
+  const [customCategory, setCustomCategory] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(CourseSchema) as Resolver<FormData>,
@@ -46,7 +50,11 @@ export function CreateCourseForm() {
     },
   });
 
-  const [customCategory, setCustomCategory] = useState(false);
+  const generateSlug = () => {
+    const title = form.getValues('title');
+    const slug = slugify(title, { lower: true, strict: true });
+    form.setValue('slug', slug, { shouldValidate: true });
+  };
 
   const handleCategoryChange = (value: string) => {
     if (value === 'Others') {
@@ -55,15 +63,23 @@ export function CreateCourseForm() {
     }
   };
 
-  const onSubmit = (data: FormData) => {
-    alert(`Form submitted: ${JSON.stringify(data, null, 2)}`);
-    form.reset();
+  const handleFormReset = useCallback(() => form.reset(), [form]);
+  const handleEditorReset = useCallback(
+    () => setEditorKey((prev) => prev + 1),
+    []
+  );
+
+  const resetForm = () => {
+    handleFormReset();
+    handleEditorReset();
   };
 
-  const generateSlug = () => {
-    const title = form.getValues('title');
-    const slug = slugify(title, { lower: true, strict: true });
-    form.setValue('slug', slug, { shouldValidate: true });
+  const createCourse = useCreateCourse({
+    onReset: resetForm,
+  });
+
+  const onSubmit = (data: FormData) => {
+    createCourse.mutate(data);
   };
 
   return (
@@ -98,6 +114,7 @@ export function CreateCourseForm() {
         <FormMarkdown
           control={form.control}
           editorRef={editorRef}
+          editorKey={editorKey}
           name="readme"
           label="Course Readme"
           description="Detailed information about the course, curriculum, requirements, etc."
@@ -119,7 +136,7 @@ export function CreateCourseForm() {
           )}
         </FormFileInput>
 
-        <FieldGroup className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FieldGroup className="grid grid-cols-1 items-baseline gap-4 md:grid-cols-2">
           <Activity mode={customCategory ? 'hidden' : 'visible'}>
             <FormSelect
               control={form.control}
@@ -212,12 +229,23 @@ export function CreateCourseForm() {
             type="button"
             variant="outline"
             size="lg"
-            onClick={() => form.reset()}
+            disabled={createCourse.isPending}
+            onClick={resetForm}
           >
             Reset <RotateCcw />
           </Button>
-          <Button type="submit" size="lg">
-            Create Course <PlusIcon />
+          <Button type="submit" size="lg" disabled={createCourse.isPending}>
+            {createCourse.isPending ? (
+              <>
+                <Loader />
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <span>Create Course</span>
+                <PlusIcon />
+              </>
+            )}
           </Button>
         </div>
       </FieldGroup>

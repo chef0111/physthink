@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { CreateCourseForm } from '@/modules/admin/course/create-course-form';
+import { CourseForm } from '@/modules/admin/course/course-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -30,7 +30,7 @@ export default function CreateCourse() {
               Provide basic information about the course
             </CardDescription>
           </CardHeader>
-          <CreateCourseForm />
+          <CourseForm />
         </CardContent>
       </Card>
     </>

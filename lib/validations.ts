@@ -1,5 +1,5 @@
-import { courseLevels, courseStatus } from '@/common/constants';
 import z from 'zod';
+import { courseLevels, courseStatus } from '@/common/constants';
 
 export const UsernameSchema = z
   .string()
@@ -53,13 +53,13 @@ export const CourseSchema = z.object({
       message: 'Course description must be at least 3 characters long.',
     })
     .max(200, { message: 'Course description cannot exceed 200 characters.' }),
-  thumbnail: z.string().min(1, { message: 'File key is required.' }),
+  thumbnail: z.string().min(1, { message: 'Thumbnail is required.' }),
   duration: z.coerce
     .number()
     .min(1, { message: 'Course duration must be at least 1 hour.' })
     .max(500, { message: 'Course duration cannot exceed 500 hours.' }),
   level: z.enum(courseLevels, { message: 'Invalid course level.' }),
-  category: z.string(),
+  category: z.string().min(1, { message: 'Category is required.' }),
   readme: z.string().min(3, {
     message: 'Course README must be at least 3 characters long.',
   }),
