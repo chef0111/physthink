@@ -1,109 +1,179 @@
 'use client';
 
-import { FileRejection, useDropzone } from 'react-dropzone';
-
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { FileRejection, useDropzone, type Accept } from 'react-dropzone';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
-import { EmptyState, ErrorState } from './render-state';
-import { toast } from 'sonner';
-import { v4 as uuid } from 'uuid';
+import { useUploadThing } from '@/lib/uploadthing';
+import { useDeleteFile } from '@/queries/uploadthing';
+import type { OurFileRouter } from '@/app/api/uploadthing/core';
+import {
+  EmptyState,
+  ErrorState,
+  UploadingState,
+  UploadedState,
+} from './render-state';
 
 const ERROR_MAP: Record<string, string> = {
   'too-many-files': 'Too many files, only 1 file is allowed',
-  'file-too-large': 'File too large, maximum size is 5MB',
-  'file-invalid-type': 'Invalid file, only images are allowed',
+  'file-too-large': 'File too large',
+  'file-invalid-type': 'Invalid file type',
 };
 
 interface FileUploaderProps {
   maxSize: number;
+  accept?: Accept;
+  endpoint: keyof OurFileRouter;
+  value?: string;
+  fileKey?: string;
+  onChange?: (url: string) => void;
+  onKeyChange?: (key: string) => void;
 }
 
-type FileState = {
-  id: string | null;
-  file: File | null;
-  type: 'image' | 'video' | Blob;
-  uploading: boolean;
-  progress: number;
-  key?: string;
-  deleting: boolean;
-  error: boolean;
-  objectUrl?: string;
-};
+export function FileUploader({
+  maxSize,
+  accept = { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] },
+  endpoint,
+  value,
+  fileKey,
+  onChange,
+  onKeyChange,
+}: FileUploaderProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-export function FileUploader({ maxSize }: FileUploaderProps) {
-  const [file, setFile] = useState<FileState>({
-    id: null,
-    file: null,
-    type: 'image',
-    uploading: false,
-    progress: 0,
-    deleting: false,
-    error: false,
+  useEffect(() => {
+    if (!value) {
+      setPreviewUrl(null);
+      setError(false);
+      setProgress(0);
+      setIsUploading(false);
+    }
+  }, [value]);
+
+  const deleteFileMutation = useDeleteFile();
+
+  const { startUpload } = useUploadThing(endpoint, {
+    onUploadProgress: (p) => setProgress(p),
+    onUploadError: (err) => {
+      setIsUploading(false);
+      setError(true);
+      toast.error('Upload failed', {
+        description: err.message || 'Something went wrong',
+      });
+    },
   });
 
-  const uploadFile = (file: File) => {
-    setFile((prev) => ({
-      ...prev,
-      uploading: true,
-      progress: 0,
-    }));
+  const handleUpload = useCallback(
+    async (files: File[]) => {
+      if (files.length === 0) return;
 
-    try {
-    } catch {
-      setFile((prev) => ({
-        ...prev,
-        uploading: false,
-        error: true,
-      }));
+      const file = files[0];
+      setIsUploading(true);
+      setProgress(0);
+      setError(false);
+      setPreviewUrl(URL.createObjectURL(file));
+
+      try {
+        const result = await startUpload(files);
+        if (result && result[0]) {
+          const { ufsUrl, key } = result[0];
+          onChange?.(ufsUrl);
+          onKeyChange?.(key);
+        }
+      } catch {
+        setError(true);
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [startUpload, onChange, onKeyChange]
+  );
+
+  const handleRemove = useCallback(() => {
+    if (fileKey) {
+      deleteFileMutation.mutate(
+        { key: fileKey },
+        {
+          onSuccess: () => {
+            onChange?.('');
+            onKeyChange?.('');
+            setPreviewUrl(null);
+            setError(false);
+          },
+          onError: () => {
+            toast.error('Failed to delete file');
+          },
+        }
+      );
+    } else {
+      onChange?.('');
+      onKeyChange?.('');
+      setPreviewUrl(null);
+      setError(false);
     }
-  };
+  }, [fileKey, deleteFileMutation, onChange, onKeyChange]);
 
-  const onDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      setFile({
-        id: uuid(),
-        file,
-        type: 'image',
-        uploading: false,
-        progress: 0,
-        deleting: false,
-        error: false,
-        objectUrl: URL.createObjectURL(file),
-      });
-    }
-  };
-
-  const rejectedFiles = (fileRejections: FileRejection[]) => {
-    console.log('fileRejections', JSON.stringify(fileRejections, null, 2));
-
+  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
     if (fileRejections.length) {
       const shownErrors = new Set<string>();
-
       fileRejections.forEach(({ errors }) => {
         const code = errors[0]?.code ?? 'unknown-error';
-
         if (code && ERROR_MAP[code] && !shownErrors.has(code)) {
           toast.error('Error', {
-            description: ERROR_MAP[code] ?? 'Unknown error occured',
+            description: ERROR_MAP[code] ?? 'Unknown error occurred',
           });
           shownErrors.add(code);
         }
       });
     }
-  };
+  }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
-    },
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+    onDrop: handleUpload,
+    accept,
     maxFiles: 1,
     multiple: false,
     maxSize,
-    onDropRejected: rejectedFiles,
+    onDropRejected,
+    disabled: isUploading,
+    noClick: true,
   });
+
+  const displayUrl = value || previewUrl;
+  const isDeleting = deleteFileMutation.isPending;
+
+  const renderContent = () => {
+    if (error && !isUploading) {
+      return <ErrorState onRetry={() => setError(false)} />;
+    }
+    if (isUploading) {
+      return <UploadingState progress={progress} previewUrl={previewUrl} />;
+    }
+    if (displayUrl) {
+      return (
+        <UploadedState
+          url={displayUrl}
+          onRemove={handleRemove}
+          isDeleting={isDeleting}
+        />
+      );
+    }
+    return (
+      <EmptyState isDragActive={isDragActive} maxSize={maxSize} onOpen={open} />
+    );
+  };
+
+  if (displayUrl && !error) {
+    return (
+      <Card className="relative w-full overflow-hidden rounded-lg border-2 border-dashed p-0 ring-0">
+        {renderContent()}
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -112,13 +182,12 @@ export function FileUploader({ maxSize }: FileUploaderProps) {
         'hover:bg-muted/50 relative w-full rounded-lg border-2 border-dashed bg-transparent p-0 text-center ring-0 transition-colors duration-200 focus:outline-none',
         isDragActive
           ? 'border-primary bg-primary/5'
-          : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+          : 'border-muted-foreground/25 hover:border-muted-foreground/50',
+        isUploading && 'pointer-events-none opacity-80'
       )}
     >
       <input {...getInputProps()} className="sr-only" />
-
-      <EmptyState isDragActive={isDragActive} maxSize={maxSize} />
-      {/* <ErrorState /> */}
+      {renderContent()}
     </Card>
   );
 }

@@ -197,3 +197,44 @@ export const FormNumberInput: FormControlFn<
     </FormBase>
   );
 };
+
+export const FormFileInput: FormControlFn<{
+  children: (props: {
+    value: string;
+    onChange: (url: string) => void;
+  }) => ReactNode;
+  itemClassName?: string;
+}> = ({
+  children,
+  control,
+  name,
+  label,
+  description,
+  labelAction,
+  fieldClassName,
+  itemClassName,
+  descPosition,
+  orientation,
+}) => {
+  return (
+    <FormBase
+      control={control}
+      name={name}
+      label={label}
+      description={description}
+      labelAction={labelAction}
+      className={fieldClassName}
+      orientation={orientation}
+      descPosition={descPosition}
+    >
+      {(field) => (
+        <div className={cn('flex flex-col', itemClassName)}>
+          {children({
+            value: field.value as string,
+            onChange: (url: string) => field.onChange(url),
+          })}
+        </div>
+      )}
+    </FormBase>
+  );
+};

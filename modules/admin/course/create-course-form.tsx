@@ -6,13 +6,18 @@ import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CourseSchema } from '@/lib/validations';
 import { FieldGroup } from '@/components/ui/field';
-import { FormInput, FormNumberInput } from '@/components/form/form-input';
+import {
+  FormInput,
+  FormFileInput,
+  FormNumberInput,
+  FormSelect,
+  FormTextarea,
+  FormMarkdown,
+} from '@/components/form';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, RotateCcw, Sparkles, Undo2 } from 'lucide-react';
 import slugify from 'slugify';
-import { FormSelect, FormTextarea } from '@/components/form';
 import { FormEditorMethods } from '@/components/editor/markdown/form-editor';
-import { FormMarkdown } from '@/components/form/form-markdown';
 import {
   courseCategories,
   courseLevels,
@@ -99,15 +104,20 @@ export function CreateCourseForm() {
           className="h-99 border-2"
         />
 
-        <FormInput
-          name="thumbnail"
+        <FormFileInput
           control={form.control}
+          name="thumbnail"
           label="Thumbnail"
-          placeholder="Thumbnail URL"
-          itemClassName="items-center flex-col gap-2"
         >
-          <FileUploader maxSize={1024 * 1024 * 5} />
-        </FormInput>
+          {({ value, onChange }) => (
+            <FileUploader
+              maxSize={3 * 1024 * 1024}
+              endpoint="imageUploader"
+              value={value}
+              onChange={onChange}
+            />
+          )}
+        </FormFileInput>
 
         <FieldGroup className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Activity mode={customCategory ? 'hidden' : 'visible'}>
