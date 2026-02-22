@@ -4,7 +4,7 @@ import { Header } from './components/header';
 import { Toolbar } from './components/toolbar';
 import { FilterContent } from '@/components/filter';
 import { CourseList } from './components/courses';
-import { CourseListSkeleton } from './components/courses-skeleton';
+import { CourseListSkeleton } from './components/course-skeleton';
 
 export default function Courses({ searchParams }: RouteParams) {
   return (

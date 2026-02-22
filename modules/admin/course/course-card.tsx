@@ -34,7 +34,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ data }: CourseCardProps) {
   return (
-    <Card className="group relative flex flex-col pt-3 pb-4">
+    <Card className="group relative flex flex-col border pt-3 pb-4">
       <div className="absolute top-4.5 right-4.5 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

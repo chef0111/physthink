@@ -31,7 +31,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href="/">
                 <LogoIcon className="ml-1 size-5! transition-all duration-200 group-data-[collapsible=icon]:ml-0" />
                 <span className="text-xl font-semibold">
-                  Next<span className="text-primary">Starter</span>
+                  Phys<span className="text-primary font-bold">Think</span>
                 </span>
               </Link>
             </SidebarMenuButton>

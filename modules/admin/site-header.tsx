@@ -14,7 +14,7 @@ export function SiteHeader() {
           className="mx-2 my-auto data-[orientation=vertical]:h-5"
         />
         <h1 className="text-foreground mx-2 text-base font-semibold">
-          Next<span className="text-muted-foreground">Starter</span>
+          Phys<span className="text-muted-foreground">Think</span>
         </h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" aria-label="GitHub Repository" asChild>

@@ -34,7 +34,7 @@ export function Brand({
       </div>
       {showText && (
         <p className={cn('hidden text-2xl font-bold sm:flex', textClassName)}>
-          Next<span className="text-primary">Starter</span>
+          Phys<span className="text-primary">Think</span>
         </p>
       )}
     </div>

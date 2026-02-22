@@ -4,6 +4,7 @@ import { getServerSession } from './lib/session';
 export async function proxy(request: NextRequest) {
   const sessionData = await getServerSession();
   const session = sessionData?.session;
+  const user = sessionData?.user;
   const pathname = request.nextUrl.pathname;
 
   // Protected routes - require authentication
@@ -15,6 +16,9 @@ export async function proxy(request: NextRequest) {
   // Auth routes - redirect to home if already logged in
   const authRoutes = ['/login'];
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+
+  const adminRoutes = ['/admin'];
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !session) {
@@ -33,6 +37,11 @@ export async function proxy(request: NextRequest) {
         ? callbackURL
         : '/';
     return NextResponse.redirect(new URL(redirectUrl, request.url));
+  }
+
+  // Redirect non-admin users away from admin routes
+  if (isAdminRoute && user?.role !== 'admin') {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();

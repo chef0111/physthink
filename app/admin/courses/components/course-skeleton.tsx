@@ -14,11 +14,11 @@ export const CourseListSkeleton = () => {
 
 export const CourseSkeleton = () => {
   return (
-    <Card className="group relative flex flex-col pt-3 pb-4">
+    <Card className="group relative flex flex-col border pt-3 pb-4">
       <div className="relative mx-3">
         <Skeleton className="h-72 w-full rounded-md sm:h-54 md:h-64" />
       </div>
-      <CardContent className="flex h-35.5 flex-col gap-0! px-4">
+      <CardContent className="flex h-36 flex-col gap-0! px-4">
         <div>
           <Skeleton className="h-5 w-36" />
           <Skeleton className="mt-2 h-4 w-72" />
