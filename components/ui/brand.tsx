@@ -15,7 +15,7 @@ interface BrandProps {
 export function Brand({
   href = '/',
   showText = true,
-  size = 16,
+  size = 20,
   className,
   containerClassName,
   textClassName,
@@ -28,7 +28,10 @@ export function Brand({
       )}
     >
       <div
-        className={cn('bg-primary flex items-center rounded-md p-2', className)}
+        className={cn(
+          'bg-primary flex items-center rounded-md p-1.5',
+          className
+        )}
       >
         <LogoIcon width={size} height={size} className="invert dark:invert-0" />
       </div>

@@ -15,8 +15,8 @@ export default function Loading({
         <Brand
           href={null}
           size={112}
-          className="rounded-2xl"
-          textClassName="text-8xl p-24"
+          className="rounded-2xl p-4"
+          textClassName="text-8xl"
         />
         <div className="flex flex-col items-center justify-center gap-2 pt-8">
           <h1 className="text-3xl font-bold">{title}</h1>
