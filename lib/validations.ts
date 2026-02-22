@@ -68,3 +68,11 @@ export const CourseSchema = z.object({
     .min(3, { message: 'Course slug must be at least 3 characters long.' }),
   status: z.enum(courseStatus, { message: 'Invalid course status.' }),
 });
+
+export const QueryParamsSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(10),
+  query: z.string().optional(),
+  filter: z.string().optional(),
+  sort: z.string().optional(),
+});

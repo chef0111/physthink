@@ -12,6 +12,7 @@ import { UserDropdown } from '@/components/user/user-dropdown';
 export function Header() {
   const { data, isPending } = authClient.useSession();
   const user = data?.user;
+  const admin = user?.role === 'admin';
   const scrolled = useScroll(10);
 
   return (
@@ -26,10 +27,10 @@ export function Header() {
           <Brand />
           <DesktopNav />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <ThemeToggle />
           {isPending ? null : user ? (
-            <UserDropdown user={user} />
+            <UserDropdown user={user} admin={admin} />
           ) : (
             <LoginButton />
           )}

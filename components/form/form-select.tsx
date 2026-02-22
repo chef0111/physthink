@@ -15,12 +15,14 @@ export const FormSelect: FormControlFn<{
   placeholder?: string;
   onValueChange?: (value: string) => void;
   orientation?: 'horizontal' | 'vertical' | 'responsive' | null;
+  position?: 'popper' | 'item-aligned';
 }> = ({
   children,
   fieldClassName,
   className,
   orientation,
   placeholder,
+  position,
   onValueChange,
   ...props
 }) => {
@@ -42,7 +44,9 @@ export const FormSelect: FormControlFn<{
           >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent className="w-full">{children}</SelectContent>
+          <SelectContent className="w-full" position={position}>
+            {children}
+          </SelectContent>
         </Select>
       )}
     </FormBase>

@@ -1,22 +1,26 @@
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Suspense } from 'react';
+import { FilterProvider } from '@/context/filter-provider';
+import { Header } from './components/header';
+import { Toolbar } from './components/toolbar';
+import { FilterContent } from '@/components/filter';
+import { CourseList } from './components/courses';
+import { CourseListSkeleton } from './components/courses-skeleton';
 
-export default function Courses() {
+export default function Courses({ searchParams }: RouteParams) {
   return (
-    <section>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Your courses</h1>
+    <FilterProvider>
+      <section className="space-y-10">
+        <Header />
+        <Toolbar />
+      </section>
 
-        <Button asChild>
-          <Link href="/admin/courses/create">Create Course</Link>
-        </Button>
-      </div>
-
-      <div>
-        <h1 className="text-muted-foreground">
-          Here you will see all of the courses
-        </h1>
-      </div>
-    </section>
+      <section className="mt-4">
+        <Suspense fallback={<CourseListSkeleton />}>
+          <FilterContent>
+            <CourseList searchParams={searchParams} />
+          </FilterContent>
+        </Suspense>
+      </section>
+    </FilterProvider>
   );
 }

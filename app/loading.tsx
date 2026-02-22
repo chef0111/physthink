@@ -16,7 +16,7 @@ export default function Loading({
           href={null}
           size={112}
           className="rounded-2xl"
-          textClassName="text-8xl p-12"
+          textClassName="text-8xl p-24"
         />
         <div className="flex flex-col items-center justify-center gap-2 pt-8">
           <h1 className="text-3xl font-bold">{title}</h1>

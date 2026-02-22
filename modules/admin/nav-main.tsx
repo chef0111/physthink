@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { BookOpen, CirclePlusIcon, LucideProps } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface NavMainProps {
   items: {
@@ -58,7 +59,14 @@ export function NavMain({ items }: NavMainProps) {
                 asChild
               >
                 <Link href={item.url as Route}>
-                  {item.icon && <item.icon className="size-4" />}
+                  {item.icon && (
+                    <item.icon
+                      className={cn(
+                        'size-4',
+                        pathname === item.url && 'text-primary'
+                      )}
+                    />
+                  )}
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>

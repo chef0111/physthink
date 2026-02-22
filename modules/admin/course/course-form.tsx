@@ -1,7 +1,7 @@
 'use client';
 
 import z from 'zod';
-import { Activity, useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CourseSchema } from '@/lib/validations';
@@ -140,25 +140,7 @@ export function CourseForm() {
         </FormFileInput>
 
         <FieldGroup className="grid grid-cols-1 items-baseline gap-4 md:grid-cols-2">
-          <Activity mode={customCategory ? 'hidden' : 'visible'}>
-            <FormSelect
-              control={form.control}
-              name="category"
-              label="Category"
-              className="w-full"
-              placeholder="Select a Category"
-              onValueChange={handleCategoryChange}
-            >
-              <SelectGroup>
-                {courseCategories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </FormSelect>
-          </Activity>
-          <Activity mode={customCategory ? 'visible' : 'hidden'}>
+          {customCategory ? (
             <FormInput
               control={form.control}
               name="category"
@@ -174,14 +156,32 @@ export function CourseForm() {
                 className="shrink-0"
                 onClick={() => {
                   setCustomCategory(false);
-                  form.setValue('category', '', { shouldValidate: true });
+                  form.setValue('category', '');
                 }}
                 title="Back to category select"
               >
                 <Undo2 />
               </Button>
             </FormInput>
-          </Activity>
+          ) : (
+            <FormSelect
+              control={form.control}
+              name="category"
+              label="Category"
+              className="w-full"
+              placeholder="Select a Category"
+              position="popper"
+              onValueChange={handleCategoryChange}
+            >
+              <SelectGroup>
+                {courseCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </FormSelect>
+          )}
 
           <FormSelect
             control={form.control}
@@ -189,6 +189,7 @@ export function CourseForm() {
             label="Level"
             className="w-full"
             placeholder="Select a Level"
+            position="popper"
           >
             <SelectGroup>
               {courseLevels.map((level) => (
@@ -216,6 +217,7 @@ export function CourseForm() {
             label="Status"
             className="w-full"
             placeholder="Select a Status"
+            position="popper"
           >
             <SelectGroup>
               {courseStatus.map((status) => (

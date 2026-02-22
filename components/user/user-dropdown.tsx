@@ -13,17 +13,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOutIcon } from 'lucide-react';
+import { LogOutIcon, ShieldUser } from 'lucide-react';
 import { userItems } from '@/common/constants';
 import { useSignOut } from '@/hooks/use-sign-out';
 import { cn } from '@/lib/utils';
 
 interface UserDropdownProps {
   user: User;
+  admin?: boolean;
   className?: string;
 }
 
-export function UserDropdown({ user, className }: UserDropdownProps) {
+export function UserDropdown({
+  user,
+  admin = false,
+  className,
+}: UserDropdownProps) {
   const handleSignOut = useSignOut();
 
   return (
@@ -42,6 +47,17 @@ export function UserDropdown({ user, className }: UserDropdownProps) {
             <span className="truncate">{user.email}</span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {admin && (
+            <>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href="/admin">
+                  <ShieldUser className="opacity-60" aria-hidden="true" />
+                  <span>Admin</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuGroup>
             {userItems.map(({ href, icon: Icon, label }) => (
               <DropdownMenuItem asChild key={href} className="cursor-pointer">

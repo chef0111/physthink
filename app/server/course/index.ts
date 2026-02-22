@@ -1,9 +1,14 @@
 import { admin } from '@/app/middleware/admin';
-import { CourseSchema } from '@/lib/validations';
-import { createCourse as createCourseDAL } from './dal';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { CourseSchema, QueryParamsSchema } from '@/lib/validations';
+import {
+  createCourse as createCourseDAL,
+  listCourses as listCoursesDAL,
+} from './dal';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { heavyWriteSecurityMiddleware } from '@/app/middleware/arcjet/heavy-write';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { CoursesListSchema } from './dto';
+import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 
 export const createCourse = admin
   .use(standardSecurityMiddleware)
@@ -17,4 +22,14 @@ export const createCourse = admin
     revalidatePath('/admin/courses');
 
     return course;
+  });
+
+export const listCourses = admin
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .input(QueryParamsSchema)
+  .output(CoursesListSchema)
+  .handler(async ({ input }) => {
+    const courses = await listCoursesDAL(input);
+    return courses;
   });
