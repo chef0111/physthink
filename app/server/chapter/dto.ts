@@ -1,6 +1,19 @@
 import 'server-only';
 
 import z from 'zod';
+import { LessonSchema } from '../lesson/dto';
+
+export const ChapterSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  position: z.number(),
+  lessons: z.array(LessonSchema),
+});
+
+export const CreateChapterSchema = z.object({
+  title: z.string(),
+  courseId: z.string(),
+});
 
 export const UpdateChapterTitleSchema = z.object({
   id: z.string(),
@@ -23,6 +36,8 @@ export const ReorderChapterSchema = z.object({
   courseId: z.string(),
 });
 
+export type ChapterDTO = z.infer<typeof ChapterSchema>;
+export type CreateChapterDTO = z.infer<typeof CreateChapterSchema>;
 export type UpdateChapterTitleDTO = z.infer<typeof UpdateChapterTitleSchema>;
 export type DeleteChapterDTO = z.infer<typeof DeleteChapterSchema>;
 export type ChapterOrderDTO = z.infer<typeof ChapterOrderSchema>;

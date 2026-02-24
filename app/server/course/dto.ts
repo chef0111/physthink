@@ -2,22 +2,7 @@ import 'server-only';
 
 import z from 'zod';
 import { CourseSchema } from '@/lib/validations';
-
-export const LessonSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string().nullish(),
-  thumbnail: z.string().nullish(),
-  video: z.string().nullish(),
-  position: z.number(),
-});
-
-export const ChapterSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  position: z.number(),
-  lessons: z.array(LessonSchema),
-});
+import { ChapterSchema } from '../chapter/dto';
 
 export const GetCourseSchema = CourseSchema.extend({
   id: z.string(),
@@ -42,5 +27,3 @@ export type CourseDTO = z.infer<typeof GetCourseSchema>;
 export type UpdateCourseDTO = z.infer<typeof UpdateCourseSchema>;
 export type CourseListDTO = z.infer<typeof CourseListSchema>;
 export type CoursesListDTO = z.infer<typeof CoursesListSchema>;
-export type ChapterDTO = z.infer<typeof ChapterSchema>;
-export type LessonDTO = z.infer<typeof LessonSchema>;

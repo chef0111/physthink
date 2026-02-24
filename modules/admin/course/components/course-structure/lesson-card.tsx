@@ -41,11 +41,11 @@ export const LessonCard = ({
             <span className="sr-only">Drag to reorder</span>
           </Button>
           <Link
-            href={`/admin/courses/${courseId}/lessons/${data.id}` as Route}
+            href={`/admin/courses/${courseId}/${chapterId}/${data.id}` as Route}
             className="group/link flex w-full items-center gap-2"
           >
             <FileText className="size-4" />
-            <p className="w-full font-medium underline-offset-4 group-hover/link:underline">
+            <p className="line-clamp-1 w-full truncate font-medium underline-offset-4 group-hover/link:underline">
               {data.title}
             </p>
           </Link>

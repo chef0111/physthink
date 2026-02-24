@@ -1,9 +1,54 @@
 import 'server-only';
 
 import { prisma } from '@/lib/prisma';
-import { LessonOrderDTO } from './dto';
+import { LessonOrderDTO, LessonSchema, NewLessonSchema } from './dto';
+import { validateOne } from '../utils';
 
 export class LessonDAL {
+  private static readonly select = {
+    id: true,
+    title: true,
+    description: true,
+    thumbnail: true,
+    video: true,
+    position: true,
+  };
+
+  static async create(title: string, chapterId: string) {
+    return prisma.$transaction(async (tx) => {
+      const maxPos = await tx.lesson.findFirst({
+        where: {
+          chapterId,
+        },
+        select: {
+          position: true,
+        },
+        orderBy: { position: 'desc' },
+      });
+
+      const lesson = await tx.lesson.create({
+        data: { title, chapterId, position: (maxPos?.position ?? 0) + 1 },
+        select: {
+          id: true,
+          title: true,
+          chapterId: true,
+          position: true,
+        },
+      });
+
+      return validateOne(lesson, NewLessonSchema, 'Lesson');
+    });
+  }
+
+  static async getById(id: string) {
+    const lesson = await prisma.lesson.findUnique({
+      where: { id },
+      select: this.select,
+    });
+
+    return validateOne(lesson, LessonSchema, 'Lesson');
+  }
+
   static async updateTitle(id: string, title: string) {
     return prisma.$transaction(async (tx) => {
       return tx.lesson.update({
@@ -45,6 +90,12 @@ export class LessonDAL {
     return await prisma.$transaction(updates);
   }
 }
+
+export const getById = (...args: Parameters<typeof LessonDAL.getById>) =>
+  LessonDAL.getById(...args);
+
+export const createLesson = (...args: Parameters<typeof LessonDAL.create>) =>
+  LessonDAL.create(...args);
 
 export const updateTitle = (
   ...args: Parameters<typeof LessonDAL.updateTitle>

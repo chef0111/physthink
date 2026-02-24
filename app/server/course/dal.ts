@@ -17,7 +17,7 @@ type CourseSort = 'newest' | 'oldest';
 type CourseFilter = 'draft' | 'published' | 'archived';
 
 export class CourseDAL {
-  private static readonly selectFields = {
+  private static readonly select = {
     id: true,
     title: true,
     description: true,
@@ -94,7 +94,7 @@ export class CourseDAL {
     const courses = await prisma.course.findMany({
       where,
       orderBy: this.getSortCriteria(sort as CourseSort),
-      select: this.selectFields,
+      select: this.select,
       skip: offset,
       take: limit,
     });
@@ -112,7 +112,7 @@ export class CourseDAL {
     const data = await prisma.course.findUnique({
       where: { id },
       select: {
-        ...this.selectFields,
+        ...this.select,
         readme: true,
         category: true,
         chapters: {

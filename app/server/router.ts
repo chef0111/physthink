@@ -1,7 +1,18 @@
 import { deleteFiles } from './uploadthing';
 import { createCourse, getCourse, listCourses, updateCourse } from './course';
-import { updateChapterTitle, deleteChapter, reorderChapter } from './chapter';
-import { updateLessonTitle, deleteLesson, reorderLesson } from './lesson';
+import {
+  updateChapterTitle,
+  deleteChapter,
+  reorderChapter,
+  createChapter,
+} from './chapter';
+import {
+  updateLessonTitle,
+  deleteLesson,
+  reorderLesson,
+  getLesson,
+  createLesson,
+} from './lesson';
 
 export const router = {
   uploadthing: {
@@ -14,11 +25,14 @@ export const router = {
     update: updateCourse,
   },
   chapter: {
+    create: createChapter,
     updateTitle: updateChapterTitle,
     delete: deleteChapter,
     reorder: reorderChapter,
   },
   lesson: {
+    create: createLesson,
+    get: getLesson,
     updateTitle: updateLessonTitle,
     delete: deleteLesson,
     reorder: reorderLesson,

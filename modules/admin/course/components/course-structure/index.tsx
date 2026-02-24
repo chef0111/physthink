@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   Active,
   DndContext,
   DragEndEvent,
-  DragOverlay,
   DragStartEvent,
   KeyboardSensor,
   Over,
@@ -14,25 +13,20 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CourseDTO } from '@/app/server/course/dto';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChapterCard } from './chapter-card';
-import { LessonCard } from './lesson-card';
 import { PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useReorderLesson } from '@/queries/lesson';
 import { useReorderChapter } from '@/queries/chapter';
 import { orpc } from '@/lib/orpc';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { SortableItem } from './sortable-item';
+import { ContentDragOverlay, CourseStructureContent } from './content';
+import { CreateItemForm } from './create-item-form';
+import { EmptyCourseStructure } from './empty';
 
 interface CourseStructureProps {
   courseId: string;
@@ -63,6 +57,9 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
   const { data } = useSuspenseQuery(
     orpc.course.get.queryOptions({ input: { id: courseId } })
   );
+  const [createOpen, setCreateOpen] = useState(false);
+  const chapters = data.chapters;
+  const dndId = useId();
 
   const buildItems = (
     chapters: CourseDTO['chapters'],
@@ -249,90 +246,50 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
       : null;
 
   return (
-    <DndContext
-      collisionDetection={rectIntersection}
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      modifiers={[restrictToVerticalAxis]}
-    >
-      <Card className="rounded-lg pt-0">
-        <CardHeader className="flex flex-row items-center justify-between border-b py-4!">
-          <CardTitle className="text-lg">Chapters</CardTitle>
-          <Button>
-            <PlusIcon /> New chapter
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <SortableContext items={items} strategy={verticalListSortingStrategy}>
-            {items.map((item) => (
-              <SortableItem
-                key={item.id}
-                id={item.id}
-                data={{ type: 'chapter' }}
-              >
-                {(listeners) => (
-                  <ChapterCard
-                    data={item}
-                    onOpenChange={() => toggleChapter(item.id)}
-                    listeners={listeners}
-                    courseId={data.id}
-                  >
-                    <SortableContext
-                      items={item.lessons.map((lesson) => lesson.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {item.lessons.map((lesson) => (
-                        <SortableItem
-                          key={lesson.id}
-                          id={lesson.id}
-                          data={{ type: 'lesson', chapterId: item.id }}
-                        >
-                          {(lessonListeners) => (
-                            <LessonCard
-                              courseId={data.id}
-                              chapterId={item.id}
-                              data={lesson}
-                              listeners={lessonListeners}
-                            />
-                          )}
-                        </SortableItem>
-                      ))}
-                    </SortableContext>
-                  </ChapterCard>
-                )}
-              </SortableItem>
-            ))}
-          </SortableContext>
-        </CardContent>
-      </Card>
-
-      {/* The visual clone that follows the cursor during drag */}
-      <DragOverlay dropAnimation={null}>
-        {activeChapter && (
-          <ChapterCard
-            data={activeChapter}
-            onOpenChange={() => {}}
-            courseId={data.id}
-          >
-            {activeChapter.lessons.map((lesson) => (
-              <LessonCard
-                key={lesson.id}
+    <>
+      <DndContext
+        id={dndId}
+        collisionDetection={rectIntersection}
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <Card className="rounded-lg pt-0">
+          <CardHeader className="flex flex-row items-center justify-between border-b py-4!">
+            <CardTitle className="text-lg">Chapters</CardTitle>
+            <Button onClick={() => setCreateOpen(true)}>
+              <PlusIcon /> New chapter
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {chapters.length > 0 ? (
+              <CourseStructureContent
+                items={items}
                 courseId={data.id}
-                chapterId={activeChapter.id}
-                data={lesson}
+                toggleChapter={toggleChapter}
               />
-            ))}
-          </ChapterCard>
-        )}
-        {activeLesson && activeItem?.type === 'lesson' && (
-          <LessonCard
-            courseId={data.id}
-            chapterId={activeItem.chapterId}
-            data={activeLesson}
-          />
-        )}
-      </DragOverlay>
-    </DndContext>
+            ) : (
+              <EmptyCourseStructure />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* The visual clone that follows the cursor during drag */}
+        <ContentDragOverlay
+          activeItem={activeItem}
+          activeChapter={activeChapter}
+          activeLesson={activeLesson}
+          courseId={data.id}
+        />
+      </DndContext>
+
+      <CreateItemForm
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        type="chapter"
+        courseId={data.id}
+      />
+    </>
   );
 };

@@ -1,0 +1,122 @@
+import { DragOverlay } from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { ChapterCard } from './chapter-card';
+import { LessonCard } from './lesson-card';
+import { SortableItem } from './sortable-item';
+
+type LessonItem = {
+  id: string;
+  title: string;
+  description?: string | null;
+  thumbnail?: string | null;
+  video?: string | null;
+  order: number;
+};
+
+type ChapterItem = {
+  id: string;
+  title: string;
+  order: number;
+  isOpen: boolean;
+  lessons: LessonItem[];
+};
+
+type ActiveItem =
+  | { type: 'chapter'; id: string }
+  | { type: 'lesson'; id: string; chapterId: string };
+
+interface CourseStructureContentProps {
+  items: ChapterItem[];
+  courseId: string;
+  toggleChapter: (chapterId: string) => void;
+}
+
+export function CourseStructureContent({
+  items,
+  courseId,
+  toggleChapter,
+}: CourseStructureContentProps) {
+  return (
+    <SortableContext items={items} strategy={verticalListSortingStrategy}>
+      {items.map((item) => (
+        <SortableItem key={item.id} id={item.id} data={{ type: 'chapter' }}>
+          {(listeners) => (
+            <ChapterCard
+              data={item}
+              onOpenChange={() => toggleChapter(item.id)}
+              listeners={listeners}
+              courseId={courseId}
+            >
+              <SortableContext
+                items={item.lessons.map((lesson) => lesson.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {item.lessons.map((lesson) => (
+                  <SortableItem
+                    key={lesson.id}
+                    id={lesson.id}
+                    data={{ type: 'lesson', chapterId: item.id }}
+                  >
+                    {(lessonListeners) => (
+                      <LessonCard
+                        courseId={courseId}
+                        chapterId={item.id}
+                        data={lesson}
+                        listeners={lessonListeners}
+                      />
+                    )}
+                  </SortableItem>
+                ))}
+              </SortableContext>
+            </ChapterCard>
+          )}
+        </SortableItem>
+      ))}
+    </SortableContext>
+  );
+}
+
+interface DragOverlayProps {
+  activeItem: ActiveItem | null;
+  activeChapter: ChapterItem | null | undefined;
+  activeLesson: LessonItem | null | undefined;
+  courseId: string;
+}
+
+export function ContentDragOverlay({
+  activeItem,
+  activeChapter,
+  activeLesson,
+  courseId,
+}: DragOverlayProps) {
+  return (
+    <DragOverlay dropAnimation={null}>
+      {activeChapter && (
+        <ChapterCard
+          data={activeChapter}
+          onOpenChange={() => {}}
+          courseId={courseId}
+        >
+          {activeChapter.lessons.map((lesson) => (
+            <LessonCard
+              key={lesson.id}
+              courseId={courseId}
+              chapterId={activeChapter.id}
+              data={lesson}
+            />
+          ))}
+        </ChapterCard>
+      )}
+      {activeLesson && activeItem?.type === 'lesson' && (
+        <LessonCard
+          courseId={courseId}
+          chapterId={activeItem.chapterId}
+          data={activeLesson}
+        />
+      )}
+    </DragOverlay>
+  );
+}

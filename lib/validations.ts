@@ -76,3 +76,7 @@ export const QueryParamsSchema = z.object({
   filter: z.string().optional(),
   sort: z.string().optional(),
 });
+
+export const TitleSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100),
+});

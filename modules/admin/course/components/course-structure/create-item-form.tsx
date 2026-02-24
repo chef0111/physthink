@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -16,9 +17,8 @@ import {
 import { FormInput } from '@/components/form';
 import { FieldGroup } from '@/components/ui/field';
 import { Loader } from '@/components/ui/loader';
-import { SaveIcon } from 'lucide-react';
-import { useUpdateChapterTitle } from '@/queries/chapter';
-import { useUpdateLessonTitle } from '@/queries/lesson';
+import { useCreateChapter } from '@/queries/chapter';
+import { useCreateLesson } from '@/queries/lesson';
 
 type FormData = z.infer<typeof TitleSchema>;
 
@@ -26,59 +26,60 @@ interface EditTitleFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: 'chapter' | 'lesson';
-  id: string;
   courseId: string;
   chapterId?: string; // required when type === 'lesson'
-  currentTitle: string;
 }
 
-export function EditTitleForm({
+export function CreateItemForm({
   open,
   onOpenChange,
   type,
-  id,
   courseId,
   chapterId,
-  currentTitle,
 }: EditTitleFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(TitleSchema),
-    defaultValues: { title: currentTitle },
+    defaultValues: {
+      title: '',
+    },
   });
 
   useEffect(() => {
     if (open) {
-      form.reset({ title: currentTitle });
+      form.reset();
     }
-  }, [open, currentTitle, form]);
+  }, [open, form]);
 
-  const updateChapterTitle = useUpdateChapterTitle(courseId);
-  const updateLessonTitle = useUpdateLessonTitle(courseId);
+  const createChapter = useCreateChapter(courseId);
+  const createLesson = useCreateLesson(courseId);
 
-  const mutation = type === 'chapter' ? updateChapterTitle : updateLessonTitle;
+  const mutation = type === 'chapter' ? createChapter : createLesson;
   const isPending = mutation.isPending;
 
   const onSubmit = (data: FormData) => {
     if (type === 'chapter') {
-      updateChapterTitle.mutate(
-        { id, courseId, title: data.title },
+      createChapter.mutate(
+        { courseId, title: data.title },
         { onSuccess: () => onOpenChange(false) }
       );
     } else {
-      updateLessonTitle.mutate(
-        { id, courseId, chapterId: chapterId!, title: data.title },
+      createLesson.mutate(
+        { courseId, chapterId: chapterId!, title: data.title },
         { onSuccess: () => onOpenChange(false) }
       );
     }
   };
 
-  const label = type === 'chapter' ? 'Chapter Title' : 'Lesson Title';
+  const label = type === 'chapter' ? 'Chapter title' : 'Lesson title';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit {label}</DialogTitle>
+          <DialogTitle>Create new {label}</DialogTitle>
+          <DialogDescription>
+            Provide a title for the new {type}. You can change it later.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
@@ -100,10 +101,7 @@ export function EditTitleForm({
                   <span>Saving...</span>
                 </>
               ) : (
-                <>
-                  <SaveIcon />
-                  <span>Save</span>
-                </>
+                <span>Save change</span>
               )}
             </Button>
           </DialogFooter>

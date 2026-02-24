@@ -20,6 +20,7 @@ import {
 import { EditTitleForm } from './edit-title-form';
 import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import { cn } from '@/lib/utils';
+import { CreateItemForm } from './create-item-form';
 
 interface ChapterCardProps {
   onOpenChange: () => void;
@@ -36,6 +37,7 @@ export const ChapterCard = ({
   listeners,
   courseId,
 }: ChapterCardProps) => {
+  const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -104,6 +106,7 @@ export const ChapterCard = ({
               variant="outline"
               size="lg"
               className="mt-4 w-full text-base"
+              onClick={() => setCreateOpen(true)}
             >
               <PlusIcon className="mr-1" />
               Add Lesson
@@ -112,6 +115,13 @@ export const ChapterCard = ({
         </Collapsible>
       </Card>
 
+      <CreateItemForm
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        type="lesson"
+        courseId={courseId}
+        chapterId={data.id}
+      />
       <EditTitleForm
         open={editOpen}
         onOpenChange={setEditOpen}

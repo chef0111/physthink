@@ -9,10 +9,13 @@ import { Route } from 'next';
 import Link from 'next/link';
 
 export default async function EditCourse({ params }: RouteParams) {
-  const { id } = await params;
+  const { courseId } = await params;
   const queryClient = getQueryClient();
 
-  const queryOptions = orpc.course.get.queryOptions({ input: { id } });
+  const queryOptions = orpc.course.get.queryOptions({
+    input: { id: courseId },
+  });
+
   const course = await queryClient.fetchQuery(queryOptions);
 
   return (
@@ -36,7 +39,7 @@ export default async function EditCourse({ params }: RouteParams) {
 
       <CourseTabs
         basic={<CourseForm course={course} isEdit />}
-        structure={<CourseStructure courseId={id} />}
+        structure={<CourseStructure courseId={courseId} />}
       />
     </HydrateClient>
   );

@@ -1,9 +1,36 @@
 import 'server-only';
 
 import { prisma } from '@/lib/prisma';
-import { ChapterOrderDTO } from './dto';
+import { ChapterOrderDTO, CreateChapterSchema } from './dto';
+import { validateOne } from '../utils';
 
 export class ChapterDAL {
+  static async create(title: string, courseId: string) {
+    return prisma.$transaction(async (tx) => {
+      const maxPos = await tx.chapter.findFirst({
+        where: {
+          courseId,
+        },
+        select: {
+          position: true,
+        },
+        orderBy: { position: 'desc' },
+      });
+
+      const chapter = await tx.chapter.create({
+        data: { title, courseId, position: (maxPos?.position ?? 0) + 1 },
+        select: {
+          id: true,
+          title: true,
+          courseId: true,
+          position: true,
+        },
+      });
+
+      return validateOne(chapter, CreateChapterSchema, 'Chapter');
+    });
+  }
+
   static async updateTitle(id: string, title: string) {
     return prisma.$transaction(async (tx) => {
       return tx.chapter.update({
@@ -45,6 +72,9 @@ export class ChapterDAL {
     return await prisma.$transaction(updates);
   }
 }
+
+export const createChapter = (...args: Parameters<typeof ChapterDAL.create>) =>
+  ChapterDAL.create(...args);
 
 export const updateTitle = (
   ...args: Parameters<typeof ChapterDAL.updateTitle>
