@@ -1,6 +1,6 @@
-# A Next.js 16 fullstack starter template for busy devs
+# PhysThink - Interactive LMS powered by K2Think AI
 
-This repository includes a Next.js app, TailwindCSS + shadcn/ui for styling and UI components, Prisma for the database layer, oRPC + Tanstack Query for API implementation, Better-Auth for authentication, Arcjet for security, and more.
+Official repository of PhysThink - An intuitive Learning Management System built with Next.js 16, powered by K2Think V2.
 
 ## <a name="quick-start">🤸 Quick Start</a>
 
@@ -61,6 +61,9 @@ DATABASE_URL=
 
 # Arcjet
 ARCJET_KEY=
+
+# UPLOADTHING
+UPLOADTHING_TOKEN=
 
 ```
 
