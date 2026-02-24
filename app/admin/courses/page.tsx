@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
 import { FilterProvider } from '@/context/filter-provider';
-import { Header } from './components/header';
-import { Toolbar } from './components/toolbar';
+import { Header } from '@/modules/admin/course/layout/header';
+import { Toolbar } from '@/modules/admin/course/layout/toolbar';
 import { FilterContent } from '@/components/filter';
-import { CourseList } from './components/courses';
-import { CourseListSkeleton } from './components/course-skeleton';
+import { CourseList } from './courses';
+import { CourseListSkeleton } from '@/modules/admin/course/layout/loading';
 
 export default function Courses({ searchParams }: RouteParams) {
   return (

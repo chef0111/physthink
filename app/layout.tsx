@@ -50,7 +50,7 @@ export default function RootLayout({
               <TooltipProvider>{children}</TooltipProvider>
             </NuqsAdapter>
           </Providers>
-          <Toaster richColors />
+          <Toaster closeButton richColors />
         </ThemeProvider>
       </body>
     </html>

@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { CourseForm } from '@/modules/admin/course/course-form';
+import { CourseForm } from '@/modules/admin/course/components/course-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 

@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ListFilter } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { useFilterTransition } from '@/context/filter-provider';
+import { ListFilter, XIcon } from 'lucide-react';
 
 interface Filter {
   label: string;
@@ -23,12 +24,14 @@ interface FilterProps {
   filters: Filter[];
   className?: string;
   containerClassName?: string;
+  width?: string;
 }
 
 export const FilterSelect = ({
   filters,
   className,
   containerClassName,
+  width,
 }: FilterProps) => {
   const { startTransition } = useFilterTransition();
 
@@ -47,10 +50,12 @@ export const FilterSelect = ({
   const [filterValue, setFilterValue] = useOptimistic(filter);
 
   const handleUpdateFilter = (value: string) => {
+    const resolved = value === 'clear' ? '' : value;
+
     startTransition(() => {
-      setFilterValue(value);
+      setFilterValue(resolved);
       setParams({
-        filter: value || null,
+        filter: resolved || null,
         page: 1,
       });
     });
@@ -66,17 +71,18 @@ export const FilterSelect = ({
         <SelectTrigger
           className={cn(
             'border-border! ring-border/50! cursor-pointer border ring-1!',
+            !filterValue ? 'min-w-24' : width,
             className
           )}
           aria-label="Filter Options"
         >
           <div className="line-clamp-1 flex flex-1 items-center gap-2 text-left">
             <ListFilter />
-            <SelectValue placeholder="Select a filter" />
+            <SelectValue placeholder="Filter" />
           </div>
         </SelectTrigger>
 
-        <SelectContent className="w-full" position="popper">
+        <SelectContent className="w-full min-w-24" position="popper">
           <SelectGroup>
             {filters.map((item) => (
               <SelectItem
@@ -88,6 +94,17 @@ export const FilterSelect = ({
                 {item.label}
               </SelectItem>
             ))}
+            {filterValue && (
+              <>
+                <Separator className="my-1" />
+                <SelectItem value="clear" showCheck={false}>
+                  <span className="text-muted-foreground">Clear Filter</span>
+                  <span className="pointer-events-none absolute right-2 flex size-4 items-center">
+                    <XIcon className="text-muted-foreground" />
+                  </span>
+                </SelectItem>
+              </>
+            )}
           </SelectGroup>
         </SelectContent>
       </Select>

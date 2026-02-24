@@ -4,8 +4,8 @@ import { DataRenderer } from '@/components/data-renderer';
 import { orpc } from '@/lib/orpc';
 import { resolveData, safeFetch } from '@/lib/query/helper';
 import { getQueryClient } from '@/lib/query/hydration';
-import CourseCard from '@/modules/admin/course/course-card';
-import { GridLayout } from './grid-layout';
+import CourseCard from '@/modules/admin/course/components/course-card';
+import { GridLayout } from '@/modules/admin/course/layout/grid-layout';
 
 export async function CourseList({
   searchParams,

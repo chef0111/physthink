@@ -15,8 +15,8 @@ import {
   FormMarkdown,
 } from '@/components/form';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, RotateCcw, Sparkles, Undo2 } from 'lucide-react';
-import { useCreateCourse } from '@/queries/course';
+import { PlusIcon, RotateCcw, SaveIcon, Sparkles, Undo2 } from 'lucide-react';
+import { useCreateCourse, useUpdateCourse } from '@/queries/course';
 import slugify from 'slugify';
 import { FormEditorMethods } from '@/components/editor/markdown/form-editor';
 import {
@@ -27,27 +27,37 @@ import {
 import { SelectGroup, SelectItem } from '@/components/ui/select';
 import { FileUploader } from './file-uploader';
 import { Loader } from '@/components/ui/loader';
+import { CourseDTO } from '@/app/server/course/dto';
 
 type FormData = z.infer<typeof CourseSchema>;
 
-export function CourseForm() {
+interface CourseFormProps {
+  course?: CourseDTO | null;
+  isEdit?: boolean;
+}
+
+export function CourseForm({ course, isEdit = false }: CourseFormProps) {
   const editorRef = useRef<FormEditorMethods>(null);
   const [editorKey, setEditorKey] = useState(0);
   const [resetUploader, setResetUploader] = useState(false);
-  const [customCategory, setCustomCategory] = useState(false);
+
+  const isCustomCategory =
+    !!course?.category &&
+    !(courseCategories as ReadonlyArray<string>).includes(course.category);
+  const [customCategory, setCustomCategory] = useState(isCustomCategory);
 
   const form = useForm<FormData>({
     resolver: zodResolver(CourseSchema) as Resolver<FormData>,
     defaultValues: {
-      title: '',
-      description: '',
-      thumbnail: '',
-      duration: 1,
-      level: 'Beginner',
-      category: '',
-      readme: '### Hello World 🚀',
-      slug: '',
-      status: 'Draft',
+      title: course?.title ?? '',
+      description: course?.description ?? '',
+      thumbnail: course?.thumbnail ?? '',
+      duration: course?.duration ?? 1,
+      level: course?.level ?? 'Beginner',
+      category: course?.category ?? '',
+      readme: course?.readme ?? '### Hello World 🚀',
+      slug: course?.slug ?? '',
+      status: course?.status ?? 'Draft',
     },
   });
 
@@ -64,7 +74,25 @@ export function CourseForm() {
     }
   };
 
-  const handleFormReset = useCallback(() => form.reset(), [form]);
+  const handleFormReset = useCallback(
+    () =>
+      form.reset(
+        isEdit && course
+          ? {
+              title: course.title,
+              description: course.description,
+              thumbnail: course.thumbnail,
+              duration: course.duration,
+              level: course.level,
+              category: course.category,
+              readme: course.readme,
+              slug: course.slug,
+              status: course.status,
+            }
+          : undefined
+      ),
+    [form, isEdit, course]
+  );
   const handleEditorReset = useCallback(
     () => setEditorKey((prev) => prev + 1),
     []
@@ -76,17 +104,23 @@ export function CourseForm() {
     setResetUploader(true);
   };
 
-  const createCourse = useCreateCourse({
-    onReset: resetForm,
-  });
+  const createCourse = useCreateCourse({ onReset: resetForm });
+  const updateCourse = useUpdateCourse(course?.id ?? '');
+
+  const mutation = isEdit ? updateCourse : createCourse;
+  const isPending = mutation.isPending;
 
   const onSubmit = (data: FormData) => {
-    createCourse.mutate(data);
+    if (isEdit && course?.id) {
+      updateCourse.mutate({ ...data, id: course.id });
+    } else {
+      createCourse.mutate(data);
+    }
   };
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup className="px-4">
+      <FieldGroup>
         <FormInput
           control={form.control}
           name="title"
@@ -101,7 +135,7 @@ export function CourseForm() {
           itemClassName="items-center w-full gap-2"
         >
           <Button type="button" className="w-fit" onClick={generateSlug}>
-            Generate Slug <Sparkles />
+            <Sparkles /> Generate Slug
           </Button>
         </FormInput>
 
@@ -234,21 +268,30 @@ export function CourseForm() {
             type="button"
             variant="outline"
             size="lg"
-            disabled={createCourse.isPending}
+            disabled={isPending || !form.formState.isDirty}
             onClick={resetForm}
           >
-            Reset <RotateCcw />
+            <RotateCcw /> Reset
           </Button>
-          <Button type="submit" size="lg" disabled={createCourse.isPending}>
-            {createCourse.isPending ? (
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isPending || !form.formState.isDirty}
+          >
+            {isPending ? (
               <>
                 <Loader />
-                <span>Creating...</span>
+                <span>{isEdit ? 'Saving...' : 'Creating...'}</span>
+              </>
+            ) : isEdit ? (
+              <>
+                <SaveIcon />
+                <span>Save Changes</span>
               </>
             ) : (
               <>
-                <span>Create Course</span>
                 <PlusIcon />
+                <span>Create Course</span>
               </>
             )}
           </Button>

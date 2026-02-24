@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowUpDown } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { useFilterTransition } from '@/context/filter-provider';
+import { ArrowUpDown, XIcon } from 'lucide-react';
 
 interface SortOption {
   label: string;
@@ -23,12 +24,14 @@ interface SortSelectProps {
   options: SortOption[];
   className?: string;
   containerClassName?: string;
+  width?: string;
 }
 
 export const SortSelect = ({
   options,
   className,
   containerClassName,
+  width,
 }: SortSelectProps) => {
   const { startTransition } = useFilterTransition();
 
@@ -47,10 +50,12 @@ export const SortSelect = ({
   const [sortValue, setSortValue] = useOptimistic(sort);
 
   const handleUpdateSort = (value: string) => {
+    const resolved = value === 'clear' ? '' : value;
+
     startTransition(() => {
-      setSortValue(value);
+      setSortValue(resolved);
       setParams({
-        sort: value || null,
+        sort: resolved || null,
         page: 1,
       });
     });
@@ -66,7 +71,7 @@ export const SortSelect = ({
         <SelectTrigger
           className={cn(
             'border-border! ring-border/50! min-h-10 cursor-pointer border ring-1!',
-            !sortValue ? 'min-w-24' : 'min-w-30',
+            !sortValue ? 'min-w-24' : width,
             className
           )}
           aria-label="Sort Options"
@@ -89,6 +94,17 @@ export const SortSelect = ({
                 {item.label}
               </SelectItem>
             ))}
+            {sortValue && (
+              <>
+                <Separator className="my-1" />
+                <SelectItem value="clear" showCheck={false}>
+                  <span className="text-muted-foreground">Clear Sort</span>
+                  <span className="pointer-events-none absolute right-2 flex size-4 items-center">
+                    <XIcon className="text-muted-foreground" />
+                  </span>
+                </SelectItem>
+              </>
+            )}
           </SelectGroup>
         </SelectContent>
       </Select>

@@ -3,12 +3,16 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { CourseSchema, QueryParamsSchema } from '@/lib/validations';
 import {
   createCourse as createCourseDAL,
+  getCourseById,
   listCourses as listCoursesDAL,
+  updateCourse as updateCourseDAL,
 } from './dal';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { heavyWriteSecurityMiddleware } from '@/app/middleware/arcjet/heavy-write';
-import { CoursesListSchema } from './dto';
+import { writeSecurityMiddleware } from '@/app/middleware/arcjet/write';
+import { CoursesListSchema, GetCourseSchema, UpdateCourseSchema } from './dto';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
+import z from 'zod';
 
 export const createCourse = admin
   .use(standardSecurityMiddleware)
@@ -32,4 +36,31 @@ export const listCourses = admin
   .handler(async ({ input }) => {
     const courses = await listCoursesDAL(input);
     return courses;
+  });
+
+export const getCourse = admin
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .input(z.object({ id: z.string() }))
+  .output(GetCourseSchema)
+  .handler(async ({ input }) => {
+    const course = await getCourseById(input.id);
+    return course;
+  });
+
+export const updateCourse = admin
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .input(UpdateCourseSchema)
+  .output(UpdateCourseSchema)
+  .handler(async ({ input }) => {
+    const { id, ...data } = input;
+    const course = await updateCourseDAL(id, input);
+
+    revalidateTag(`course:${course.id}`, 'max');
+    revalidateTag('courses', 'max');
+    revalidatePath('/admin/courses');
+    revalidatePath(`/admin/courses/${id}/edit`);
+
+    return { id: course.id, ...data };
   });
