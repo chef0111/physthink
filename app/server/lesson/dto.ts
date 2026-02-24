@@ -5,7 +5,7 @@ import z from 'zod';
 export const LessonSchema = z.object({
   id: z.string(),
   title: z.string(),
-  description: z.string().nullish(),
+  content: z.string().nullish(),
   thumbnail: z.string().nullish(),
   video: z.string().nullish(),
   position: z.number(),

@@ -10,7 +10,7 @@ import { SortableItem } from './sortable-item';
 type LessonItem = {
   id: string;
   title: string;
-  description?: string | null;
+  content?: string | null;
   thumbnail?: string | null;
   video?: string | null;
   order: number;

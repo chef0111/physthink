@@ -126,7 +126,7 @@ export class CourseDAL {
               select: {
                 id: true,
                 title: true,
-                description: true,
+                content: true,
                 thumbnail: true,
                 video: true,
                 position: true,

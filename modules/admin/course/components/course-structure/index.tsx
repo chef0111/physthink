@@ -35,7 +35,7 @@ interface CourseStructureProps {
 type LessonItem = {
   id: string;
   title: string;
-  description?: string | null;
+  content?: string | null;
   thumbnail?: string | null;
   video?: string | null;
   order: number;
@@ -73,7 +73,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
       lessons: chapter.lessons.map((lesson) => ({
         id: lesson.id,
         title: lesson.title,
-        description: lesson.description,
+        description: lesson.content,
         thumbnail: lesson.thumbnail,
         video: lesson.video,
         order: lesson.position,

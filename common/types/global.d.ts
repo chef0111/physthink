@@ -14,7 +14,7 @@ interface QueryParams {
 interface Lesson {
   id: string;
   title: string;
-  description?: string | null;
+  content?: string | null;
   thumbnail?: string | null;
   video?: string | null;
   order: number;

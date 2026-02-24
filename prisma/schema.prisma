@@ -137,7 +137,7 @@ model Chapter {
 model Lesson {
   id          String   @id @default(uuid())
   title       String
-  description String?
+  content     String?
   thumbnail   String?
   video       String?
   position    Int

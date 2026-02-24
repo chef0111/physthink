@@ -8,7 +8,7 @@ export class LessonDAL {
   private static readonly select = {
     id: true,
     title: true,
-    description: true,
+    content: true,
     thumbnail: true,
     video: true,
     position: true,
