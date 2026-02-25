@@ -108,6 +108,7 @@ export function LessonForm({ lesson, courseId }: LessonFormProps) {
           {({ value, onChange }) => (
             <MediaUploader
               type="video"
+              accept={{ 'video/*': ['.mp4', '.mov', '.avi', '.webm'] }}
               maxSize={25 * 1024 * 1024}
               endpoint="mediaUploader"
               value={value}

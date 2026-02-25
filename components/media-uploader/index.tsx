@@ -141,7 +141,9 @@ export function MediaUploader({
       return <UploadingState progress={progress} fileName={fileName} />;
     }
     if (displayUrl) {
-      return <UploadedState url={displayUrl} onRemove={handleRemove} />;
+      return (
+        <UploadedState type={type} url={displayUrl} onRemove={handleRemove} />
+      );
     }
     return (
       <EmptyState

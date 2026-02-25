@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { SVGProps } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Empty,
@@ -19,15 +18,20 @@ import {
   Trash2,
   UploadIcon,
 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { CircularProgress } from '@/components/ui/circular-progress';
-import { Ring } from '@/components/ui/ring';
+import { MediaVideo } from '@/components/media-uploader/media-video';
+import { MediaAudio } from '@/components/media-uploader/media-audio';
+import { MediaImage } from './media-image';
 
 type MediaType = 'image' | 'video' | 'audio';
 
 const EMPTY_STATE_CONFIG: Record<
   MediaType,
-  { icon: React.ElementType; title: string; description: React.ReactNode }
+  {
+    icon: React.ComponentType<SVGProps<SVGSVGElement>>;
+    title: string;
+    description: React.ReactNode;
+  }
 > = {
   image: {
     icon: ImageIcon,
@@ -47,7 +51,7 @@ const EMPTY_STATE_CONFIG: Record<
       <>
         Drag and drop a video here or click to browse
         <br />
-        MP4, MOV or WEBM
+        MP4, MOV, AVI or WEBM
       </>
     ),
   },
@@ -66,7 +70,7 @@ const EMPTY_STATE_CONFIG: Record<
 
 const ERROR_STATE_CONFIG: Record<
   MediaType,
-  { icon: React.ElementType; title: string }
+  { icon: React.ComponentType<{ className?: string }>; title: string }
 > = {
   image: {
     icon: ImageIcon,
@@ -196,41 +200,45 @@ export function UploadingState({ progress, fileName }: UploadingStateProps) {
 }
 
 interface UploadedStateProps {
+  type: MediaType;
   url: string;
   onRemove: () => void;
 }
 
-export function UploadedState({ url, onRemove }: UploadedStateProps) {
-  const [isImageLoading, setIsImageLoading] = useState(true);
-
-  return (
-    <div className="relative flex min-h-80 items-center justify-center p-4 py-4">
-      {isImageLoading && <Skeleton className="absolute inset-4 rounded-md" />}
-      <div className="relative aspect-auto overflow-hidden rounded-md">
-        <Image
-          src={url}
-          alt="Uploaded file"
-          height={240}
-          width={400}
-          onLoad={() => setIsImageLoading(false)}
-          className={cn(
-            'max-h-72 w-auto object-contain transition-opacity duration-300',
-            isImageLoading ? 'opacity-0' : 'opacity-100'
-          )}
-        />
-        <Ring className="ring-3" />
-      </div>
-      {!isImageLoading && (
+export function UploadedState({ type, url, onRemove }: UploadedStateProps) {
+  if (type === 'video') {
+    return (
+      <div className="relative flex flex-col items-center gap-3 p-4">
+        <MediaVideo src={url} />
         <Button
           type="button"
           variant="destructive"
           size="icon"
-          className="absolute top-2 right-2 size-8"
+          className="absolute top-5 right-5 size-8"
           onClick={onRemove}
         >
           <Trash2 className="size-4" />
         </Button>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  if (type === 'audio') {
+    return (
+      <div className="relative">
+        <MediaAudio src={url} />
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          className="absolute top-2 right-2 z-10 size-8"
+          onClick={onRemove}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return <MediaImage url={url} onRemove={onRemove} />;
 }
