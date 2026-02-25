@@ -9,10 +9,13 @@ import {
   ReorderLessonSchema,
   LessonSchema,
   CreateLessonSchema,
+  UpdateLessonSchema,
+  LessonConfigSchema,
 } from './dto';
 import {
   getById,
   createLesson as createLessonDAL,
+  updateLesson as updateLessonDAL,
   updateTitle,
   deleteLesson as deleteLessonDAL,
   updatePosition,
@@ -37,6 +40,23 @@ export const createLesson = admin
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
     return await createLessonDAL(title, chapterId);
+  });
+
+export const updateLesson = admin
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .input(UpdateLessonSchema)
+  .output(LessonConfigSchema)
+  .handler(async ({ input }) => {
+    const { id, courseId, ...data } = input;
+    const lesson = await updateLessonDAL(id, data);
+
+    revalidateTag(`course:${courseId}`, 'max');
+    revalidateTag(`lesson:${id}`, 'max');
+    revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/admin/courses/${courseId}/lesson/${id}`);
+
+    return lesson;
   });
 
 export const updateLessonTitle = admin

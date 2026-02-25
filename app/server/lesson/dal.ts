@@ -1,7 +1,12 @@
 import 'server-only';
 
 import { prisma } from '@/lib/prisma';
-import { LessonOrderDTO, LessonSchema, NewLessonSchema } from './dto';
+import {
+  LessonConfigDTO,
+  LessonOrderDTO,
+  LessonSchema,
+  NewLessonSchema,
+} from './dto';
 import { validateOne } from '../utils';
 
 export class LessonDAL {
@@ -37,6 +42,17 @@ export class LessonDAL {
       });
 
       return validateOne(lesson, NewLessonSchema, 'Lesson');
+    });
+  }
+
+  static async update(id: string, data: LessonConfigDTO) {
+    return prisma.$transaction(async (tx) => {
+      const lesson = await tx.lesson.update({
+        where: { id },
+        data,
+      });
+
+      return validateOne(lesson, LessonSchema, 'Lesson');
     });
   }
 
@@ -96,6 +112,9 @@ export const getById = (...args: Parameters<typeof LessonDAL.getById>) =>
 
 export const createLesson = (...args: Parameters<typeof LessonDAL.create>) =>
   LessonDAL.create(...args);
+
+export const updateLesson = (...args: Parameters<typeof LessonDAL.update>) =>
+  LessonDAL.update(...args);
 
 export const updateTitle = (
   ...args: Parameters<typeof LessonDAL.updateTitle>

@@ -17,8 +17,8 @@ Make sure you have the following installed on your machine:
 **Cloning the Repository**
 
 ```bash
-git clone https://github.com/chef0111/dev4room.git
-cd dev4room
+git clone https://github.com/chef0111/physthink.git
+cd physthink
 ```
 
 **Installation**
@@ -31,6 +31,7 @@ curl -fsSL https://bun.sh/install | bash        # Linux & macOS
 powershell -c "irm bun.sh/install.ps1 | iex"    # Windows
 
 # Install dependencies
+bun init # Only run this if you never used bun before
 bun install
 ```
 

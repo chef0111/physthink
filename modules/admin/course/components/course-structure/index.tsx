@@ -73,7 +73,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
       lessons: chapter.lessons.map((lesson) => ({
         id: lesson.id,
         title: lesson.title,
-        description: lesson.content,
+        content: lesson.content,
         thumbnail: lesson.thumbnail,
         video: lesson.video,
         order: lesson.position,
