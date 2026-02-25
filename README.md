@@ -84,7 +84,7 @@ bunx prisma generate
 
 **Run Database Migrations**
 
-- To apply the database schema defined in `prisma/schema.prisma`, run the following command (only run when there're new changes made to the schema):
+- To apply the database schema defined in `prisma/schema.prisma`, run the following command **(only run when there're new changes made to the schema)**:
 
 ```bash
 bunx prisma db push
