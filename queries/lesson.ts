@@ -22,6 +22,26 @@ export function useCreateLesson(courseId: string) {
   );
 }
 
+export function useUpdateLesson(lessonId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    orpc.lesson.update.mutationOptions({
+      onSuccess: () => {
+        toast.success('Lesson updated successfully');
+        queryClient.invalidateQueries(
+          orpc.lesson.get.queryOptions({ input: { id: lessonId } })
+        );
+      },
+      onError: (error) => {
+        toast.error('Failed to update lesson', {
+          description: error.message,
+        });
+      },
+    })
+  );
+}
+
 export function useUpdateLessonTitle(courseId: string) {
   const queryClient = useQueryClient();
 

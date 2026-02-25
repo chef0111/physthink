@@ -9,6 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider
+      hotkey={false}
       style={
         {
           '--sidebar-width': 'calc(var(--spacing) * 72)',

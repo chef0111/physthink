@@ -12,6 +12,7 @@ import {
   reorderLesson,
   getLesson,
   createLesson,
+  updateLesson,
 } from './lesson';
 
 export const router = {
@@ -33,6 +34,7 @@ export const router = {
   lesson: {
     create: createLesson,
     get: getLesson,
+    update: updateLesson,
     updateTitle: updateLessonTitle,
     delete: deleteLesson,
     reorder: reorderLesson,

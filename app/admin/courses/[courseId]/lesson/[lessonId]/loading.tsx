@@ -6,31 +6,31 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { CourseForm } from '@/modules/admin/course/components/course-form';
 import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LessonForm } from '@/modules/admin/lesson/components/lesson-form';
 
-export default function CreateCourse() {
+export default function LessonPage() {
   return (
     <>
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/admin/courses">
-            <ArrowLeft />
-          </Link>
+        <Button variant="outline" size="icon">
+          <ArrowLeft />
+          <span className="sr-only">Go back</span>
         </Button>
-        <h1 className="text-2xl font-bold">Create Course</h1>
+
+        <Skeleton className="h-6 w-48" />
       </div>
 
       <Card>
         <CardContent className="space-y-8 px-8">
           <CardHeader className="px-0">
-            <CardTitle className="text-xl">Basic Information</CardTitle>
+            <CardTitle className="text-xl">Lesson Configuration</CardTitle>
             <CardDescription>
-              Provide basic information about the course
+              Configure the structure and content of this lesson
             </CardDescription>
           </CardHeader>
-          <CourseForm />
+          <LessonForm />
         </CardContent>
       </Card>
     </>

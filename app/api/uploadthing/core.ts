@@ -1,8 +1,7 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { UploadThingError } from 'uploadthing/server';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
 import arcjet, { detectBot, shield, slidingWindow } from '@/lib/arcjet';
+import { requireAdminSession } from '@/lib/session';
 
 const f = createUploadthing();
 
@@ -23,25 +22,22 @@ const aj = arcjet
   );
 
 export const ourFileRouter = {
-  imageUploader: f({
+  mediaUploader: f({
     image: {
       maxFileSize: '4MB',
       maxFileCount: 1,
     },
+    video: {
+      maxFileSize: '32MB',
+      maxFileCount: 1,
+    },
+    audio: {
+      maxFileSize: '8MB',
+      maxFileCount: 1,
+    },
   })
     .middleware(async ({ req }) => {
-      const session = await auth.api.getSession({
-        headers: await headers(),
-        query: { disableCookieCache: true },
-      });
-
-      if (!session?.session || !session?.user) {
-        throw new UploadThingError('Unauthorized');
-      }
-
-      if (session.user.role !== 'admin') {
-        throw new UploadThingError('Unauthorized');
-      }
+      const session = await requireAdminSession();
 
       const decision = await aj.protect(req, {
         userId: session.user.id,

@@ -41,7 +41,7 @@ export const LessonCard = ({
             <span className="sr-only">Drag to reorder</span>
           </Button>
           <Link
-            href={`/admin/courses/${courseId}/${chapterId}/${data.id}` as Route}
+            href={`/admin/courses/${courseId}/lesson/${data.id}` as Route}
             className="group/link flex w-full items-center gap-2"
           >
             <FileText className="size-4" />

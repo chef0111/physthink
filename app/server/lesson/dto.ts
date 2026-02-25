@@ -17,6 +17,17 @@ export const CreateLessonSchema = z.object({
   courseId: z.string(),
 });
 
+export const UpdateLessonSchema = LessonSchema.extend({
+  courseId: z.string(),
+}).omit({
+  position: true,
+});
+
+export const LessonConfigSchema = LessonSchema.omit({
+  id: true,
+  position: true,
+});
+
 export const NewLessonSchema = CreateLessonSchema.omit({
   courseId: true,
 });
@@ -47,6 +58,7 @@ export const ReorderLessonSchema = z.object({
 
 export type LessonDTO = z.infer<typeof LessonSchema>;
 export type CreateLessonDTO = z.infer<typeof CreateLessonSchema>;
+export type LessonConfigDTO = z.infer<typeof LessonConfigSchema>;
 export type UpdateLessonTitleDTO = z.infer<typeof UpdateLessonTitleSchema>;
 export type DeleteLessonDTO = z.infer<typeof DeleteLessonSchema>;
 export type LessonOrderDTO = z.infer<typeof LessonOrderSchema>;

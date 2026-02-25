@@ -25,8 +25,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              asChild
               className="h-10 data-[slot=sidebar-menu-button]:p-1.5!"
+              asChild
             >
               <Link href="/">
                 <LogoIcon className="ml-1 size-5! transition-all duration-200 group-data-[collapsible=icon]:ml-0" />

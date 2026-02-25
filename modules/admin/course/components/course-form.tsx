@@ -25,7 +25,7 @@ import {
   courseStatus,
 } from '@/common/constants';
 import { SelectGroup, SelectItem } from '@/components/ui/select';
-import { FileUploader } from './file-uploader';
+import { MediaUploader } from '@/components/media-uploader';
 import { Loader } from '@/components/ui/loader';
 import { CourseDTO } from '@/app/server/course/dto';
 
@@ -39,7 +39,7 @@ interface CourseFormProps {
 export function CourseForm({ course, isEdit = false }: CourseFormProps) {
   const editorRef = useRef<FormEditorMethods>(null);
   const [editorKey, setEditorKey] = useState(0);
-  const [resetUploader, setResetUploader] = useState(false);
+  const [uploaderResetKey, setUploaderResetKey] = useState(0);
 
   const isCustomCategory =
     !!course?.category &&
@@ -101,7 +101,7 @@ export function CourseForm({ course, isEdit = false }: CourseFormProps) {
   const resetForm = () => {
     handleFormReset();
     handleEditorReset();
-    setResetUploader(true);
+    setUploaderResetKey((k) => k + 1);
   };
 
   const createCourse = useCreateCourse({ onReset: resetForm });
@@ -111,7 +111,7 @@ export function CourseForm({ course, isEdit = false }: CourseFormProps) {
   const isPending = mutation.isPending;
 
   const onSubmit = (data: FormData) => {
-    if (isEdit && course?.id) {
+    if (isEdit && course) {
       updateCourse.mutate({ ...data, id: course.id });
     } else {
       createCourse.mutate(data);
@@ -163,12 +163,12 @@ export function CourseForm({ course, isEdit = false }: CourseFormProps) {
           label="Thumbnail"
         >
           {({ value, onChange }) => (
-            <FileUploader
+            <MediaUploader
               maxSize={3 * 1024 * 1024}
-              endpoint="imageUploader"
+              endpoint="mediaUploader"
               value={value}
               onChange={onChange}
-              reset={resetUploader}
+              resetKey={uploaderResetKey}
             />
           )}
         </FormFileInput>

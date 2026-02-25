@@ -46,7 +46,7 @@ export const CourseSchema = z.object({
   title: z
     .string()
     .min(3, { message: 'Course title must be at least 3 characters long.' })
-    .max(100, { message: 'Course title cannot exceed 100 characters.' }),
+    .max(100, { message: 'Course title cannot excceed 100 characters.' }),
   description: z
     .string()
     .min(3, {
@@ -69,14 +69,27 @@ export const CourseSchema = z.object({
   status: z.enum(courseStatus, { message: 'Invalid course status.' }),
 });
 
+export const LessonSchema = z.object({
+  title: z
+    .string()
+    .min(3, { message: 'Lesson title must be at least 3 characters long.' })
+    .max(100, { message: 'Lesson title cannot exceed 100 characters.' }),
+  content: z
+    .string()
+    .max(5000, { message: 'Lesson content must not exceed 5000 characters.' })
+    .nullish(),
+  thumbnail: z.string().nullish(),
+  video: z.string().nullish(),
+});
+
+export const TitleSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100),
+});
+
 export const QueryParamsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(10),
   query: z.string().optional(),
   filter: z.string().optional(),
   sort: z.string().optional(),
-});
-
-export const TitleSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(100),
 });

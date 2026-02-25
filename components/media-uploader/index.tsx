@@ -21,40 +21,40 @@ const ERROR_MAP: Record<string, string> = {
   'file-invalid-type': 'Invalid file type',
 };
 
-interface FileUploaderProps {
+interface MediaUploaderProps {
   maxSize: number;
+  type?: 'image' | 'video' | 'audio';
   accept?: Accept;
   endpoint: keyof OurFileRouter;
   value?: string;
-  reset?: boolean;
+  /** Increment this counter to trigger a reset of internal upload state. */
+  resetKey?: number;
   onChange?: (url: string) => void;
 }
 
-export function FileUploader({
+export function MediaUploader({
   maxSize,
+  type = 'image',
   accept = { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] },
   endpoint,
   value,
-  reset,
+  resetKey = 0,
   onChange,
-}: FileUploaderProps) {
+}: MediaUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadedKey, setUploadedKey] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!value || reset) {
-      setPreviewUrl(null);
-      setError(false);
-      setProgress(0);
-      setIsUploading(false);
-      setUploadedKey(null);
-      setFileName(null);
-    }
-  }, [value, reset]);
+    if (resetKey === 0) return;
+    setError(false);
+    setProgress(0);
+    setIsUploading(false);
+    setUploadedKey(null);
+    setFileName(null);
+  }, [resetKey]);
 
   const deleteFile = useDeleteFile();
 
@@ -78,7 +78,6 @@ export function FileUploader({
       setProgress(0);
       setError(false);
       setFileName(file.name);
-      setPreviewUrl(URL.createObjectURL(file));
 
       try {
         const result = await startUpload(files);
@@ -98,7 +97,6 @@ export function FileUploader({
 
   const handleRemove = useCallback(() => {
     onChange?.('');
-    setPreviewUrl(null);
     setError(false);
 
     if (uploadedKey) {
@@ -133,26 +131,25 @@ export function FileUploader({
     noClick: true,
   });
 
-  const displayUrl = value || previewUrl;
+  const displayUrl = value;
 
   const renderContent = () => {
     if (error && !isUploading) {
-      return <ErrorState onRetry={() => setError(false)} />;
+      return <ErrorState type={type} onRetry={() => setError(false)} />;
     }
     if (isUploading) {
-      return (
-        <UploadingState
-          progress={progress}
-          previewUrl={previewUrl}
-          fileName={fileName}
-        />
-      );
+      return <UploadingState progress={progress} fileName={fileName} />;
     }
     if (displayUrl) {
       return <UploadedState url={displayUrl} onRemove={handleRemove} />;
     }
     return (
-      <EmptyState isDragActive={isDragActive} maxSize={maxSize} onOpen={open} />
+      <EmptyState
+        isDragActive={isDragActive}
+        maxSize={maxSize}
+        type={type}
+        onOpen={open}
+      />
     );
   };
 

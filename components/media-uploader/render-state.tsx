@@ -12,18 +12,91 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { cn, formatBytes } from '@/lib/utils';
-import { ImageIcon, Trash2, UploadIcon } from 'lucide-react';
+import {
+  Clapperboard,
+  ImageIcon,
+  MusicIcon,
+  Trash2,
+  UploadIcon,
+} from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { Ring } from '@/components/ui/ring';
+
+type MediaType = 'image' | 'video' | 'audio';
+
+const EMPTY_STATE_CONFIG: Record<
+  MediaType,
+  { icon: React.ElementType; title: string; description: React.ReactNode }
+> = {
+  image: {
+    icon: ImageIcon,
+    title: 'Upload an image',
+    description: (
+      <>
+        Drag and drop an image here or click to browse
+        <br />
+        PNG, JPG, GIF or WEBP
+      </>
+    ),
+  },
+  video: {
+    icon: Clapperboard,
+    title: 'Upload a video',
+    description: (
+      <>
+        Drag and drop a video here or click to browse
+        <br />
+        MP4, MOV or WEBM
+      </>
+    ),
+  },
+  audio: {
+    icon: MusicIcon,
+    title: 'Upload an audio file',
+    description: (
+      <>
+        Drag and drop an audio file here or click to browse
+        <br />
+        MP3, WAV or OGG
+      </>
+    ),
+  },
+};
+
+const ERROR_STATE_CONFIG: Record<
+  MediaType,
+  { icon: React.ElementType; title: string }
+> = {
+  image: {
+    icon: ImageIcon,
+    title: 'Upload image failed',
+  },
+  video: {
+    icon: Clapperboard,
+    title: 'Upload video failed',
+  },
+  audio: {
+    icon: MusicIcon,
+    title: 'Upload audio failed',
+  },
+};
 
 interface EmptyStateProps {
   isDragActive: boolean;
   maxSize: number;
+  type: MediaType;
   onOpen: () => void;
 }
 
-export function EmptyState({ isDragActive, maxSize, onOpen }: EmptyStateProps) {
+export function EmptyState({
+  isDragActive,
+  maxSize,
+  type,
+  onOpen,
+}: EmptyStateProps) {
+  const { icon: Icon, title, description } = EMPTY_STATE_CONFIG[type];
+
   return (
     <Empty>
       <EmptyHeader>
@@ -34,19 +107,16 @@ export function EmptyState({ isDragActive, maxSize, onOpen }: EmptyStateProps) {
             isDragActive ? 'bg-primary/10' : 'bg-muted'
           )}
         >
-          <ImageIcon
+          <Icon
             className={cn(
               'size-6',
               isDragActive ? 'text-primary' : 'text-muted-foreground'
             )}
           />
         </EmptyMedia>
-        <EmptyTitle className="text-lg font-semibold">
-          Upload thumbnail image
-        </EmptyTitle>
+        <EmptyTitle className="text-lg font-semibold">{title}</EmptyTitle>
         <EmptyDescription>
-          Drag and drop an image here or click to browse <br />
-          PNG, JPG, GIF or WEBP up to {formatBytes(maxSize)}
+          {description} up to {formatBytes(maxSize)}
         </EmptyDescription>
       </EmptyHeader>
 
@@ -65,10 +135,13 @@ export function EmptyState({ isDragActive, maxSize, onOpen }: EmptyStateProps) {
 }
 
 interface ErrorStateProps {
+  type: MediaType;
   onRetry: () => void;
 }
 
-export function ErrorState({ onRetry }: ErrorStateProps) {
+export function ErrorState({ type, onRetry }: ErrorStateProps) {
+  const { icon: Icon, title } = ERROR_STATE_CONFIG[type];
+
   return (
     <Empty>
       <EmptyHeader>
@@ -76,10 +149,10 @@ export function ErrorState({ onRetry }: ErrorStateProps) {
           variant="icon"
           className="bg-destructive/15 size-16 rounded-full"
         >
-          <ImageIcon className="text-destructive size-6" />
+          <Icon className="text-destructive size-6" />
         </EmptyMedia>
         <EmptyTitle className="text-destructive text-lg font-semibold">
-          Upload image failed
+          {title}
         </EmptyTitle>
         <EmptyDescription>
           Something went wrong! Please try again.
@@ -103,41 +176,21 @@ export function ErrorState({ onRetry }: ErrorStateProps) {
 
 interface UploadingStateProps {
   progress: number;
-  previewUrl: string | null;
   fileName: string | null;
 }
 
-export function UploadingState({
-  progress,
-  previewUrl,
-  fileName,
-}: UploadingStateProps) {
+export function UploadingState({ progress, fileName }: UploadingStateProps) {
   return (
-    <div className="flex flex-col items-center gap-4 px-8 py-4">
-      {previewUrl && (
-        <div className="relative h-48 w-72 overflow-hidden rounded-md">
-          <Image
-            src={previewUrl}
-            alt="Upload preview"
-            fill
-            className="object-cover opacity-50"
-          />
-        </div>
+    <div className="flex flex-col items-center gap-4 px-8 py-12">
+      <CircularProgress
+        value={progress}
+        gaugePrimaryColor="rgb(0 145 255)"
+        gaugeSecondaryColor="hsl(var(--muted))"
+        className="size-36 text-base"
+      />
+      {fileName && (
+        <p className="text-muted-foreground max-w-xs truncate">{fileName}</p>
       )}
-      <div className="flex w-full max-w-xs flex-col items-center gap-2">
-        <Progress
-          value={progress}
-          className="ring-primary/20 h-2 w-full ring-3"
-        />
-        <p className="text-muted-foreground text-sm">
-          Uploading... {Math.round(progress)}%
-        </p>
-        {fileName && (
-          <p className="text-muted-foreground max-w-xs truncate text-xs">
-            {fileName}
-          </p>
-        )}
-      </div>
     </div>
   );
 }

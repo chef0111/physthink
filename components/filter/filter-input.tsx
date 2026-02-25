@@ -37,7 +37,7 @@ export const FilterInput = ({
     startTransition(() => {
       setParams({ query: value || null, page: 1 });
     });
-  }, 300);
+  }, 500);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
