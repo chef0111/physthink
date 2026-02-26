@@ -7,4 +7,7 @@ export const CourseFilterOptions = [
   { label: 'Draft', value: 'draft' },
   { label: 'Published', value: 'published' },
   { label: 'Archived', value: 'archived' },
+  { label: 'Beginner', value: 'beginner' },
+  { label: 'Intermediate', value: 'intermediate' },
+  { label: 'Advanced', value: 'advanced' },
 ];

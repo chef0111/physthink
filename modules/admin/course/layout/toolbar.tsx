@@ -33,7 +33,7 @@ export function Toolbar() {
       />
       <FilterSelect
         filters={CourseFilterOptions}
-        width="min-w-33"
+        width="min-w-32"
         className={cn(
           'h-10! max-sm:w-full',
           sidebarOpen ? 'w-full sm:w-auto md:w-full lg:w-auto' : 'sm:w-auto'

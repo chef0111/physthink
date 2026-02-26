@@ -14,7 +14,13 @@ import { getPagination, validateOne, validatePaginated } from '../utils';
 import { Prisma } from '@/generated/prisma/client';
 
 type CourseSort = 'newest' | 'oldest';
-type CourseFilter = 'draft' | 'published' | 'archived';
+type CourseFilter =
+  | 'draft'
+  | 'published'
+  | 'archived'
+  | 'beginner'
+  | 'intermediate'
+  | 'advanced';
 
 export class CourseDAL {
   private static readonly select = {
@@ -51,6 +57,12 @@ export class CourseDAL {
         return { status: 'Published' };
       case 'archived':
         return { status: 'Archived' };
+      case 'beginner':
+        return { level: 'Beginner' };
+      case 'intermediate':
+        return { level: 'Intermediate' };
+      case 'advanced':
+        return { level: 'Advanced' };
       default:
         return undefined;
     }
