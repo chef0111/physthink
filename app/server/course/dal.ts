@@ -150,6 +150,14 @@ export class CourseDAL {
       return validateOne(course, UpdateCourseSchema, 'Course');
     });
   }
+
+  static async delete(id: string) {
+    return prisma.$transaction(async (tx) => {
+      await tx.course.delete({
+        where: { id },
+      });
+    });
+  }
 }
 
 export const createCourse = (...args: Parameters<typeof CourseDAL.create>) =>
@@ -160,3 +168,5 @@ export const getCourseById = (...args: Parameters<typeof CourseDAL.findById>) =>
   CourseDAL.findById(...args);
 export const updateCourse = (...args: Parameters<typeof CourseDAL.update>) =>
   CourseDAL.update(...args);
+export const deleteCourse = (...args: Parameters<typeof CourseDAL.delete>) =>
+  CourseDAL.delete(...args);

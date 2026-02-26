@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { CourseSchema, QueryParamsSchema } from '@/lib/validations';
 import {
   createCourse as createCourseDAL,
+  deleteCourse as deleteCourseDAL,
   getCourseById,
   listCourses as listCoursesDAL,
   updateCourse as updateCourseDAL,
@@ -10,7 +11,12 @@ import {
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { heavyWriteSecurityMiddleware } from '@/app/middleware/arcjet/heavy-write';
 import { writeSecurityMiddleware } from '@/app/middleware/arcjet/write';
-import { CoursesListSchema, GetCourseSchema, UpdateCourseSchema } from './dto';
+import {
+  CoursesListSchema,
+  DeleteCourseSchema,
+  GetCourseSchema,
+  UpdateCourseSchema,
+} from './dto';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 import z from 'zod';
 
@@ -63,4 +69,17 @@ export const updateCourse = admin
     revalidatePath(`/admin/courses/${id}/edit`);
 
     return { id: course.id, ...data };
+  });
+
+export const deleteCourse = admin
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .input(DeleteCourseSchema)
+  .handler(async ({ input }) => {
+    const { id } = input;
+    await deleteCourseDAL(id);
+
+    revalidateTag(`course:${id}`, 'max');
+    revalidateTag('courses', 'max');
+    revalidatePath('/admin/courses');
   });
