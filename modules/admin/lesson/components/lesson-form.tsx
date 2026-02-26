@@ -14,6 +14,7 @@ import { MediaUploader } from '@/components/media-uploader';
 import { Loader } from '@/components/ui/loader';
 import { LessonDTO } from '@/app/server/lesson/dto';
 import { useUpdateLesson } from '@/queries/lesson';
+import { imageTypes, videoTypes } from '@/common/constants';
 
 type FormData = z.infer<typeof LessonSchema>;
 
@@ -95,6 +96,7 @@ export function LessonForm({ lesson, courseId }: LessonFormProps) {
           {({ value, onChange }) => (
             <MediaUploader
               type="image"
+              accept={imageTypes}
               maxSize={3 * 1024 * 1024}
               endpoint="mediaUploader"
               value={value}
@@ -108,7 +110,7 @@ export function LessonForm({ lesson, courseId }: LessonFormProps) {
           {({ value, onChange }) => (
             <MediaUploader
               type="video"
-              accept={{ 'video/*': ['.mp4', '.mov', '.avi', '.webm'] }}
+              accept={videoTypes}
               maxSize={25 * 1024 * 1024}
               endpoint="mediaUploader"
               value={value}

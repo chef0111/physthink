@@ -225,7 +225,7 @@ export function UploadedState({ type, url, onRemove }: UploadedStateProps) {
 
   if (type === 'audio') {
     return (
-      <div className="relative">
+      <div className="relative flex items-center justify-center">
         <MediaAudio src={url} />
         <Button
           type="button"

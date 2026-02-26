@@ -15,10 +15,12 @@ const eslintConfig = defineConfig([
   ]),
   {
     rules: {
-      'react-hooks/purity': 'off',
+      'react-hooks/ref': 'warn',
       'react-hooks/immutability': 'warn',
+      'react-hooks/static-components': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/purity': 'off',
     },
   },
 ]);

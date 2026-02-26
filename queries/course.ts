@@ -47,3 +47,21 @@ export function useUpdateCourse(courseId: string) {
     })
   );
 }
+
+export function useDeleteCourse() {
+  const router = useRouter();
+
+  return useMutation(
+    orpc.course.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success('Course deleted successfully!');
+        router.refresh();
+      },
+      onError: (error) => {
+        toast.error('Failed to delete course', {
+          description: error.message,
+        });
+      },
+    })
+  );
+}

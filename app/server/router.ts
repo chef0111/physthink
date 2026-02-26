@@ -1,5 +1,11 @@
 import { deleteFiles } from './uploadthing';
-import { createCourse, getCourse, listCourses, updateCourse } from './course';
+import {
+  createCourse,
+  deleteCourse,
+  getCourse,
+  listCourses,
+  updateCourse,
+} from './course';
 import {
   updateChapterTitle,
   deleteChapter,
@@ -24,6 +30,7 @@ export const router = {
     list: listCourses,
     get: getCourse,
     update: updateCourse,
+    delete: deleteCourse,
   },
   chapter: {
     create: createChapter,

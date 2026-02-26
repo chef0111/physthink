@@ -23,6 +23,7 @@ import {
   courseCategories,
   courseLevels,
   courseStatus,
+  imageTypes,
 } from '@/common/constants';
 import { SelectGroup, SelectItem } from '@/components/ui/select';
 import { MediaUploader } from '@/components/media-uploader';
@@ -164,6 +165,7 @@ export function CourseForm({ course, isEdit = false }: CourseFormProps) {
         >
           {({ value, onChange }) => (
             <MediaUploader
+              accept={imageTypes}
               maxSize={3 * 1024 * 1024}
               endpoint="mediaUploader"
               value={value}

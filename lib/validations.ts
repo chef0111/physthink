@@ -86,6 +86,12 @@ export const TitleSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
 });
 
+export const DeleteCourseSchema = z.object({
+  slug: z
+    .string()
+    .min(3, { message: 'Course slug must be at least 3 characters long.' }),
+});
+
 export const QueryParamsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(10),

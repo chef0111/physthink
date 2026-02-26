@@ -96,3 +96,23 @@ export const courseCategories = [
   'Electromagnetic Waves',
   'Others',
 ] as const;
+
+export const imageTypes = {
+  'image/jpeg': ['.jpeg', '.jpg'],
+  'image/png': ['.png'],
+  'image/gif': ['.gif'],
+  'image/webp': ['.webp'],
+} as const;
+
+export const videoTypes = {
+  'video/mp4': ['.mp4'],
+  'video/mov': ['.mov'],
+  'video/avi': ['.avi'],
+  'video/webm': ['.webm'],
+} as const;
+
+export const audioTypes = {
+  'audio/mpeg': ['.mp3'],
+  'audio/wav': ['.wav'],
+  'audio/ogg': ['.ogg'],
+} as const;
