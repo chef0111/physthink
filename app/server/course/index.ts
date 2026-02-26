@@ -1,4 +1,6 @@
+import { prisma } from '@/lib/prisma';
 import { admin } from '@/app/middleware/admin';
+import { authorized } from '@/app/middleware/auth';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { CourseSchema, QueryParamsSchema } from '@/lib/validations';
 import {
@@ -6,6 +8,7 @@ import {
   deleteCourse as deleteCourseDAL,
   getCourseById,
   listCourses as listCoursesDAL,
+  listPublicCourses as listPublicCoursesDAL,
   updateCourse as updateCourseDAL,
 } from './dal';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
@@ -15,6 +18,7 @@ import {
   CoursesListSchema,
   DeleteCourseSchema,
   GetCourseSchema,
+  PublicCourseListSchema,
   UpdateCourseSchema,
 } from './dto';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
@@ -24,10 +28,25 @@ export const createCourse = admin
   .use(standardSecurityMiddleware)
   .use(heavyWriteSecurityMiddleware)
   .input(CourseSchema)
-  .handler(async ({ input, context }) => {
+  .handler(async ({ input, context, errors }) => {
+    const existing = await prisma.course.findUnique({
+      where: { slug: input.slug },
+      select: { id: true },
+    });
+
+    if (existing) {
+      throw errors.CONFLICT({
+        data: {
+          field: 'slug',
+          value: input.slug,
+        },
+        cause: 'SLUG_ALREADY_EXISTS',
+        message: 'Slug already exists',
+      });
+    }
+
     const course = await createCourseDAL(input, context.user.id);
 
-    revalidateTag(`course:${course.id}`, 'max');
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
 
@@ -41,6 +60,16 @@ export const listCourses = admin
   .output(CoursesListSchema)
   .handler(async ({ input }) => {
     const courses = await listCoursesDAL(input);
+    return courses;
+  });
+
+export const listPublicCourses = authorized
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .input(QueryParamsSchema)
+  .output(PublicCourseListSchema)
+  .handler(async ({ input }) => {
+    const courses = await listPublicCoursesDAL(input);
     return courses;
   });
 
@@ -75,11 +104,26 @@ export const deleteCourse = admin
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(DeleteCourseSchema)
-  .handler(async ({ input }) => {
-    const { id } = input;
-    await deleteCourseDAL(id);
+  .handler(async ({ input, errors }) => {
+    const existing = await prisma.course.findUnique({
+      where: { slug: input.slug },
+      select: { id: true },
+    });
 
-    revalidateTag(`course:${id}`, 'max');
+    if (!existing) {
+      throw errors.BAD_REQUEST({
+        data: {
+          field: 'slug',
+          value: input.slug,
+        },
+        cause: 'SLUG_NOT_MATCH',
+        message: 'Slug does not match',
+      });
+    }
+
+    await deleteCourseDAL(existing.id);
+
+    revalidateTag(`course:${existing.id}`, 'max');
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
   });

@@ -21,4 +21,7 @@ export const base = os
     INTERNAL_SERVER_ERROR: {
       message: 'Internal Server Error.',
     },
+    CONFLICT: {
+      message: 'Conflict.',
+    },
   });

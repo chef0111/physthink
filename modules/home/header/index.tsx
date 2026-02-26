@@ -22,7 +22,7 @@ export function Header() {
           scrolled,
       })}
     >
-      <nav className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
+      <nav className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-5">
           <Brand size={20} className="p-1.5" />
           <DesktopNav />

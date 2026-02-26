@@ -4,6 +4,7 @@ import {
   deleteCourse,
   getCourse,
   listCourses,
+  listPublicCourses,
   updateCourse,
 } from './course';
 import {
@@ -28,6 +29,7 @@ export const router = {
   course: {
     create: createCourse,
     list: listCourses,
+    listPublic: listPublicCourses,
     get: getCourse,
     update: updateCourse,
     delete: deleteCourse,

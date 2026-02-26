@@ -53,7 +53,10 @@ export function CourseDeleteDialog({
 
   const onSubmit = (data: FormData) => {
     if (data.slug !== slug) return;
-    deleteCourse.mutate({ id }, { onSuccess: () => handleOpenChange(false) });
+    deleteCourse.mutate(
+      { id, slug },
+      { onSuccess: () => handleOpenChange(false) }
+    );
   };
 
   return (

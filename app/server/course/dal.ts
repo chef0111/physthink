@@ -9,19 +9,16 @@ import {
   CourseListSchema,
   UpdateCourseDTO,
   UpdateCourseSchema,
+  PublicCourseListDTO,
+  PublicCoursesSchema,
 } from './dto';
 import { getPagination, validateOne, validatePaginated } from '../utils';
 import { Prisma } from '@/generated/prisma/client';
+import { CourseSchema } from '@/lib/validations';
 
 type CourseSort = 'newest' | 'oldest';
-type CourseFilter =
-  | 'draft'
-  | 'published'
-  | 'archived'
-  | 'beginner'
-  | 'intermediate'
-  | 'advanced';
-
+type CourseFilter = 'beginner' | 'intermediate' | 'advanced';
+type AdminCourseFilter = 'draft' | 'published' | 'archived' | CourseFilter;
 export class CourseDAL {
   private static readonly select = {
     id: true,
@@ -30,7 +27,6 @@ export class CourseDAL {
     thumbnail: true,
     level: true,
     duration: true,
-    status: true,
     slug: true,
   };
 
@@ -47,8 +43,8 @@ export class CourseDAL {
     }
   }
 
-  private static getStatusFilter(
-    filter?: CourseFilter
+  private static getAdminCourseFilter(
+    filter?: AdminCourseFilter
   ): Prisma.CourseWhereInput | undefined {
     switch (filter) {
       case 'draft':
@@ -68,13 +64,28 @@ export class CourseDAL {
     }
   }
 
+  private static getPublicCourseFilter(
+    filter?: CourseFilter
+  ): Prisma.CourseWhereInput | undefined {
+    switch (filter) {
+      case 'beginner':
+        return { level: 'Beginner' };
+      case 'intermediate':
+        return { level: 'Intermediate' };
+      case 'advanced':
+        return { level: 'Advanced' };
+      default:
+        return undefined;
+    }
+  }
+
   static async create(data: Course, userId: string) {
     return prisma.$transaction(async (tx) => {
       const course = await tx.course.create({
         data: { ...data, userId },
       });
 
-      return course;
+      return validateOne(course, CourseSchema, 'Course');
     });
   }
 
@@ -83,7 +94,7 @@ export class CourseDAL {
     const { offset, limit } = getPagination({ page, pageSize });
 
     const where: Prisma.CourseWhereInput = {
-      ...this.getStatusFilter(filter as CourseFilter),
+      ...this.getAdminCourseFilter(filter as AdminCourseFilter),
     };
 
     if (query) {
@@ -106,7 +117,7 @@ export class CourseDAL {
     const courses = await prisma.course.findMany({
       where,
       orderBy: this.getSortCriteria(sort as CourseSort),
-      select: this.select,
+      select: { ...this.select, status: true },
       skip: offset,
       take: limit,
     });
@@ -116,7 +127,52 @@ export class CourseDAL {
     return validatePaginated(
       { courses, totalCourses },
       CourseListSchema,
-      'Course'
+      'Courses'
+    );
+  }
+
+  static async publicFindMany(
+    params: QueryParams
+  ): Promise<PublicCourseListDTO> {
+    const { page, pageSize, query, filter, sort } = params;
+    const { offset, limit } = getPagination({ page, pageSize });
+
+    const where: Prisma.CourseWhereInput = {
+      ...this.getPublicCourseFilter(filter as CourseFilter),
+      status: 'Published',
+    };
+
+    if (query) {
+      where.OR = [
+        {
+          title: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    const courses = await prisma.course.findMany({
+      where,
+      orderBy: this.getSortCriteria(sort as CourseSort),
+      select: { ...this.select, category: true },
+      skip: offset,
+      take: limit,
+    });
+
+    const totalCourses = await prisma.course.count({ where });
+
+    return validatePaginated(
+      { courses, totalCourses },
+      PublicCoursesSchema,
+      'Courses'
     );
   }
 
@@ -125,6 +181,7 @@ export class CourseDAL {
       where: { id },
       select: {
         ...this.select,
+        status: true,
         readme: true,
         category: true,
         chapters: {
@@ -176,6 +233,9 @@ export const createCourse = (...args: Parameters<typeof CourseDAL.create>) =>
   CourseDAL.create(...args);
 export const listCourses = (...args: Parameters<typeof CourseDAL.findMany>) =>
   CourseDAL.findMany(...args);
+export const listPublicCourses = (
+  ...args: Parameters<typeof CourseDAL.publicFindMany>
+) => CourseDAL.publicFindMany(...args);
 export const getCourseById = (...args: Parameters<typeof CourseDAL.findById>) =>
   CourseDAL.findById(...args);
 export const updateCourse = (...args: Parameters<typeof CourseDAL.update>) =>
