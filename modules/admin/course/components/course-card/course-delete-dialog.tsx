@@ -62,7 +62,7 @@ export function CourseDeleteDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Course?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the course and all its chapters and
+            This will permanently delete the course with all its chapters and
             lessons. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -23,7 +23,7 @@ export const CourseDropdownMenu = ({
   onDelete,
 }: CourseDropdownMenuProps) => {
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="secondary" size="icon">
           <MoreVertical />

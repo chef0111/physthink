@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Route } from 'next';
-import { Inbox, AlertTriangle } from 'lucide-react';
+import { Inbox, AlertTriangle, PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
   Empty,
@@ -34,6 +34,7 @@ export function DefaultEmptyState({ config }: { config: StateConfig }) {
         <EmptyContent>
           <Button asChild>
             <Link href={config.button.href as Route}>
+              <PlusCircle />
               {config.button.label}
             </Link>
           </Button>
