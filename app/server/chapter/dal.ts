@@ -1,8 +1,7 @@
 import 'server-only';
 
 import { prisma } from '@/lib/prisma';
-import { ChapterOrderDTO, CreateChapterSchema } from './dto';
-import { validateOne } from '../utils';
+import { ChapterOrderDTO } from './dto';
 
 export class ChapterDAL {
   static async create(title: string, courseId: string) {
@@ -27,7 +26,7 @@ export class ChapterDAL {
         },
       });
 
-      return validateOne(chapter, CreateChapterSchema, 'Chapter');
+      return chapter;
     });
   }
 

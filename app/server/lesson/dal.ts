@@ -1,13 +1,7 @@
 import 'server-only';
 
 import { prisma } from '@/lib/prisma';
-import {
-  LessonConfigDTO,
-  LessonOrderDTO,
-  LessonSchema,
-  NewLessonSchema,
-} from './dto';
-import { validateOne } from '../utils';
+import { LessonConfigDTO, LessonOrderDTO } from './dto';
 
 export class LessonDAL {
   private static readonly select = {
@@ -41,7 +35,7 @@ export class LessonDAL {
         },
       });
 
-      return validateOne(lesson, NewLessonSchema, 'Lesson');
+      return lesson;
     });
   }
 
@@ -52,7 +46,7 @@ export class LessonDAL {
         data,
       });
 
-      return validateOne(lesson, LessonSchema, 'Lesson');
+      return lesson;
     });
   }
 
@@ -62,7 +56,7 @@ export class LessonDAL {
       select: this.select,
     });
 
-    return validateOne(lesson, LessonSchema, 'Lesson');
+    return lesson;
   }
 
   static async updateTitle(id: string, title: string) {

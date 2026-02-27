@@ -11,3 +11,9 @@ export const CourseFilterOptions = [
   { label: 'Intermediate', value: 'intermediate' },
   { label: 'Advanced', value: 'advanced' },
 ];
+
+export const PublicCourseFilterOptions = [
+  { label: 'Beginner', value: 'beginner' },
+  { label: 'Intermediate', value: 'intermediate' },
+  { label: 'Advanced', value: 'advanced' },
+];

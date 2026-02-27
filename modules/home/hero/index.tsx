@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export function HeroSection() {
   return (
-    <section className="mx-auto mb-10 w-full max-w-5xl overflow-hidden pt-16">
+    <section className="mx-auto mb-10 w-full max-w-7xl overflow-hidden pt-16">
       {/* Shades */}
       <div
         aria-hidden="true"
@@ -19,7 +19,7 @@ export function HeroSection() {
           )}
         />
       </div>
-      <div className="relative z-10 flex max-w-3xl flex-col gap-5 px-4">
+      <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-5">
         <Link
           className={cn(
             'group bg-card flex w-fit items-center gap-3 rounded-sm border p-1 shadow-xs',
@@ -41,7 +41,7 @@ export function HeroSection() {
 
         <h1
           className={cn(
-            'text-foreground text-4xl leading-tight font-semibold text-balance md:text-5xl',
+            'text-foreground text-center text-4xl leading-tight font-semibold text-balance md:text-5xl',
             'fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards delay-100 duration-500 ease-out'
           )}
         >
@@ -50,7 +50,7 @@ export function HeroSection() {
 
         <p
           className={cn(
-            'text-muted-foreground text-sm tracking-wider sm:text-lg md:text-xl',
+            'text-muted-foreground text-center text-sm tracking-wider sm:text-lg md:text-xl',
             'fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards delay-200 duration-500 ease-out'
           )}
         >
@@ -62,8 +62,10 @@ export function HeroSection() {
           <Button variant="outline">
             <PhoneCallIcon data-icon="inline-start" /> Book a Call
           </Button>
-          <Button>
-            Get started <ArrowRightIcon data-icon="inline-end" />
+          <Button asChild>
+            <Link href="/dashboard">
+              Get started <ArrowRightIcon data-icon="inline-end" />
+            </Link>
           </Button>
         </div>
       </div>
@@ -77,11 +79,11 @@ export function HeroSection() {
         />
         <div
           className={cn(
-            'relative mt-8 -mr-56 overflow-hidden mask-b-from-60% px-2 sm:mt-12 sm:mr-0 md:mt-20',
+            'relative mt-8 -mr-56 overflow-hidden mask-b-from-60% sm:mt-12 sm:mr-0 md:mt-20',
             'fade-in slide-in-from-bottom-5 animate-in fill-mode-backwards delay-100 duration-1000 ease-out'
           )}
         >
-          <div className="inset-shadow-foreground/10 bg-background ring-card dark:inset-shadow-foreground/20 relative mx-auto max-w-5xl overflow-hidden rounded-lg border p-2 shadow-xl ring-1 inset-shadow-2xs dark:inset-shadow-xs">
+          <div className="inset-shadow-foreground/10 bg-background ring-card dark:inset-shadow-foreground/20 relative mx-auto max-w-7xl overflow-hidden rounded-lg border p-2 shadow-xl ring-1 inset-shadow-2xs dark:inset-shadow-xs">
             <Image
               alt="app screen"
               className="z-2 aspect-video rounded-lg border dark:hidden"

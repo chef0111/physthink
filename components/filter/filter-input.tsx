@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryStates, parseAsString, parseAsInteger } from 'nuqs';
 import {
   InputGroup,
@@ -32,6 +32,10 @@ export const FilterInput = ({
   );
 
   const [inputValue, setInputValue] = useState(query);
+
+  useEffect(() => {
+    setInputValue(query);
+  }, [query]);
 
   const debouncedSetParams = useDebouncedCallback((value: string) => {
     startTransition(() => {

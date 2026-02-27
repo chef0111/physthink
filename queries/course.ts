@@ -37,7 +37,7 @@ export function useUpdateCourse(courseId: string) {
         queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
-        router.push('/admin/courses');
+        router.refresh();
       },
       onError: (error) => {
         toast.error('Failed to update course', {

@@ -65,7 +65,7 @@ export function LoginSteps() {
 
   return (
     <MotionConfig transition={{ duration: 0.5, type: 'spring', bounce: 0 }}>
-      <Card className="bg-background border-2 pb-0">
+      <Card className="bg-card dark:bg-background border-2 pb-0">
         <CardContent className="flex px-0 pb-0">
           <motion.div
             initial={{ height: 'auto' }}
@@ -102,7 +102,7 @@ export function LoginSteps() {
           </motion.div>
         </CardContent>
 
-        <CardFooter className="bg-accent dark:bg-card flex-col border-t p-0! pb-4!">
+        <CardFooter className="bg-muted/50 flex-col border-t p-0! pb-4!">
           <FieldGroup className="gap-2 px-6">
             <Button
               type="submit"

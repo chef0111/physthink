@@ -1,20 +1,26 @@
+import { prisma } from '@/lib/prisma';
 import { admin } from '@/app/middleware/admin';
+import { authorized } from '@/app/middleware/auth';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { CourseSchema, QueryParamsSchema } from '@/lib/validations';
 import {
   createCourse as createCourseDAL,
   deleteCourse as deleteCourseDAL,
   getCourseById,
+  getCourseBySlug as getCourseBySlugDAL,
   listCourses as listCoursesDAL,
+  listPublicCourses as listPublicCoursesDAL,
   updateCourse as updateCourseDAL,
 } from './dal';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { heavyWriteSecurityMiddleware } from '@/app/middleware/arcjet/heavy-write';
 import { writeSecurityMiddleware } from '@/app/middleware/arcjet/write';
 import {
+  CoursePreviewSchema,
   CoursesListSchema,
   DeleteCourseSchema,
   GetCourseSchema,
+  PublicCourseListSchema,
   UpdateCourseSchema,
 } from './dto';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
@@ -24,10 +30,25 @@ export const createCourse = admin
   .use(standardSecurityMiddleware)
   .use(heavyWriteSecurityMiddleware)
   .input(CourseSchema)
-  .handler(async ({ input, context }) => {
+  .handler(async ({ input, context, errors }) => {
+    const existing = await prisma.course.findUnique({
+      where: { slug: input.slug },
+      select: { id: true },
+    });
+
+    if (existing) {
+      throw errors.CONFLICT({
+        data: {
+          field: 'slug',
+          value: input.slug,
+        },
+        cause: 'SLUG_ALREADY_EXISTS',
+        message: 'Slug already exists',
+      });
+    }
+
     const course = await createCourseDAL(input, context.user.id);
 
-    revalidateTag(`course:${course.id}`, 'max');
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
 
@@ -44,13 +65,39 @@ export const listCourses = admin
     return courses;
   });
 
+export const listPublicCourses = authorized
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .input(QueryParamsSchema)
+  .output(PublicCourseListSchema)
+  .handler(async ({ input }) => {
+    const courses = await listPublicCoursesDAL(input);
+    return courses;
+  });
+
 export const getCourse = admin
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
   .input(z.object({ id: z.string() }))
   .output(GetCourseSchema)
-  .handler(async ({ input }) => {
+  .handler(async ({ input, errors }) => {
     const course = await getCourseById(input.id);
+    if (!course) {
+      throw errors.NOT_FOUND({ message: 'Course not found' });
+    }
+    return course;
+  });
+
+export const getCourseBySlug = authorized
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .input(z.object({ slug: z.string() }))
+  .output(CoursePreviewSchema)
+  .handler(async ({ input, errors }) => {
+    const course = await getCourseBySlugDAL(input.slug);
+    if (!course) {
+      throw errors.NOT_FOUND({ message: 'Course not found' });
+    }
     return course;
   });
 
@@ -67,6 +114,8 @@ export const updateCourse = admin
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
     revalidatePath(`/admin/courses/${id}/edit`);
+    revalidatePath(`/courses`);
+    revalidatePath(`/courses/${course.slug}`);
 
     return { id: course.id, ...data };
   });
@@ -75,11 +124,26 @@ export const deleteCourse = admin
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(DeleteCourseSchema)
-  .handler(async ({ input }) => {
-    const { id } = input;
-    await deleteCourseDAL(id);
+  .handler(async ({ input, errors }) => {
+    const existing = await prisma.course.findUnique({
+      where: { slug: input.slug },
+      select: { id: true },
+    });
 
-    revalidateTag(`course:${id}`, 'max');
+    if (!existing) {
+      throw errors.BAD_REQUEST({
+        data: {
+          field: 'slug',
+          value: input.slug,
+        },
+        cause: 'SLUG_NOT_MATCH',
+        message: 'Slug does not match',
+      });
+    }
+
+    await deleteCourseDAL(existing.id);
+
+    revalidateTag(`course:${existing.id}`, 'max');
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
   });

@@ -2,7 +2,6 @@
 
 import { useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { LexicalEditor, $getRoot } from 'lexical';
-import { $convertFromMarkdownString } from '@lexical/markdown';
 import {
   InitialConfigType,
   LexicalComposer,
@@ -14,15 +13,10 @@ import { editorTheme } from '@/components/editor/themes/editor-theme';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { nodes } from '@/components/editor/markdown/nodes';
 import { Plugins } from '@/components/editor/markdown/plugins';
-import {
-  MARKDOWN_TRANSFORMERS,
-  markdownToEditorState,
-  editorStateToMarkdown,
-} from '@/components/editor/utils/markdown-converter';
 
 export interface FormEditorMethods {
-  setMarkdown: (markdown: string) => void;
-  getMarkdown: () => string;
+  setValue: (value: string) => void;
+  getValue: () => string;
   focus: () => void;
   getEditor: () => LexicalEditor | null;
 }
@@ -30,7 +24,7 @@ export interface FormEditorMethods {
 interface FormEditorProps {
   id?: string;
   value: string;
-  onChange: (markdown: string) => void;
+  onChange: (value: string) => void;
   isInvalid?: boolean;
   placeholder?: string;
   className?: string;
@@ -54,25 +48,32 @@ function EditorRefPlugin({
   onChange,
 }: {
   editorRef: React.RefObject<FormEditorMethods | null>;
-  onChange: (markdown: string) => void;
+  onChange: (value: string) => void;
 }) {
   const [editor] = useLexicalComposerContext();
-  const lastMarkdownRef = useRef<string>('');
+  const lastValueRef = useRef<string>('');
 
   useImperativeHandle(
     editorRef,
     () => ({
-      setMarkdown: (markdown: string) => {
-        editor.update(() => {
-          const root = $getRoot();
-          root.clear();
-          $convertFromMarkdownString(markdown || '', MARKDOWN_TRANSFORMERS);
-        });
-        lastMarkdownRef.current = markdown;
+      setValue: (value: string) => {
+        if (value) {
+          try {
+            const state = editor.parseEditorState(value);
+            editor.setEditorState(state);
+          } catch (e) {
+            console.error('Failed to parse editor state', e);
+          }
+        } else {
+          editor.update(() => {
+            $getRoot().clear();
+          });
+        }
+        lastValueRef.current = value;
       },
-      getMarkdown: () => {
+      getValue: () => {
         const state = editor.getEditorState();
-        return editorStateToMarkdown(state.toJSON());
+        return JSON.stringify(state.toJSON());
       },
       focus: () => {
         editor.focus();
@@ -86,11 +87,11 @@ function EditorRefPlugin({
     <OnChangePlugin
       ignoreSelectionChange={true}
       onChange={(editorState) => {
-        const markdown = editorStateToMarkdown(editorState.toJSON());
+        const value = JSON.stringify(editorState.toJSON());
         // Only trigger onChange if content actually changed
-        if (markdown !== lastMarkdownRef.current) {
-          lastMarkdownRef.current = markdown;
-          onChange(markdown);
+        if (value !== lastValueRef.current) {
+          lastValueRef.current = value;
+          onChange(value);
         }
       }}
     />
@@ -108,10 +109,10 @@ const FormEditor = forwardRef<FormEditorMethods, FormEditorProps>(
     useImperativeHandle(
       ref,
       () => ({
-        setMarkdown: (markdown: string) => {
-          internalRef.current?.setMarkdown(markdown);
+        setValue: (val: string) => {
+          internalRef.current?.setValue(val);
         },
-        getMarkdown: () => internalRef.current?.getMarkdown() ?? '',
+        getValue: () => internalRef.current?.getValue() ?? '',
         focus: () => internalRef.current?.focus(),
         getEditor: () => internalRef.current?.getEditor() ?? null,
       }),
@@ -119,10 +120,15 @@ const FormEditor = forwardRef<FormEditorMethods, FormEditorProps>(
     );
 
     // Compute initial state synchronously (only on first render)
-    const initialState = useMemo(
-      () => markdownToEditorState(value),
-      [] // Only compute on mount, not on value changes
-    );
+    const initialEditorState = useMemo(() => {
+      if (!value) return null;
+      try {
+        JSON.parse(value);
+        return value;
+      } catch {
+        return null;
+      }
+    }, [value]);
 
     return (
       <div
@@ -133,9 +139,7 @@ const FormEditor = forwardRef<FormEditorMethods, FormEditorProps>(
         <LexicalComposer
           initialConfig={{
             ...editorConfig,
-            ...(initialState
-              ? { editorState: JSON.stringify(initialState) }
-              : {}),
+            ...(initialEditorState ? { editorState: initialEditorState } : {}),
           }}
         >
           <TooltipProvider>

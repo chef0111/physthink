@@ -102,7 +102,7 @@ export function CodeLanguageToolbarPlugin() {
           {getLanguageFriendlyName(codeLanguage) || 'Select Language'}
         </span>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent position="popper">
         {CODE_LANGUAGE_OPTIONS.map(([value, label]) => (
           <SelectItem
             key={value}

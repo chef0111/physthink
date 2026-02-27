@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Route } from 'next';
 import { Inbox, AlertTriangle, PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Empty,
   EmptyHeader,
@@ -9,7 +9,7 @@ import {
   EmptyTitle,
   EmptyDescription,
   EmptyContent,
-} from '../ui/empty';
+} from '@/components/ui/empty';
 
 interface StateConfig {
   title: string;

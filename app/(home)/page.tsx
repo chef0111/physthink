@@ -3,7 +3,7 @@ import { LogosSection } from '@/modules/home/hero/logos-section';
 
 export default function Home() {
   return (
-    <section className="grow">
+    <section className="mx-auto grow">
       <HeroSection />
       <LogosSection />
     </section>

@@ -18,22 +18,24 @@ export function Header() {
   return (
     <header
       className={cn('sticky top-0 z-50 w-full border-b border-transparent', {
-        'border-border bg-background/95 supports-backdrop-filter:bg-background/50 backdrop-blur-sm':
+        'border-border bg-background/95 supports-backdrop-filter:bg-background/50 backdrop-blur-md':
           scrolled,
       })}
     >
-      <nav className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
-        <div className="flex items-center gap-5">
-          <Brand size={20} className="p-1.5" />
-          <DesktopNav />
-        </div>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          {isPending ? null : user ? (
-            <UserDropdown user={user} admin={admin} />
-          ) : (
-            <LoginButton />
-          )}
+      <nav>
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-6">
+          <div className="flex items-center gap-5">
+            <Brand size={20} className="p-1.5" />
+            <DesktopNav />
+          </div>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {isPending ? null : user ? (
+              <UserDropdown user={user} admin={admin} />
+            ) : (
+              <LoginButton />
+            )}
+          </div>
         </div>
       </nav>
     </header>

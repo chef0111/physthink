@@ -25,9 +25,13 @@ export const getLesson = admin
   .use(standardSecurityMiddleware)
   .input(z.object({ id: z.string() }))
   .output(LessonSchema)
-  .handler(async ({ input }) => {
+  .handler(async ({ input, errors }) => {
     const { id } = input;
-    return await getById(id);
+    const lesson = await getById(id);
+    if (!lesson) {
+      throw errors.NOT_FOUND({ message: 'Lesson not found' });
+    }
+    return lesson;
   });
 
 export const createLesson = admin

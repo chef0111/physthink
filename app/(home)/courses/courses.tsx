@@ -1,12 +1,11 @@
 import { orpc } from '@/lib/orpc';
-import { CoursesListDTO } from '@/app/server/course/dto';
-import { EMPTY_COURSE } from '@/common/constants/states';
+import { getQueryClient } from '@/lib/query/hydration';
+import { PublicCourseListDTO } from '@/app/server/course/dto';
 import { DataRenderer } from '@/components/data-renderer';
 import { NextPagination } from '@/components/ui/next-pagination';
 import { resolveData, safeFetch } from '@/lib/query/helper';
-import { getQueryClient } from '@/lib/query/hydration';
-import CourseCard from '@/modules/admin/course/components/course-card';
-import { GridLayout } from '@/modules/admin/course/layout/grid-layout';
+import CourseCard from '@/modules/home/courses/components/course-card';
+import { EmptyCourseList } from '@/modules/home/courses/layout/empty';
 
 export async function CourseList({
   searchParams,
@@ -15,17 +14,17 @@ export async function CourseList({
 
   const queryClient = getQueryClient();
 
-  const queryOptions = orpc.course.list.queryOptions({
+  const queryOptions = orpc.course.listPublic.queryOptions({
     input: {
       page: Number(page) || 1,
-      pageSize: Number(pageSize) || 6,
+      pageSize: Number(pageSize) || 10,
       query,
       sort,
       filter,
     },
   });
 
-  const result = await safeFetch<CoursesListDTO>(
+  const result = await safeFetch<PublicCourseListDTO>(
     queryClient.fetchQuery(queryOptions),
     'Failed to get courses'
   );
@@ -48,13 +47,13 @@ export async function CourseList({
         data={courses}
         success={success}
         error={error}
-        empty={EMPTY_COURSE}
+        renderEmpty={() => <EmptyCourseList />}
         render={(courses) => (
-          <GridLayout>
+          <div className="grid grid-cols-1 gap-6 max-sm:pt-24 md:grid-cols-2 xl:grid-cols-3">
             {courses.map((course) => (
               <CourseCard key={course.id} data={course} />
             ))}
-          </GridLayout>
+          </div>
         )}
       />
       <NextPagination

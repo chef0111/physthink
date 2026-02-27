@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GridLayout } from './grid-layout';
 import { Button } from '@/components/ui/button';
@@ -16,33 +22,35 @@ export const CourseListSkeleton = () => {
 
 export const CourseSkeleton = () => {
   return (
-    <Card className="group relative flex flex-col border pt-3 pb-4">
+    <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
       <div className="relative mx-3">
         <Skeleton className="h-72 w-full rounded-md sm:h-54 md:h-64" />
       </div>
-      <CardContent className="flex h-36 flex-col gap-0! px-4">
+      <CardContent className="mt-1 flex flex-col gap-0! px-4 pb-0">
         <div>
-          <Skeleton className="h-5 w-64 max-w-full" />
-          <Skeleton className="mt-2 h-4 w-88 max-w-full" />
+          <Skeleton className="h-4.5 w-3/4 max-w-64" />
+          <Skeleton className="mt-2 h-3.5 w-full max-w-96" />
         </div>
 
-        <div className="mb-4 flex h-full items-end gap-x-4">
+        <div className="mt-5 flex h-full items-end gap-x-4">
           <div className="flex items-center gap-1.5">
-            <Skeleton className="size-6" />
-            <Skeleton className="h-4.5 w-6" />
+            <Skeleton className="size-5.5" />
+            <Skeleton className="h-4 w-6" />
           </div>
           <div className="flex items-center gap-1.5">
-            <Skeleton className="size-6" />
-            <Skeleton className="h-4.5 w-14" />
+            <Skeleton className="size-5.5" />
+            <Skeleton className="h-4 w-14" />
           </div>
           <div className="flex items-center gap-1.5">
-            <Skeleton className="size-6" />
-            <Skeleton className="h-4.5 w-10" />
+            <Skeleton className="size-5.5" />
+            <Skeleton className="h-4 w-12" />
           </div>
         </div>
-
-        <Skeleton className="h-32 w-full rounded-md" />
       </CardContent>
+
+      <CardFooter className="bg-accent dark:bg-muted/50 border-t p-3!">
+        <Skeleton className="h-10 w-full rounded-md" />
+      </CardFooter>
     </Card>
   );
 };

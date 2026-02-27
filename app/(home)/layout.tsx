@@ -6,7 +6,7 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main>
+    <main className="mx-auto">
       <Header />
       {children}
     </main>

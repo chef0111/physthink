@@ -78,9 +78,9 @@ export const auth = betterAuth({
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
         await resend.emails.send({
-          from: 'K2Think LMS <k2think.lms@dev4room.pro>',
+          from: 'PhysThink <physthink@dev4room.pro>',
           to: [email],
-          subject: 'K2Think LMS - Email Verification',
+          subject: 'PhysThink - Email Verification',
           html: `<p>Your OTP code is: <strong>${otp}</strong></p>`,
         });
       },

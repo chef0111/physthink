@@ -3,7 +3,9 @@ import {
   createCourse,
   deleteCourse,
   getCourse,
+  getCourseBySlug,
   listCourses,
+  listPublicCourses,
   updateCourse,
 } from './course';
 import {
@@ -28,7 +30,9 @@ export const router = {
   course: {
     create: createCourse,
     list: listCourses,
+    listPublic: listPublicCourses,
     get: getCourse,
+    getPublic: getCourseBySlug,
     update: updateCourse,
     delete: deleteCourse,
   },
