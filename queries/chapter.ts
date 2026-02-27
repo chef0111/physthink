@@ -7,9 +7,9 @@ export function useCreateChapter(courseId: string) {
 
   return useMutation(
     orpc.chapter.create.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Chapter created successfully');
-        queryClient.invalidateQueries(
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },
@@ -27,9 +27,9 @@ export function useUpdateChapterTitle(courseId: string) {
 
   return useMutation(
     orpc.chapter.updateTitle.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Chapter title updated');
-        queryClient.invalidateQueries(
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },
@@ -47,9 +47,9 @@ export function useDeleteChapter(courseId: string) {
 
   return useMutation(
     orpc.chapter.delete.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Chapter deleted');
-        queryClient.invalidateQueries(
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },
@@ -67,8 +67,8 @@ export function useReorderChapter(courseId: string) {
 
   return useMutation(
     orpc.chapter.reorder.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },

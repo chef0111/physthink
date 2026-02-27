@@ -1,7 +1,7 @@
 'use client';
 
 import z from 'zod';
-import { useEffect } from 'react';
+import { useEffect, startTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TitleSchema } from '@/lib/validations';
@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/dialog';
 import { FormInput } from '@/components/form';
 import { FieldGroup } from '@/components/ui/field';
-import { Loader } from '@/components/ui/loader';
 import { useCreateChapter } from '@/queries/chapter';
 import { useCreateLesson } from '@/queries/lesson';
 
@@ -28,6 +27,11 @@ interface EditTitleFormProps {
   type: 'chapter' | 'lesson';
   courseId: string;
   chapterId?: string; // required when type === 'lesson'
+  onOptimisticCreate?: (
+    item:
+      | { type: 'chapter'; id: string; title: string }
+      | { type: 'lesson'; id: string; chapterId: string; title: string }
+  ) => void;
 }
 
 export function CreateItemForm({
@@ -36,6 +40,7 @@ export function CreateItemForm({
   type,
   courseId,
   chapterId,
+  onOptimisticCreate,
 }: EditTitleFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(TitleSchema),
@@ -53,21 +58,39 @@ export function CreateItemForm({
   const createChapter = useCreateChapter(courseId);
   const createLesson = useCreateLesson(courseId);
 
-  const mutation = type === 'chapter' ? createChapter : createLesson;
-  const isPending = mutation.isPending;
-
   const onSubmit = (data: FormData) => {
-    if (type === 'chapter') {
-      createChapter.mutate(
-        { courseId, title: data.title },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    } else {
-      createLesson.mutate(
-        { courseId, chapterId: chapterId!, title: data.title },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    }
+    onOpenChange(false);
+    startTransition(async () => {
+      const optimisticId = `optimistic-${Date.now()}`;
+      if (type === 'chapter') {
+        onOptimisticCreate?.({
+          type: 'chapter',
+          id: optimisticId,
+          title: data.title,
+        });
+        try {
+          await createChapter.mutateAsync({ courseId, title: data.title });
+        } catch (error) {
+          // Reverted implicitly on error
+        }
+      } else {
+        onOptimisticCreate?.({
+          type: 'lesson',
+          id: optimisticId,
+          chapterId: chapterId!,
+          title: data.title,
+        });
+        try {
+          await createLesson.mutateAsync({
+            courseId,
+            chapterId: chapterId!,
+            title: data.title,
+          });
+        } catch (error) {
+          // Reverted implicitly on error
+        }
+      }
+    });
   };
 
   const label = type === 'chapter' ? 'Chapter title' : 'Lesson title';
@@ -91,18 +114,8 @@ export function CreateItemForm({
             />
           </FieldGroup>
           <DialogFooter className="mt-6" showCloseButton>
-            <Button
-              type="submit"
-              disabled={isPending || !form.formState.isDirty}
-            >
-              {isPending ? (
-                <>
-                  <Loader />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <span>Save change</span>
-              )}
+            <Button type="submit" disabled={!form.formState.isDirty}>
+              <span>Save change</span>
             </Button>
           </DialogFooter>
         </form>

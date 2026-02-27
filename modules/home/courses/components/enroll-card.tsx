@@ -111,7 +111,7 @@ export const EnrollCard = ({ course }: EnrollCardProps) => {
                   Life-time Access
                 </AlertTitle>
                 <AlertDescription className="opacity-80">
-                  Access to all course materials
+                  Access to all learning materials
                 </AlertDescription>
               </div>
             </Alert>

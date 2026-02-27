@@ -27,7 +27,6 @@ export function useCreateCourse(options: CreateCourseOptions) {
 }
 
 export function useUpdateCourse(courseId: string) {
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation(
@@ -37,7 +36,6 @@ export function useUpdateCourse(courseId: string) {
         queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
-        router.refresh();
       },
       onError: (error) => {
         toast.error('Failed to update course', {

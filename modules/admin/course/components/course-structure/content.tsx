@@ -32,12 +32,18 @@ interface CourseStructureContentProps {
   items: ChapterItem[];
   courseId: string;
   toggleChapter: (chapterId: string) => void;
+  onOptimisticCreate?: (
+    item:
+      | { type: 'chapter'; id: string; title: string }
+      | { type: 'lesson'; id: string; chapterId: string; title: string }
+  ) => void;
 }
 
 export function CourseStructureContent({
   items,
   courseId,
   toggleChapter,
+  onOptimisticCreate,
 }: CourseStructureContentProps) {
   return (
     <SortableContext items={items} strategy={verticalListSortingStrategy}>
@@ -49,6 +55,7 @@ export function CourseStructureContent({
               onOpenChange={() => toggleChapter(item.id)}
               listeners={listeners}
               courseId={courseId}
+              onOptimisticCreate={onOptimisticCreate}
             >
               <SortableContext
                 items={item.lessons.map((lesson) => lesson.id)}

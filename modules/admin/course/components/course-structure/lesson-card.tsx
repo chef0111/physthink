@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useOptimistic } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { DraggableSyntheticListeners } from '@dnd-kit/core';
@@ -26,6 +26,11 @@ export const LessonCard = ({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const [optimisticTitle, setOptimisticTitle] = useOptimistic(data.title);
+  const [optimisticDeleted, setOptimisticDeleted] = useOptimistic(false);
+
+  if (optimisticDeleted) return null;
+
   return (
     <>
       <Card className="no-focus hover:bg-muted/80 dark:hover:bg-muted w-full cursor-default flex-row items-center justify-between rounded-lg border-none p-2 ring-0">
@@ -46,7 +51,7 @@ export const LessonCard = ({
           >
             <FileText className="size-4" />
             <p className="line-clamp-1 w-full truncate font-medium underline-offset-4 group-hover/link:underline">
-              {data.title}
+              {optimisticTitle}
             </p>
           </Link>
         </div>
@@ -79,7 +84,8 @@ export const LessonCard = ({
         id={data.id}
         courseId={courseId}
         chapterId={chapterId}
-        currentTitle={data.title}
+        currentTitle={optimisticTitle}
+        onOptimisticUpdate={setOptimisticTitle}
       />
       <DeleteConfirmDialog
         open={deleteOpen}
@@ -88,6 +94,7 @@ export const LessonCard = ({
         id={data.id}
         courseId={courseId}
         chapterId={chapterId}
+        onOptimisticUpdate={() => setOptimisticDeleted(true)}
       />
     </>
   );

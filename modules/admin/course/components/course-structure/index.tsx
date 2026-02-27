@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState, useOptimistic } from 'react';
 import {
   Active,
   DndContext,
@@ -58,7 +58,6 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
     orpc.course.get.queryOptions({ input: { id: courseId } })
   );
   const [createOpen, setCreateOpen] = useState(false);
-  const chapters = data.chapters;
   const dndId = useId();
 
   const buildItems = (
@@ -83,11 +82,13 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
   const [items, setItems] = useState<ChapterItem[]>(() =>
     buildItems(data.chapters)
   );
+  const [prevChapters, setPrevChapters] = useState(data.chapters);
   const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
 
-  useEffect(() => {
+  if (data.chapters !== prevChapters) {
+    setPrevChapters(data.chapters);
     setItems((prev) => buildItems(data.chapters, prev));
-  }, [data.chapters]);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -245,6 +246,52 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
           ?.lessons.find((l) => l.id === activeItem.id)
       : null;
 
+  const [optimisticItems, addOptimisticItem] = useOptimistic(
+    items,
+    (
+      state,
+      action:
+        | { type: 'chapter'; id: string; title: string }
+        | { type: 'lesson'; id: string; chapterId: string; title: string }
+    ) => {
+      if (action.type === 'chapter') {
+        if (state.some((chapter) => chapter.title === action.title))
+          return state;
+        return [
+          ...state,
+          {
+            id: action.id,
+            title: action.title,
+            order: state.length + 1,
+            isOpen: true,
+            lessons: [],
+          },
+        ];
+      } else {
+        return state.map((chapter) =>
+          chapter.id === action.chapterId
+            ? {
+                ...chapter,
+                isOpen: true, // ensure it's open if we just added a lesson to it
+                lessons: chapter.lessons.some(
+                  (lesson) => lesson.title === action.title
+                )
+                  ? chapter.lessons
+                  : [
+                      ...chapter.lessons,
+                      {
+                        id: action.id,
+                        title: action.title,
+                        order: chapter.lessons.length + 1,
+                      },
+                    ],
+              }
+            : chapter
+        );
+      }
+    }
+  );
+
   return (
     <>
       <DndContext
@@ -263,11 +310,12 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
             </Button>
           </CardHeader>
           <CardContent className="space-y-6">
-            {chapters.length > 0 ? (
+            {optimisticItems.length > 0 ? (
               <CourseStructureContent
-                items={items}
+                items={optimisticItems}
                 courseId={data.id}
                 toggleChapter={toggleChapter}
+                onOptimisticCreate={addOptimisticItem}
               />
             ) : (
               <EmptyCourseStructure />
@@ -289,6 +337,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
         onOpenChange={setCreateOpen}
         type="chapter"
         courseId={data.id}
+        onOptimisticCreate={addOptimisticItem}
       />
     </>
   );

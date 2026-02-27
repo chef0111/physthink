@@ -10,10 +10,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Loader } from '@/components/ui/loader';
 import { Trash2 } from 'lucide-react';
 import { useDeleteChapter } from '@/queries/chapter';
 import { useDeleteLesson } from '@/queries/lesson';
+import { startTransition } from 'react';
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -22,6 +22,7 @@ interface DeleteConfirmDialogProps {
   id: string;
   courseId: string;
   chapterId?: string; // required when type === 'lesson'
+  onOptimisticUpdate?: () => void;
 }
 
 export function DeleteConfirmDialog({
@@ -31,25 +32,30 @@ export function DeleteConfirmDialog({
   id,
   courseId,
   chapterId,
+  onOptimisticUpdate,
 }: DeleteConfirmDialogProps) {
   const deleteChapter = useDeleteChapter(courseId);
   const deleteLesson = useDeleteLesson(courseId);
 
-  const mutation = type === 'chapter' ? deleteChapter : deleteLesson;
-  const isPending = mutation.isPending;
-
   const handleConfirm = () => {
-    if (type === 'chapter') {
-      deleteChapter.mutate(
-        { id, courseId },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    } else {
-      deleteLesson.mutate(
-        { id, courseId, chapterId: chapterId! },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    }
+    onOpenChange(false);
+    startTransition(async () => {
+      onOptimisticUpdate?.();
+
+      try {
+        if (type === 'chapter') {
+          await deleteChapter.mutateAsync({ id, courseId });
+        } else {
+          await deleteLesson.mutateAsync({
+            id,
+            courseId,
+            chapterId: chapterId!,
+          });
+        }
+      } catch (error) {
+        // Reverted implicitly on error
+      }
+    });
   };
 
   const isChapter = type === 'chapter';
@@ -68,23 +74,10 @@ export function DeleteConfirmDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <Button
-            variant="destructive"
-            disabled={isPending}
-            onClick={handleConfirm}
-          >
-            {isPending ? (
-              <>
-                <Loader />
-                <span>Deleting...</span>
-              </>
-            ) : (
-              <>
-                <Trash2 className="size-4" />
-                <span>Delete</span>
-              </>
-            )}
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button variant="destructive" onClick={handleConfirm}>
+            <Trash2 className="size-4" />
+            Delete
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

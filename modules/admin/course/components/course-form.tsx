@@ -113,7 +113,15 @@ export function CourseForm({ course, isEdit = false }: CourseFormProps) {
 
   const onSubmit = (data: FormData) => {
     if (isEdit && course) {
-      updateCourse.mutate({ ...data, id: course.id });
+      updateCourse.mutate(
+        { ...data, id: course.id },
+        {
+          onSuccess: () => {
+            form.reset(data);
+            setUploaderResetKey((k) => k + 1);
+          },
+        }
+      );
     } else {
       createCourse.mutate(data);
     }

@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/dialog';
 import { FormInput } from '@/components/form';
 import { FieldGroup } from '@/components/ui/field';
-import { Loader } from '@/components/ui/loader';
 import { SaveIcon } from 'lucide-react';
 import { useUpdateChapterTitle } from '@/queries/chapter';
 import { useUpdateLessonTitle } from '@/queries/lesson';
+import { startTransition } from 'react';
 
 type FormData = z.infer<typeof TitleSchema>;
 
@@ -30,6 +30,7 @@ interface EditTitleFormProps {
   courseId: string;
   chapterId?: string; // required when type === 'lesson'
   currentTitle: string;
+  onOptimisticUpdate?: (title: string) => void;
 }
 
 export function EditTitleForm({
@@ -40,6 +41,7 @@ export function EditTitleForm({
   courseId,
   chapterId,
   currentTitle,
+  onOptimisticUpdate,
 }: EditTitleFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(TitleSchema),
@@ -55,21 +57,30 @@ export function EditTitleForm({
   const updateChapterTitle = useUpdateChapterTitle(courseId);
   const updateLessonTitle = useUpdateLessonTitle(courseId);
 
-  const mutation = type === 'chapter' ? updateChapterTitle : updateLessonTitle;
-  const isPending = mutation.isPending;
-
   const onSubmit = (data: FormData) => {
-    if (type === 'chapter') {
-      updateChapterTitle.mutate(
-        { id, courseId, title: data.title },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    } else {
-      updateLessonTitle.mutate(
-        { id, courseId, chapterId: chapterId!, title: data.title },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    }
+    onOpenChange(false);
+    startTransition(async () => {
+      onOptimisticUpdate?.(data.title);
+
+      try {
+        if (type === 'chapter') {
+          await updateChapterTitle.mutateAsync({
+            id,
+            courseId,
+            title: data.title,
+          });
+        } else {
+          await updateLessonTitle.mutateAsync({
+            id,
+            courseId,
+            chapterId: chapterId!,
+            title: data.title,
+          });
+        }
+      } catch (error) {
+        // Reverted implicitly on error
+      }
+    });
   };
 
   const label = type === 'chapter' ? 'Chapter Title' : 'Lesson Title';
@@ -90,21 +101,9 @@ export function EditTitleForm({
             />
           </FieldGroup>
           <DialogFooter className="mt-6" showCloseButton>
-            <Button
-              type="submit"
-              disabled={isPending || !form.formState.isDirty}
-            >
-              {isPending ? (
-                <>
-                  <Loader />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <SaveIcon />
-                  <span>Save</span>
-                </>
-              )}
+            <Button type="submit" disabled={!form.formState.isDirty}>
+              <SaveIcon />
+              Save change
             </Button>
           </DialogFooter>
         </form>

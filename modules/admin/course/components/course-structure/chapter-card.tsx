@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useOptimistic } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -28,6 +28,11 @@ interface ChapterCardProps {
   children?: React.ReactNode;
   listeners?: DraggableSyntheticListeners;
   courseId: string;
+  onOptimisticCreate?: (
+    item:
+      | { type: 'chapter'; id: string; title: string }
+      | { type: 'lesson'; id: string; chapterId: string; title: string }
+  ) => void;
 }
 
 export const ChapterCard = ({
@@ -36,10 +41,16 @@ export const ChapterCard = ({
   children,
   listeners,
   courseId,
+  onOptimisticCreate,
 }: ChapterCardProps) => {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const [optimisticTitle, setOptimisticTitle] = useOptimistic(data.title);
+  const [optimisticDeleted, setOptimisticDeleted] = useOptimistic(false);
+
+  if (optimisticDeleted) return null;
 
   return (
     <>
@@ -58,7 +69,9 @@ export const ChapterCard = ({
                   <GripVertical className="size-4" />
                   <span className="sr-only">Drag to reorder</span>
                 </Button>
-                <p className="w-full font-medium tracking-wide">{data.title}</p>
+                <p className="w-full font-medium tracking-wide">
+                  {optimisticTitle}
+                </p>
               </div>
               <div className="flex items-center gap-1">
                 <CollapsibleTrigger asChild>
@@ -121,6 +134,7 @@ export const ChapterCard = ({
         type="lesson"
         courseId={courseId}
         chapterId={data.id}
+        onOptimisticCreate={onOptimisticCreate}
       />
       <EditTitleForm
         open={editOpen}
@@ -128,7 +142,8 @@ export const ChapterCard = ({
         type="chapter"
         id={data.id}
         courseId={courseId}
-        currentTitle={data.title}
+        currentTitle={optimisticTitle}
+        onOptimisticUpdate={setOptimisticTitle}
       />
       <DeleteConfirmDialog
         open={deleteOpen}
@@ -136,6 +151,7 @@ export const ChapterCard = ({
         type="chapter"
         id={data.id}
         courseId={courseId}
+        onOptimisticUpdate={() => setOptimisticDeleted(true)}
       />
     </>
   );

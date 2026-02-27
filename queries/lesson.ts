@@ -7,9 +7,9 @@ export function useCreateLesson(courseId: string) {
 
   return useMutation(
     orpc.lesson.create.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Lesson created successfully');
-        queryClient.invalidateQueries(
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },
@@ -27,9 +27,9 @@ export function useUpdateLesson(lessonId: string) {
 
   return useMutation(
     orpc.lesson.update.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Lesson updated successfully');
-        queryClient.invalidateQueries(
+        await queryClient.invalidateQueries(
           orpc.lesson.get.queryOptions({ input: { id: lessonId } })
         );
       },
@@ -47,9 +47,9 @@ export function useUpdateLessonTitle(courseId: string) {
 
   return useMutation(
     orpc.lesson.updateTitle.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Lesson title updated');
-        queryClient.invalidateQueries(
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },
@@ -67,9 +67,9 @@ export function useDeleteLesson(courseId: string) {
 
   return useMutation(
     orpc.lesson.delete.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Lesson deleted!');
-        queryClient.invalidateQueries(
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },
@@ -87,8 +87,8 @@ export function useReorderLesson(courseId: string) {
 
   return useMutation(
     orpc.lesson.reorder.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
           orpc.course.get.queryOptions({ input: { id: courseId } })
         );
       },
