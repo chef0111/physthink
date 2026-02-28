@@ -23,7 +23,7 @@ export function Toolbar() {
         options={CourseSortOptions}
         width="min-w-30"
         className={cn(
-          'max-sm:w-full',
+          'min-h-10 max-sm:w-full',
           sidebarOpen ? 'w-full sm:w-auto md:w-full lg:w-auto' : 'sm:w-auto'
         )}
         containerClassName={cn(

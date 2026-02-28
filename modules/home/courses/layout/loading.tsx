@@ -15,8 +15,8 @@ export const CourseListSkeleton = () => {
 export const CourseSkeleton = () => {
   return (
     <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
-      <div className="relative mx-3">
-        <Skeleton className="h-72 w-full rounded-md md:h-64 lg:h-72 xl:h-64" />
+      <div className="relative mx-3 aspect-video">
+        <Skeleton className="h-full w-full rounded-md" />
       </div>
       <CardContent className="mt-1 flex flex-col gap-0! px-4 pb-0">
         <div>
@@ -39,6 +39,33 @@ export const CourseSkeleton = () => {
       <CardFooter className="bg-accent dark:bg-muted/50 border-t p-3!">
         <Skeleton className="h-10 w-full rounded-md" />
       </CardFooter>
+    </Card>
+  );
+};
+
+export const CourseCardSkeleton = () => {
+  return (
+    <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
+      <div className="relative mx-3 aspect-video">
+        <Skeleton className="h-full w-full rounded-md" />
+      </div>
+      <CardContent className="mt-1 flex flex-col gap-0! px-4 pb-4">
+        <div>
+          <Skeleton className="h-4.5 w-3/4 max-w-64" />
+          <Skeleton className="mt-2 h-3.5 w-full max-w-96" />
+        </div>
+
+        <div className="mt-5 flex h-full items-end gap-x-4">
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="size-5.5" />
+            <Skeleton className="h-4 w-6" />
+          </div>
+          <div className="flex w-full items-center gap-1.5">
+            <Skeleton className="size-5.5" />
+            <Skeleton className="h-4 w-full max-w-36" />
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 };
@@ -160,7 +187,7 @@ export const EnrollCardSkeleton = () => {
 
             <div className="space-y-3 pt-2.5">
               <Skeleton className="h-5 w-32" />
-              <Card className="bg-background dark:bg-background/50 gap-0 py-0">
+              <Card className="bg-muted/50 dark:bg-background/50 gap-0 py-0">
                 <div className="flex items-center justify-between gap-2 p-3">
                   <div className="flex items-center gap-2">
                     <Skeleton className="size-8 rounded-md" />

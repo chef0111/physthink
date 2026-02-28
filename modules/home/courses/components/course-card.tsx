@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Ring } from '@/components/ui/ring';
+import { cn } from '@/lib/utils';
 import { ArrowRight, SchoolIcon, TimerIcon } from 'lucide-react';
 import { Route } from 'next';
 import Image from 'next/image';
@@ -16,9 +17,17 @@ import Link from 'next/link';
 
 interface CourseCardProps {
   data: PublicCoursesDTO;
+  href?: string;
+  action?: string;
+  renderFooter?: boolean;
 }
 
-export default function CourseCard({ data }: CourseCardProps) {
+export default function CourseCard({
+  data,
+  href = 'courses',
+  action = 'Learn More',
+  renderFooter = true,
+}: CourseCardProps) {
   return (
     <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
       <div className="absolute top-4.5 right-4.5 z-10">
@@ -26,20 +35,26 @@ export default function CourseCard({ data }: CourseCardProps) {
           {data.level}
         </Badge>
       </div>
-      <div className="relative mx-3">
-        <Image
-          src={data.thumbnail}
-          alt={`${data.title} thumbnail`}
-          width={600}
-          height={400}
-          className="aspect-video h-72 w-full rounded-md object-cover md:h-64 lg:h-72 xl:h-64"
-        />
+      <div className="relative mx-3 aspect-video">
+        <Link href={`/${href}/${data.slug}` as Route}>
+          <Image
+            src={data.thumbnail}
+            alt={`${data.title} thumbnail`}
+            fill
+            className="rounded-md object-cover"
+          />
+        </Link>
         <Ring className="ring-2" />
       </div>
-      <CardContent className="flex h-full flex-col items-stretch px-4 pb-0">
+      <CardContent
+        className={cn(
+          'flex h-full flex-col items-stretch px-4',
+          renderFooter ? 'pb-0' : 'pb-4'
+        )}
+      >
         <div>
           <Link
-            href={`/courses/${data.slug}` as Route}
+            href={`/${href}/${data.slug}` as Route}
             className="group-hover:text-primary line-clamp-2 grow text-lg font-medium underline-offset-4 transition-colors hover:underline"
           >
             <CardTitle className="text-justify">{data.title}</CardTitle>
@@ -62,14 +77,20 @@ export default function CourseCard({ data }: CourseCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="bg-muted/50 border-t p-3!">
-        <Button size="lg" className="group/btn w-full text-base" asChild>
-          <Link href={`/courses/${data.slug}` as Route}>
-            Learn More{' '}
-            <ArrowRight className="transition-transform group-hover/btn:translate-x-1.5" />
-          </Link>
-        </Button>
-      </CardFooter>
+      {renderFooter && (
+        <CardFooter className="bg-muted/50 border-t p-3!">
+          <Button
+            size="lg"
+            className="group/btn w-full gap-2 text-base"
+            asChild
+          >
+            <Link href={`/${href}/${data.slug}` as Route}>
+              {action}
+              <ArrowRight className="transition-transform group-hover/btn:translate-x-1.5" />
+            </Link>
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }

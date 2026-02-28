@@ -6,6 +6,7 @@ import { nextCookies } from 'better-auth/next-js';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { PasswordSchema } from './validations';
 import { resend } from './resend';
+import crypto from 'crypto';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -34,7 +35,12 @@ export const auth = betterAuth({
             .split(/[._-]/)
             .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
             .join(' ');
-          const generatedImage = `https://api.dicebear.com/5.x/initials/svg?seed=${user.email}`;
+
+          const emailHash = crypto
+            .createHash('sha256')
+            .update(user.email.trim().toLowerCase())
+            .digest('hex');
+          const generatedImage = `https://gravatar.com/avatar/${emailHash}?d=retro`;
 
           return {
             data: {

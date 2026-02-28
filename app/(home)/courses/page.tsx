@@ -30,7 +30,7 @@ export default function Courses({ searchParams }: RouteParams) {
           <SortSelect
             options={CourseSortOptions}
             width="min-w-30"
-            className="w-full sm:w-auto"
+            className="min-h-10 w-full sm:w-auto"
             containerClassName="w-full sm:w-auto"
           />
           <FilterSelect
@@ -41,7 +41,7 @@ export default function Courses({ searchParams }: RouteParams) {
           />
         </div>
 
-        <div>
+        <div className="pb-10">
           <Suspense fallback={<CourseListSkeleton />}>
             <FilterContent>
               <CourseList searchParams={searchParams} />

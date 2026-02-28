@@ -25,6 +25,7 @@ interface FilterProps {
   className?: string;
   containerClassName?: string;
   width?: string;
+  disabled?: boolean;
 }
 
 export const FilterSelect = ({
@@ -32,6 +33,7 @@ export const FilterSelect = ({
   className,
   containerClassName,
   width,
+  disabled,
 }: FilterProps) => {
   const { startTransition } = useFilterTransition();
 
@@ -67,6 +69,7 @@ export const FilterSelect = ({
         onValueChange={handleUpdateFilter}
         defaultValue=""
         value={filterValue}
+        disabled={disabled}
       >
         <SelectTrigger
           className={cn(

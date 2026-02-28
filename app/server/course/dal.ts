@@ -5,8 +5,8 @@ import { Course, UpdateCourseDTO } from './dto';
 import { getPagination } from '../utils';
 import { Prisma } from '@/generated/prisma/client';
 
-type CourseSort = 'newest' | 'oldest';
-type CourseFilter = 'beginner' | 'intermediate' | 'advanced';
+type CourseSort = 'newest' | 'oldest' | 'popular';
+type CourseFilter = 'beginner' | 'intermediate' | 'advanced' | 'unregistered';
 type AdminCourseFilter = 'draft' | 'published' | 'archived' | CourseFilter;
 export class CourseDAL {
   private static readonly courseSelect = {
@@ -37,6 +37,8 @@ export class CourseDAL {
         return { createdAt: 'asc' };
       case 'newest':
         return { createdAt: 'desc' };
+      case 'popular':
+        return { enrollments: { _count: 'desc' } };
       default:
         return { createdAt: 'desc' };
     }
@@ -64,7 +66,8 @@ export class CourseDAL {
   }
 
   private static getPublicCourseFilter(
-    filter?: CourseFilter
+    filter?: CourseFilter,
+    userId?: string
   ): Prisma.CourseWhereInput | undefined {
     switch (filter) {
       case 'beginner':
@@ -73,6 +76,8 @@ export class CourseDAL {
         return { level: 'Intermediate' };
       case 'advanced':
         return { level: 'Advanced' };
+      case 'unregistered':
+        return userId ? { enrollments: { none: { userId } } } : undefined;
       default:
         return undefined;
     }
@@ -126,12 +131,12 @@ export class CourseDAL {
     return { courses, totalCourses };
   }
 
-  static async publicFindMany(params: QueryParams) {
-    const { page, pageSize, query, filter, sort } = params;
+  static async publicFindMany(params: QueryParams & { userId?: string }) {
+    const { page, pageSize, query, filter, sort, userId } = params;
     const { offset, limit } = getPagination({ page, pageSize });
 
     const where: Prisma.CourseWhereInput = {
-      ...this.getPublicCourseFilter(filter as CourseFilter),
+      ...this.getPublicCourseFilter(filter as CourseFilter, userId),
       status: 'Published',
     };
 
@@ -231,6 +236,53 @@ export class CourseDAL {
       });
     });
   }
+
+  static async enroll(courseId: string, userId: string) {
+    return prisma.enrollment.create({
+      data: { courseId, userId },
+    });
+  }
+
+  static async listEnrolled(userId: string, params: QueryParams) {
+    const { page, pageSize, query, filter, sort } = params;
+    const { offset, limit } = getPagination({ page, pageSize });
+
+    const where: Prisma.CourseWhereInput = {
+      ...this.getPublicCourseFilter(filter as CourseFilter, userId),
+      enrollments: {
+        some: { userId },
+      },
+    };
+
+    if (query) {
+      where.OR = [
+        {
+          title: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    const courses = await prisma.course.findMany({
+      where,
+      orderBy: this.getSortCriteria(sort as CourseSort),
+      select: { ...this.courseSelect, category: true },
+      skip: offset,
+      take: limit,
+    });
+
+    const totalCourses = await prisma.course.count({ where });
+
+    return { courses, totalCourses };
+  }
 }
 
 export const createCourse = (...args: Parameters<typeof CourseDAL.create>) =>
@@ -249,3 +301,8 @@ export const updateCourse = (...args: Parameters<typeof CourseDAL.update>) =>
   CourseDAL.update(...args);
 export const deleteCourse = (...args: Parameters<typeof CourseDAL.delete>) =>
   CourseDAL.delete(...args);
+export const enrollCourse = (...args: Parameters<typeof CourseDAL.enroll>) =>
+  CourseDAL.enroll(...args);
+export const listEnrolledCourses = (
+  ...args: Parameters<typeof CourseDAL.listEnrolled>
+) => CourseDAL.listEnrolled(...args);

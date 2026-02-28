@@ -23,8 +23,8 @@ export const CourseListSkeleton = () => {
 export const CourseSkeleton = () => {
   return (
     <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
-      <div className="relative mx-3">
-        <Skeleton className="h-72 w-full rounded-md sm:h-54 md:h-64" />
+      <div className="relative mx-3 aspect-video">
+        <Skeleton className="h-full w-full rounded-md" />
       </div>
       <CardContent className="mt-1 flex flex-col gap-0! px-4 pb-0">
         <div>

@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'K2Think LMS',
+  title: 'PhysThink',
   description:
     'A Learning Management System designed to provide an intuitive and efficient platform for online education and training.',
 };

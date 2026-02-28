@@ -14,6 +14,10 @@ export const DeleteCourseSchema = z.object({
   slug: z.string(),
 });
 
+export const EnrollCourseSchema = z.object({
+  courseId: z.string(),
+});
+
 export const UpdateCourseSchema = CourseSchema.extend({ id: z.string() });
 
 export const CourseListSchema = GetCourseSchema.omit({

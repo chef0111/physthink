@@ -40,13 +40,12 @@ export default function CourseCard({ data }: CourseCardProps) {
             onDelete={() => setDeleteOpen(true)}
           />
         </div>
-        <div className="relative mx-3">
+        <div className="relative mx-3 aspect-video">
           <Image
             src={data.thumbnail}
             alt={`${data.title} thumbnail`}
-            width={600}
-            height={400}
-            className="aspect-video h-72 w-full rounded-md object-cover sm:h-54 md:h-64"
+            fill
+            className="rounded-md object-cover"
           />
           <Ring className="ring-2" />
         </div>

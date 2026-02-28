@@ -11,6 +11,8 @@ import {
   listCourses as listCoursesDAL,
   listPublicCourses as listPublicCoursesDAL,
   updateCourse as updateCourseDAL,
+  enrollCourse as enrollCourseDAL,
+  listEnrolledCourses as listEnrolledCoursesDAL,
 } from './dal';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { heavyWriteSecurityMiddleware } from '@/app/middleware/arcjet/heavy-write';
@@ -22,6 +24,7 @@ import {
   GetCourseSchema,
   PublicCourseListSchema,
   UpdateCourseSchema,
+  EnrollCourseSchema,
 } from './dto';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 import z from 'zod';
@@ -70,8 +73,11 @@ export const listPublicCourses = authorized
   .use(readSecurityMiddleware)
   .input(QueryParamsSchema)
   .output(PublicCourseListSchema)
-  .handler(async ({ input }) => {
-    const courses = await listPublicCoursesDAL(input);
+  .handler(async ({ input, context }) => {
+    const courses = await listPublicCoursesDAL({
+      ...input,
+      userId: context.user.id,
+    });
     return courses;
   });
 
@@ -146,4 +152,45 @@ export const deleteCourse = admin
     revalidateTag(`course:${existing.id}`, 'max');
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
+  });
+
+export const enroll = authorized
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .input(EnrollCourseSchema)
+  .handler(async ({ input, context, errors }) => {
+    const existingEnrollment = await prisma.enrollment.findFirst({
+      where: {
+        userId: context.user.id,
+        courseId: input.courseId,
+      },
+    });
+
+    if (existingEnrollment) {
+      throw errors.CONFLICT({
+        message: 'You are already enrolled in this course',
+      });
+    }
+
+    const enrollment = await enrollCourseDAL(input.courseId, context.user.id);
+
+    revalidateTag(`course:${input.courseId}`, 'max');
+    revalidateTag(`enrolled-courses:${context.user.id}`, 'max');
+    revalidatePath(`/courses`);
+    revalidatePath(`/dashboard`);
+
+    return enrollment;
+  });
+
+export const listEnrolled = authorized
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .input(QueryParamsSchema)
+  .output(PublicCourseListSchema)
+  .handler(async ({ input, context }) => {
+    const { courses, totalCourses } = await listEnrolledCoursesDAL(
+      context.user.id,
+      input
+    );
+    return { courses, totalCourses };
   });

@@ -63,3 +63,25 @@ export function useDeleteCourse() {
     })
   );
 }
+
+export function useEnrollCourse() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    orpc.course.enroll.mutationOptions({
+      onSuccess: () => {
+        toast.success('Course Enrolled Successfully!');
+        queryClient.invalidateQueries(
+          orpc.course.listEnrolled.queryOptions({ input: {} })
+        );
+        router.push('/dashboard');
+      },
+      onError: (error) => {
+        toast.error('Failed to enroll', {
+          description: error.message,
+        });
+      },
+    })
+  );
+}

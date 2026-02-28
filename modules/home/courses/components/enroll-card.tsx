@@ -1,3 +1,5 @@
+'use client';
+
 import { CoursePreviewDTO } from '@/app/server/course/dto';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +19,16 @@ import {
   CircleCheck,
   ClockIcon,
 } from 'lucide-react';
+import { useEnrollCourse } from '@/queries/course';
+import { Loader } from '@/components/ui/loader';
 
 interface EnrollCardProps {
   course: CoursePreviewDTO;
 }
 
 export const EnrollCard = ({ course }: EnrollCardProps) => {
+  const { mutate: enroll, isPending } = useEnrollCourse();
+
   const totalLessons = course.chapters.reduce(
     (total, chapter) => total + chapter.lessons.length,
     0
@@ -50,7 +56,7 @@ export const EnrollCard = ({ course }: EnrollCardProps) => {
 
             <div className="space-y-3">
               <h4 className="text-base font-medium">What you'll get:</h4>
-              <Card className="bg-background dark:bg-background/50 gap-0 py-0">
+              <Card className="bg-muted/50 dark:bg-background/50 gap-0 py-0">
                 <div className="flex items-center justify-between gap-2 p-3">
                   <div className="flex items-center gap-2">
                     <Button
@@ -118,9 +124,22 @@ export const EnrollCard = ({ course }: EnrollCardProps) => {
           </CardContent>
 
           <CardFooter className="bg-muted/50 border-t p-3!">
-            <Button size="lg" className="group/btn w-full text-base">
-              Enroll Course{' '}
-              <ArrowRight className="transition-transform group-hover/btn:translate-x-1.5" />
+            <Button
+              size="lg"
+              className="group/btn w-full gap-2 text-base"
+              disabled={isPending}
+              onClick={() => enroll({ courseId: course.id })}
+            >
+              {isPending ? (
+                <>
+                  <Loader /> Enrolling...
+                </>
+              ) : (
+                <>
+                  Enroll Course
+                  <ArrowRight className="transition-transform group-hover/btn:translate-x-1.5" />
+                </>
+              )}
             </Button>
           </CardFooter>
         </Card>

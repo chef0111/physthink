@@ -7,6 +7,8 @@ import {
   listCourses,
   listPublicCourses,
   updateCourse,
+  enroll,
+  listEnrolled,
 } from './course';
 import {
   updateChapterTitle,
@@ -35,6 +37,8 @@ export const router = {
     getPublic: getCourseBySlug,
     update: updateCourse,
     delete: deleteCourse,
+    enroll,
+    listEnrolled,
   },
   chapter: {
     create: createChapter,

@@ -25,6 +25,7 @@ interface SortSelectProps {
   className?: string;
   containerClassName?: string;
   width?: string;
+  disabled?: boolean;
 }
 
 export const SortSelect = ({
@@ -32,6 +33,7 @@ export const SortSelect = ({
   className,
   containerClassName,
   width,
+  disabled,
 }: SortSelectProps) => {
   const { startTransition } = useFilterTransition();
 
@@ -67,10 +69,11 @@ export const SortSelect = ({
         onValueChange={handleUpdateSort}
         defaultValue=""
         value={sortValue}
+        disabled={disabled}
       >
         <SelectTrigger
           className={cn(
-            'border-border! ring-border/50! min-h-10 cursor-pointer border ring-1!',
+            'border-border! ring-border/50! cursor-pointer border ring-1!',
             !sortValue ? 'min-w-24' : width,
             className
           )}
