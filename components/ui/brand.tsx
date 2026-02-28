@@ -33,7 +33,7 @@ export function Brand({
           className
         )}
       >
-        <LogoIcon width={size} height={size} className="invert dark:invert-0" />
+        <LogoIcon width={size} height={size} />
       </div>
       {showText && (
         <p className={cn('hidden text-2xl font-bold sm:flex', textClassName)}>

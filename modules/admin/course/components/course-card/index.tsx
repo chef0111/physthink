@@ -53,7 +53,7 @@ export default function CourseCard({ data }: CourseCardProps) {
         <CardContent className="flex h-full flex-col items-stretch px-4 pb-0">
           <div>
             <Link
-              href={`/admin/courses/${data.slug}` as Route}
+              href={`/courses/${data.slug}` as Route}
               className="group-hover:text-primary line-clamp-2 grow text-lg font-medium underline-offset-4 transition-colors hover:underline"
             >
               <CardTitle className="text-justify">{data.title}</CardTitle>

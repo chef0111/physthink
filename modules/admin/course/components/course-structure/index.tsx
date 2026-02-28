@@ -151,10 +151,12 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
       return;
     }
 
-    const reordered = arrayMove(items, oldIndex, newIndex).map((c, i) => ({
-      ...c,
-      order: i + 1,
-    }));
+    const reordered = arrayMove(items, oldIndex, newIndex).map(
+      (chapter, i) => ({
+        ...chapter,
+        order: i + 1,
+      })
+    );
 
     const prevItems = [...items];
     setItems(reordered);
@@ -165,8 +167,6 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
         chapters: reordered.map(({ id, order }) => ({ id, position: order })),
       }),
       {
-        loading: 'Reordering chapters...',
-        success: 'Chapters reordered successfully',
         error: () => {
           setItems(prevItems);
           return 'Failed to reorder chapters';
@@ -188,19 +188,23 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
     if (chapterIndex === -1) return;
 
     const chapter = items[chapterIndex];
-    const oldIndex = chapter.lessons.findIndex((l) => l.id === active.id);
-    const newIndex = chapter.lessons.findIndex((l) => l.id === over.id);
+    const oldIndex = chapter.lessons.findIndex(
+      (lesson) => lesson.id === active.id
+    );
+    const newIndex = chapter.lessons.findIndex(
+      (lesson) => lesson.id === over.id
+    );
 
     if (oldIndex === -1 || newIndex === -1) return;
 
     const reorderedLessons = arrayMove(chapter.lessons, oldIndex, newIndex).map(
-      (l, i) => ({ ...l, order: i + 1 })
+      (lesson, i) => ({ ...lesson, order: i + 1 })
     );
 
     const prevItems = [...items];
     setItems((prev) =>
-      prev.map((c, i) =>
-        i === chapterIndex ? { ...c, lessons: reorderedLessons } : c
+      prev.map((chapter, i) =>
+        i === chapterIndex ? { ...chapter, lessons: reorderedLessons } : chapter
       )
     );
 
@@ -214,8 +218,6 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
         })),
       }),
       {
-        loading: 'Reordering lessons...',
-        success: 'Lessons reordered successfully',
         error: () => {
           setItems(prevItems);
           return 'Failed to reorder lessons';
@@ -236,14 +238,14 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
 
   const activeChapter =
     activeItem?.type === 'chapter'
-      ? items.find((c) => c.id === activeItem.id)
+      ? items.find((chapter) => chapter.id === activeItem.id)
       : null;
 
   const activeLesson =
     activeItem?.type === 'lesson'
       ? items
-          .find((c) => c.id === activeItem.chapterId)
-          ?.lessons.find((l) => l.id === activeItem.id)
+          .find((chapter) => chapter.id === activeItem.chapterId)
+          ?.lessons.find((lesson) => lesson.id === activeItem.id)
       : null;
 
   const [optimisticItems, addOptimisticItem] = useOptimistic(

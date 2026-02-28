@@ -9,15 +9,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id              String    @id
+  name            String
+  email           String
+  emailVerified   Boolean   @default(false)
+  image           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  sessions        Session[]
+  accounts        Account[]
 
   username        String?
   displayUsername String?
@@ -26,7 +26,8 @@ model User {
   banReason       String?
   banExpires      DateTime?
 
-  courses Course[]
+  courses         Course[]
+  enrollments     Enrollment[]
 
   @@unique([email])
   @@map("user")
@@ -114,6 +115,7 @@ model Course {
   userId      String
 
   chapters    Chapter[]
+  enrollments Enrollment[]
 
   @@map("course")
 }
@@ -149,4 +151,18 @@ model Lesson {
   chapterId   String
 
   @@map("lesson")
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  courseId  String
+  userId    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("enrollment")
 }

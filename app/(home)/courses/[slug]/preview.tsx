@@ -70,7 +70,7 @@ export const Preview = async ({ params }: Pick<RouteParams, 'params'>) => {
               <h2 className="text-2xl font-semibold tracking-tight">
                 Course Content
               </h2>
-              <span>
+              <span className="text-muted-foreground">
                 {chaptersCount} {chaptersCount > 1 ? 'Chapters' : 'Chapter'} |{' '}
                 {lessonsCount} {lessonsCount > 1 ? 'Lessons' : 'Lesson'}
               </span>

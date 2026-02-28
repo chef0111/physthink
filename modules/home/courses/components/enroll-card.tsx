@@ -38,7 +38,7 @@ export const EnrollCard = ({ course }: EnrollCardProps) => {
                 <CardTitle className="text-primary text-2xl font-bold">
                   Get it now!
                 </CardTitle>
-                <Badge className="flex items-center gap-1 border border-green-600/30 bg-green-600/10 text-green-600 dark:border-green-300/30 dark:bg-green-300/10 dark:text-green-300">
+                <Badge className="flex items-center gap-1 border border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-300">
                   <CircleCheck className="size-4" />
                   Free
                 </Badge>
@@ -99,7 +99,7 @@ export const EnrollCard = ({ course }: EnrollCardProps) => {
               </Card>
             </div>
 
-            <Alert className="flex items-center gap-4 border-green-600/30 bg-green-500/10 dark:border-green-300/30">
+            <Alert className="flex items-center gap-4 border-green-500/30 bg-green-500/10">
               <Button
                 size="icon"
                 className="pointer-events-none rounded-full bg-green-600/10! text-green-600 dark:bg-green-300/10! dark:text-green-300"
