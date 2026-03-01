@@ -1,8 +1,6 @@
 import { Suspense } from 'react';
 import { Header } from '@/modules/home/header';
-import { WelcomeBanner, WelcomeBannerFallback } from './welcome-banner';
-import { EnrolledCourses } from './enrolled-courses';
-import { AvailableCourses } from './available-courses';
+import { WelcomeBanner, getDashboardCourses } from './courses';
 import { FilterProvider } from '@/context/filter-provider';
 import { FilterContent, FilterSelect, SortSelect } from '@/components/filter';
 import {
@@ -12,16 +10,21 @@ import {
 import {
   CourseCardSkeleton,
   CourseSkeleton,
+  WelcomeBannerFallback,
 } from '@/modules/home/courses/layout/loading';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 
 export default function Dashboard({ searchParams }: RouteParams) {
+  const { EnrolledCourses, AvailableCourses } = getDashboardCourses({
+    searchParams,
+  });
+
   return (
-    <main className="mx-auto max-w-7xl">
+    <main className="mx-auto">
       <Header />
-      <section className="px-6 py-8">
+      <section className="mx-auto max-w-7xl px-6 py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-4">
           <Suspense fallback={<WelcomeBannerFallback />}>
             <WelcomeBanner />
@@ -57,7 +60,7 @@ export default function Dashboard({ searchParams }: RouteParams) {
                 }
               >
                 <FilterContent>
-                  <EnrolledCourses searchParams={searchParams} />
+                  <EnrolledCourses />
                 </FilterContent>
               </Suspense>
             </div>
@@ -72,7 +75,7 @@ export default function Dashboard({ searchParams }: RouteParams) {
             <h2 className="text-xl font-semibold tracking-tight uppercase">
               Available Courses
             </h2>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" asChild>
               <Link href="/courses">View All</Link>
             </Button>
           </div>
@@ -80,10 +83,9 @@ export default function Dashboard({ searchParams }: RouteParams) {
           <Suspense
             fallback={
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <CourseCardSkeleton />
-                <CourseCardSkeleton />
-                <CourseCardSkeleton />
-                <CourseCardSkeleton />
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <CourseCardSkeleton key={index} />
+                ))}
               </div>
             }
           >
