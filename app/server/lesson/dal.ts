@@ -50,7 +50,7 @@ export class LessonDAL {
     });
   }
 
-  static async getById(id: string) {
+  static async findById(id: string) {
     const lesson = await prisma.lesson.findUnique({
       where: { id },
       select: this.select,
@@ -101,8 +101,8 @@ export class LessonDAL {
   }
 }
 
-export const getById = (...args: Parameters<typeof LessonDAL.getById>) =>
-  LessonDAL.getById(...args);
+export const findById = (...args: Parameters<typeof LessonDAL.findById>) =>
+  LessonDAL.findById(...args);
 
 export const createLesson = (...args: Parameters<typeof LessonDAL.create>) =>
   LessonDAL.create(...args);

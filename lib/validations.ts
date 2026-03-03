@@ -74,10 +74,7 @@ export const LessonSchema = z.object({
     .string()
     .min(3, { message: 'Lesson title must be at least 3 characters long.' })
     .max(100, { message: 'Lesson title cannot exceed 100 characters.' }),
-  content: z
-    .string()
-    .max(5000, { message: 'Lesson content must not exceed 5000 characters.' })
-    .nullish(),
+  content: z.string().nullish(),
   thumbnail: z.string().nullish(),
   video: z.string().nullish(),
 });

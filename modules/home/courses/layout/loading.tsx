@@ -81,7 +81,7 @@ export const CoursePreviewSkeleton = () => {
 
         <div className="mt-8 space-y-5">
           <div className="space-y-3">
-            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-7.5 w-3/4" />
             <Skeleton className="mt-2 h-6 w-full" />
           </div>
 
@@ -92,7 +92,7 @@ export const CoursePreviewSkeleton = () => {
           </div>
 
           <Card className="mt-8 gap-4 p-4">
-            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-7.5 w-1/3" />
             {Array.from({ length: 3 }).map((_, index) => (
               <CardContent key={index} className="flex flex-col gap-2 p-0">
                 <Skeleton className="h-4 w-full" />

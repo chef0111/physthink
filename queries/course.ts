@@ -76,6 +76,7 @@ export function useEnrollCourse() {
           orpc.course.listEnrolled.queryOptions({ input: {} })
         );
         router.push('/dashboard');
+        router.refresh();
       },
       onError: (error) => {
         toast.error('Failed to enroll', {

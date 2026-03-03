@@ -13,7 +13,7 @@ import {
   LessonConfigSchema,
 } from './dto';
 import {
-  getById,
+  findById,
   createLesson as createLessonDAL,
   updateLesson as updateLessonDAL,
   updateTitle,
@@ -27,7 +27,7 @@ export const getLesson = admin
   .output(LessonSchema)
   .handler(async ({ input, errors }) => {
     const { id } = input;
-    const lesson = await getById(id);
+    const lesson = await findById(id);
     if (!lesson) {
       throw errors.NOT_FOUND({ message: 'Lesson not found' });
     }

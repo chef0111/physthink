@@ -1,3 +1,6 @@
+'use client';
+
+import dynamic from 'next/dynamic';
 import {
   VideoPlayer,
   VideoPlayerContent,
@@ -10,8 +13,9 @@ import {
   VideoPlayerMuteButton,
   VideoPlayerVolumeRange,
 } from '@/components/ui/video-player';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export const MediaVideo = ({ src }: { src: string }) => {
+const MediaVideoRaw = ({ src, poster }: { src: string; poster?: string }) => {
   return (
     <VideoPlayer className="h-full w-full shrink-0 overflow-hidden rounded-lg border">
       <VideoPlayerContent
@@ -19,6 +23,7 @@ export const MediaVideo = ({ src }: { src: string }) => {
         preload="auto"
         slot="media"
         src={src}
+        poster={poster}
         className="aspect-video"
         tabIndex={0}
       />
@@ -34,3 +39,10 @@ export const MediaVideo = ({ src }: { src: string }) => {
     </VideoPlayer>
   );
 };
+
+export const MediaVideo = dynamic(() => Promise.resolve(MediaVideoRaw), {
+  ssr: false,
+  loading: () => (
+    <Skeleton className="aspect-video min-w-full shrink-0 rounded-lg border" />
+  ),
+});
