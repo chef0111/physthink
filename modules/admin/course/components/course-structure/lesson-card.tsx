@@ -12,6 +12,7 @@ import { DeleteConfirmDialog } from './delete-confirm-dialog';
 
 interface LessonCardProps {
   courseId: string;
+  courseSlug: string;
   chapterId: string;
   data: Lesson;
   listeners?: DraggableSyntheticListeners;
@@ -19,6 +20,7 @@ interface LessonCardProps {
 
 export const LessonCard = ({
   courseId,
+  courseSlug,
   chapterId,
   data,
   listeners,
@@ -83,6 +85,7 @@ export const LessonCard = ({
         type="lesson"
         id={data.id}
         courseId={courseId}
+        courseSlug={courseSlug}
         chapterId={chapterId}
         currentTitle={optimisticTitle}
         onOptimisticUpdate={setOptimisticTitle}
@@ -93,6 +96,7 @@ export const LessonCard = ({
         type="lesson"
         id={data.id}
         courseId={courseId}
+        courseSlug={courseSlug}
         chapterId={chapterId}
         onOptimisticUpdate={() => setOptimisticDeleted(true)}
       />

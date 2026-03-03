@@ -60,7 +60,7 @@ function SidebarProvider({
   className,
   style,
   children,
-  hotkey,
+  hotkey = true,
   ...props
 }: React.ComponentProps<'div'> & {
   defaultOpen?: boolean;

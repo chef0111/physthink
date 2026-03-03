@@ -31,6 +31,7 @@ type ActiveItem =
 interface CourseStructureContentProps {
   items: ChapterItem[];
   courseId: string;
+  courseSlug: string;
   toggleChapter: (chapterId: string) => void;
   onOptimisticCreate?: (
     item:
@@ -42,6 +43,7 @@ interface CourseStructureContentProps {
 export function CourseStructureContent({
   items,
   courseId,
+  courseSlug,
   toggleChapter,
   onOptimisticCreate,
 }: CourseStructureContentProps) {
@@ -55,6 +57,7 @@ export function CourseStructureContent({
               onOpenChange={() => toggleChapter(item.id)}
               listeners={listeners}
               courseId={courseId}
+              courseSlug={courseSlug}
               onOptimisticCreate={onOptimisticCreate}
             >
               <SortableContext
@@ -70,6 +73,7 @@ export function CourseStructureContent({
                     {(lessonListeners) => (
                       <LessonCard
                         courseId={courseId}
+                        courseSlug={courseSlug}
                         chapterId={item.id}
                         data={lesson}
                         listeners={lessonListeners}
@@ -91,6 +95,7 @@ interface DragOverlayProps {
   activeChapter: ChapterItem | null | undefined;
   activeLesson: LessonItem | null | undefined;
   courseId: string;
+  courseSlug: string;
 }
 
 export function ContentDragOverlay({
@@ -98,6 +103,7 @@ export function ContentDragOverlay({
   activeChapter,
   activeLesson,
   courseId,
+  courseSlug,
 }: DragOverlayProps) {
   return (
     <DragOverlay dropAnimation={null}>
@@ -106,11 +112,13 @@ export function ContentDragOverlay({
           data={activeChapter}
           onOpenChange={() => {}}
           courseId={courseId}
+          courseSlug={courseSlug}
         >
           {activeChapter.lessons.map((lesson) => (
             <LessonCard
               key={lesson.id}
               courseId={courseId}
+              courseSlug={courseSlug}
               chapterId={activeChapter.id}
               data={lesson}
             />
@@ -120,6 +128,7 @@ export function ContentDragOverlay({
       {activeLesson && activeItem?.type === 'lesson' && (
         <LessonCard
           courseId={courseId}
+          courseSlug={courseSlug}
           chapterId={activeItem.chapterId}
           data={activeLesson}
         />

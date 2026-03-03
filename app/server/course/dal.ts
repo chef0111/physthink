@@ -218,6 +218,15 @@ export class CourseDAL {
     return course;
   }
 
+  static async findSlug(id: string) {
+    const course = await prisma.course.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+
+    return course;
+  }
+
   static async update(id: string, data: UpdateCourseDTO) {
     return prisma.$transaction(async (tx) => {
       const course = await tx.course.update({
@@ -297,6 +306,8 @@ export const getCourseById = (...args: Parameters<typeof CourseDAL.findById>) =>
 export const getCourseBySlug = (
   ...args: Parameters<typeof CourseDAL.findBySlug>
 ) => CourseDAL.findBySlug(...args);
+export const getSlug = (...args: Parameters<typeof CourseDAL.findSlug>) =>
+  CourseDAL.findSlug(...args);
 export const updateCourse = (...args: Parameters<typeof CourseDAL.update>) =>
   CourseDAL.update(...args);
 export const deleteCourse = (...args: Parameters<typeof CourseDAL.delete>) =>

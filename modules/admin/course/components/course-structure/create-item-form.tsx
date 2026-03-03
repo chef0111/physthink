@@ -26,6 +26,7 @@ interface EditTitleFormProps {
   onOpenChange: (open: boolean) => void;
   type: 'chapter' | 'lesson';
   courseId: string;
+  courseSlug: string;
   chapterId?: string; // required when type === 'lesson'
   onOptimisticCreate?: (
     item:
@@ -39,6 +40,7 @@ export function CreateItemForm({
   onOpenChange,
   type,
   courseId,
+  courseSlug,
   chapterId,
   onOptimisticCreate,
 }: EditTitleFormProps) {
@@ -83,6 +85,7 @@ export function CreateItemForm({
         try {
           await createLesson.mutateAsync({
             courseId,
+            courseSlug,
             chapterId: chapterId!,
             title: data.title,
           });

@@ -164,6 +164,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
     toast.promise(
       reorderChapter.mutateAsync({
         courseId: data.id,
+        courseSlug: data.slug,
         chapters: reordered.map(({ id, order }) => ({ id, position: order })),
       }),
       {
@@ -212,6 +213,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
       reorderLesson.mutateAsync({
         courseId: data.id,
         chapterId,
+        courseSlug: data.slug,
         lessons: reorderedLessons.map(({ id, order }) => ({
           id,
           position: order,
@@ -316,6 +318,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
               <CourseStructureContent
                 items={optimisticItems}
                 courseId={data.id}
+                courseSlug={data.slug}
                 toggleChapter={toggleChapter}
                 onOptimisticCreate={addOptimisticItem}
               />
@@ -331,6 +334,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
           activeChapter={activeChapter}
           activeLesson={activeLesson}
           courseId={data.id}
+          courseSlug={data.slug}
         />
       </DndContext>
 
@@ -339,6 +343,7 @@ export const CourseStructure = ({ courseId }: CourseStructureProps) => {
         onOpenChange={setCreateOpen}
         type="chapter"
         courseId={data.id}
+        courseSlug={data.slug}
         onOptimisticCreate={addOptimisticItem}
       />
     </>

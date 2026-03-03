@@ -9,6 +9,8 @@ export const GetCourseSchema = CourseSchema.extend({
   chapters: z.array(ChapterSchema),
 });
 
+export const CourseSlugSchema = z.object({ slug: z.string() });
+
 export const DeleteCourseSchema = z.object({
   id: z.string(),
   slug: z.string(),
@@ -71,6 +73,7 @@ export const PublicCourseListSchema = z.object({
 
 export type Course = z.infer<typeof CourseSchema>;
 export type CourseDTO = z.infer<typeof GetCourseSchema>;
+export type CourseSlugDTO = z.infer<typeof CourseSlugSchema>;
 export type UpdateCourseDTO = z.infer<typeof UpdateCourseSchema>;
 export type DeleteCourseDTO = z.infer<typeof DeleteCourseSchema>;
 export type CourseListDTO = z.infer<typeof CourseListSchema>;

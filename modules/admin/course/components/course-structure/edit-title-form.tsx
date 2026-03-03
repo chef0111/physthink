@@ -28,6 +28,7 @@ interface EditTitleFormProps {
   type: 'chapter' | 'lesson';
   id: string;
   courseId: string;
+  courseSlug: string;
   chapterId?: string; // required when type === 'lesson'
   currentTitle: string;
   onOptimisticUpdate?: (title: string) => void;
@@ -39,6 +40,7 @@ export function EditTitleForm({
   type,
   id,
   courseId,
+  courseSlug,
   chapterId,
   currentTitle,
   onOptimisticUpdate,
@@ -67,12 +69,14 @@ export function EditTitleForm({
           await updateChapterTitle.mutateAsync({
             id,
             courseId,
+            courseSlug,
             title: data.title,
           });
         } else {
           await updateLessonTitle.mutateAsync({
             id,
             courseId,
+            courseSlug,
             chapterId: chapterId!,
             title: data.title,
           });

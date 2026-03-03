@@ -13,7 +13,7 @@ import {
   LessonConfigSchema,
 } from './dto';
 import {
-  getById,
+  findById,
   createLesson as createLessonDAL,
   updateLesson as updateLessonDAL,
   updateTitle,
@@ -27,7 +27,7 @@ export const getLesson = admin
   .output(LessonSchema)
   .handler(async ({ input, errors }) => {
     const { id } = input;
-    const lesson = await getById(id);
+    const lesson = await findById(id);
     if (!lesson) {
       throw errors.NOT_FOUND({ message: 'Lesson not found' });
     }
@@ -39,10 +39,12 @@ export const createLesson = admin
   .use(writeSecurityMiddleware)
   .input(CreateLessonSchema)
   .handler(async ({ input }) => {
-    const { title, chapterId, courseId } = input;
+    const { title, chapterId, courseId, courseSlug } = input;
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/courses/${courseSlug}`);
+    revalidatePath(`/dashboard/course/${courseSlug}`);
     return await createLessonDAL(title, chapterId);
   });
 
@@ -52,14 +54,15 @@ export const updateLesson = admin
   .input(UpdateLessonSchema)
   .output(LessonConfigSchema)
   .handler(async ({ input }) => {
-    const { id, courseId, ...data } = input;
+    const { id, courseId, courseSlug, ...data } = input;
     const lesson = await updateLessonDAL(id, data);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidateTag(`lesson:${id}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
     revalidatePath(`/admin/courses/${courseId}/lesson/${id}`);
-
+    revalidatePath(`/courses/${courseSlug}`);
+    revalidatePath(`/dashboard/course/${courseSlug}`);
     return lesson;
   });
 
@@ -68,11 +71,13 @@ export const updateLessonTitle = admin
   .use(writeSecurityMiddleware)
   .input(UpdateLessonTitleSchema)
   .handler(async ({ input }) => {
-    const { id, courseId, title } = input;
+    const { id, courseId, courseSlug, title } = input;
     await updateTitle(id, title);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/courses/${courseSlug}`);
+    revalidatePath(`/dashboard/course/${courseSlug}`);
   });
 
 export const deleteLesson = admin
@@ -80,11 +85,13 @@ export const deleteLesson = admin
   .use(writeSecurityMiddleware)
   .input(DeleteLessonSchema)
   .handler(async ({ input }) => {
-    const { id, courseId, chapterId } = input;
+    const { id, courseId, chapterId, courseSlug } = input;
     await deleteLessonDAL(id, chapterId);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/courses/${courseSlug}`);
+    revalidatePath(`/dashboard/course/${courseSlug}`);
   });
 
 export const reorderLesson = admin
@@ -92,10 +99,11 @@ export const reorderLesson = admin
   .use(writeSecurityMiddleware)
   .input(ReorderLessonSchema)
   .handler(async ({ input }) => {
-    const { lessons, chapterId, courseId } = input;
+    const { lessons, chapterId, courseId, courseSlug } = input;
     await updatePosition(lessons, chapterId);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidateTag(`chapter:${chapterId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/courses/${courseSlug}`);
   });

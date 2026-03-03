@@ -27,7 +27,7 @@ export default function Dashboard({ searchParams }: RouteParams) {
       <Header />
       <section className="mx-auto max-w-7xl px-6 py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-4">
-          <div className="order-1 mx-auto flex w-full self-start lg:sticky lg:top-20 lg:col-span-1 lg:justify-center">
+          <div className="order-1 mx-auto flex w-full self-start lg:sticky lg:top-22 lg:col-span-1 lg:justify-center">
             <Suspense fallback={<WelcomeBannerFallback />}>
               <WelcomeBanner />
             </Suspense>

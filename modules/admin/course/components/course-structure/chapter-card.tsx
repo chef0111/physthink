@@ -28,6 +28,7 @@ interface ChapterCardProps {
   children?: React.ReactNode;
   listeners?: DraggableSyntheticListeners;
   courseId: string;
+  courseSlug: string;
   onOptimisticCreate?: (
     item:
       | { type: 'chapter'; id: string; title: string }
@@ -41,6 +42,7 @@ export const ChapterCard = ({
   children,
   listeners,
   courseId,
+  courseSlug,
   onOptimisticCreate,
 }: ChapterCardProps) => {
   const [createOpen, setCreateOpen] = useState(false);
@@ -133,6 +135,7 @@ export const ChapterCard = ({
         onOpenChange={setCreateOpen}
         type="lesson"
         courseId={courseId}
+        courseSlug={courseSlug}
         chapterId={data.id}
         onOptimisticCreate={onOptimisticCreate}
       />
@@ -142,6 +145,7 @@ export const ChapterCard = ({
         type="chapter"
         id={data.id}
         courseId={courseId}
+        courseSlug={courseSlug}
         currentTitle={optimisticTitle}
         onOptimisticUpdate={setOptimisticTitle}
       />
@@ -151,6 +155,7 @@ export const ChapterCard = ({
         type="chapter"
         id={data.id}
         courseId={courseId}
+        courseSlug={courseSlug}
         onOptimisticUpdate={() => setOptimisticDeleted(true)}
       />
     </>

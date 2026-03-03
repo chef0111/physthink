@@ -18,12 +18,14 @@ export const CreateChapterSchema = z.object({
 export const UpdateChapterTitleSchema = z.object({
   id: z.string(),
   courseId: z.string(),
+  courseSlug: z.string(),
   title: z.string().min(1, 'Title is required').max(100),
 });
 
 export const DeleteChapterSchema = z.object({
   id: z.string(),
   courseId: z.string(),
+  courseSlug: z.string(),
 });
 
 export const ChapterOrderSchema = z.object({
@@ -34,6 +36,7 @@ export const ChapterOrderSchema = z.object({
 export const ReorderChapterSchema = z.object({
   chapters: z.array(ChapterOrderSchema),
   courseId: z.string(),
+  courseSlug: z.string(),
 });
 
 export type ChapterDTO = z.infer<typeof ChapterSchema>;

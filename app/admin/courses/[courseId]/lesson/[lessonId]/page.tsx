@@ -17,11 +17,18 @@ export default async function LessonPage({ params }: RouteParams) {
   const { lessonId, courseId } = await params;
   const queryClient = getQueryClient();
 
-  const queryOptions = orpc.lesson.get.queryOptions({
+  const lessonQueryOptions = orpc.lesson.get.queryOptions({
     input: { id: lessonId },
   });
 
-  const lesson = await queryClient.fetchQuery(queryOptions);
+  const slugQueryOptions = orpc.course.getSlug.queryOptions({
+    input: { id: courseId },
+  });
+
+  const [lesson, course] = await Promise.all([
+    queryClient.fetchQuery(lessonQueryOptions),
+    queryClient.fetchQuery(slugQueryOptions),
+  ]);
 
   return (
     <>
@@ -44,7 +51,11 @@ export default async function LessonPage({ params }: RouteParams) {
               Configure the structure and content of this lesson
             </CardDescription>
           </CardHeader>
-          <LessonForm lesson={lesson} courseId={courseId} />
+          <LessonForm
+            lesson={lesson}
+            courseId={courseId}
+            courseSlug={course.slug}
+          />
         </CardContent>
       </Card>
     </>

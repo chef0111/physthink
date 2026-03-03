@@ -21,9 +21,10 @@ type FormData = z.infer<typeof LessonSchema>;
 interface LessonFormProps {
   lesson?: LessonDTO | null;
   courseId?: string;
+  courseSlug?: string;
 }
 
-export function LessonForm({ lesson, courseId }: LessonFormProps) {
+export function LessonForm({ lesson, courseId, courseSlug }: LessonFormProps) {
   const editorRef = useRef<FormEditorMethods>(null);
   const [editorKey, setEditorKey] = useState(0);
   const [uploaderResetKey, setUploaderResetKey] = useState(0);
@@ -63,8 +64,16 @@ export function LessonForm({ lesson, courseId }: LessonFormProps) {
   const isPending = updateLesson.isPending;
 
   const onSubmit = (data: FormData) => {
-    if (lesson && courseId) {
-      updateLesson.mutate({ id: lesson.id, courseId, ...data });
+    if (lesson && courseId && courseSlug) {
+      updateLesson.mutate(
+        { id: lesson.id, courseId, courseSlug, ...data },
+        {
+          onSuccess: () => {
+            form.reset(data);
+            setUploaderResetKey((k) => k + 1);
+          },
+        }
+      );
     } else return;
   };
 

@@ -32,12 +32,14 @@ export const updateChapterTitle = admin
   .use(writeSecurityMiddleware)
   .input(UpdateChapterTitleSchema)
   .handler(async ({ input }) => {
-    const { id, courseId, title } = input;
+    const { id, courseId, courseSlug, title } = input;
     await updateTitle(id, title);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidateTag(`chapter:${id}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/courses/${courseSlug}`);
+    revalidatePath(`/dashboard/course/${courseSlug}`);
   });
 
 export const deleteChapter = admin
@@ -45,11 +47,13 @@ export const deleteChapter = admin
   .use(writeSecurityMiddleware)
   .input(DeleteChapterSchema)
   .handler(async ({ input }) => {
-    const { id, courseId } = input;
+    const { id, courseId, courseSlug } = input;
     await deleteChapterDAL(id, courseId);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/courses/${courseSlug}`);
+    revalidatePath(`/dashboard/course/${courseSlug}`);
   });
 
 export const reorderChapter = admin
@@ -57,7 +61,7 @@ export const reorderChapter = admin
   .use(writeSecurityMiddleware)
   .input(ReorderChapterSchema)
   .handler(async ({ input }) => {
-    const { chapters, courseId } = input;
+    const { chapters, courseId, courseSlug } = input;
     await updatePosition(chapters, courseId);
 
     revalidateTag(`course:${courseId}`, 'max');
@@ -65,4 +69,6 @@ export const reorderChapter = admin
       revalidateTag(`chapter:${chapter.id}`, 'max');
     });
     revalidatePath(`/admin/courses/${courseId}/edit`);
+    revalidatePath(`/courses/${courseSlug}`);
+    revalidatePath(`/dashboard/course/${courseSlug}`);
   });

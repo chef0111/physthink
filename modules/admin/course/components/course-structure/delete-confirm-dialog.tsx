@@ -21,6 +21,7 @@ interface DeleteConfirmDialogProps {
   type: 'chapter' | 'lesson';
   id: string;
   courseId: string;
+  courseSlug: string;
   chapterId?: string; // required when type === 'lesson'
   onOptimisticUpdate?: () => void;
 }
@@ -31,6 +32,7 @@ export function DeleteConfirmDialog({
   type,
   id,
   courseId,
+  courseSlug,
   chapterId,
   onOptimisticUpdate,
 }: DeleteConfirmDialogProps) {
@@ -44,11 +46,12 @@ export function DeleteConfirmDialog({
 
       try {
         if (type === 'chapter') {
-          await deleteChapter.mutateAsync({ id, courseId });
+          await deleteChapter.mutateAsync({ id, courseId, courseSlug });
         } else {
           await deleteLesson.mutateAsync({
             id,
             courseId,
+            courseSlug,
             chapterId: chapterId!,
           });
         }

@@ -9,6 +9,7 @@ import {
   updateCourse,
   enroll,
   listEnrolled,
+  getCourseSlug,
 } from './course';
 import {
   updateChapterTitle,
@@ -35,6 +36,7 @@ export const router = {
     listPublic: listPublicCourses,
     get: getCourse,
     getPublic: getCourseBySlug,
+    getSlug: getCourseSlug,
     update: updateCourse,
     delete: deleteCourse,
     enroll,

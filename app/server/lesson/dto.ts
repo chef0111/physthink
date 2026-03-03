@@ -15,10 +15,12 @@ export const CreateLessonSchema = z.object({
   title: z.string(),
   chapterId: z.string(),
   courseId: z.string(),
+  courseSlug: z.string(),
 });
 
 export const UpdateLessonSchema = LessonSchema.extend({
   courseId: z.string(),
+  courseSlug: z.string(),
 }).omit({
   position: true,
 });
@@ -35,6 +37,7 @@ export const NewLessonSchema = CreateLessonSchema.omit({
 export const UpdateLessonTitleSchema = z.object({
   id: z.string(),
   courseId: z.string(),
+  courseSlug: z.string(),
   chapterId: z.string(),
   title: z.string().min(1, 'Title is required').max(100),
 });
@@ -42,6 +45,7 @@ export const UpdateLessonTitleSchema = z.object({
 export const DeleteLessonSchema = z.object({
   id: z.string(),
   courseId: z.string(),
+  courseSlug: z.string(),
   chapterId: z.string(),
 });
 
@@ -54,6 +58,7 @@ export const ReorderLessonSchema = z.object({
   lessons: z.array(LessonOrderSchema),
   chapterId: z.string(),
   courseId: z.string(),
+  courseSlug: z.string(),
 });
 
 export type LessonDTO = z.infer<typeof LessonSchema>;

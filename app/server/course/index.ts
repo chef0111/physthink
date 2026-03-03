@@ -13,6 +13,7 @@ import {
   updateCourse as updateCourseDAL,
   enrollCourse as enrollCourseDAL,
   listEnrolledCourses as listEnrolledCoursesDAL,
+  getSlug,
 } from './dal';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { heavyWriteSecurityMiddleware } from '@/app/middleware/arcjet/heavy-write';
@@ -25,6 +26,7 @@ import {
   PublicCourseListSchema,
   UpdateCourseSchema,
   EnrollCourseSchema,
+  CourseSlugSchema,
 } from './dto';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 import z from 'zod';
@@ -94,6 +96,19 @@ export const getCourse = admin
     return course;
   });
 
+export const getCourseSlug = admin
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
+  .input(z.object({ id: z.string() }))
+  .output(CourseSlugSchema)
+  .handler(async ({ input, errors }) => {
+    const course = await getSlug(input.id);
+    if (!course) {
+      throw errors.NOT_FOUND({ message: 'Course not found' });
+    }
+    return course;
+  });
+
 export const getCourseBySlug = authorized
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
@@ -152,6 +167,8 @@ export const deleteCourse = admin
     revalidateTag(`course:${existing.id}`, 'max');
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
+    revalidatePath('/courses');
+    revalidatePath('/dashboard');
   });
 
 export const enroll = authorized
