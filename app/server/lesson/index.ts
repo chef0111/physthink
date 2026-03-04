@@ -22,6 +22,11 @@ import {
 } from './dal';
 
 export const getLesson = admin
+  .route({
+    method: 'GET',
+    path: '/lesson/get',
+    tags: ['lesson'],
+  })
   .use(standardSecurityMiddleware)
   .input(z.object({ id: z.string() }))
   .output(LessonSchema)
@@ -35,6 +40,11 @@ export const getLesson = admin
   });
 
 export const createLesson = admin
+  .route({
+    method: 'POST',
+    path: '/lesson/create',
+    tags: ['lesson'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(CreateLessonSchema)
@@ -49,6 +59,11 @@ export const createLesson = admin
   });
 
 export const updateLesson = admin
+  .route({
+    method: 'PUT',
+    path: '/lesson/update',
+    tags: ['lesson'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(UpdateLessonSchema)
@@ -67,6 +82,11 @@ export const updateLesson = admin
   });
 
 export const updateLessonTitle = admin
+  .route({
+    method: 'PATCH',
+    path: '/lesson/update-title',
+    tags: ['lesson'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(UpdateLessonTitleSchema)
@@ -81,6 +101,11 @@ export const updateLessonTitle = admin
   });
 
 export const deleteLesson = admin
+  .route({
+    method: 'DELETE',
+    path: '/lesson/delete',
+    tags: ['lesson'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(DeleteLessonSchema)
@@ -95,6 +120,11 @@ export const deleteLesson = admin
   });
 
 export const reorderLesson = admin
+  .route({
+    method: 'PATCH',
+    path: '/lesson/reorder',
+    tags: ['lesson'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(ReorderLessonSchema)

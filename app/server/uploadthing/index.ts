@@ -7,6 +7,11 @@ import { writeSecurityMiddleware } from '@/app/middleware/arcjet/write';
 const utApi = new UTApi();
 
 export const deleteFiles = admin
+  .route({
+    method: 'DELETE',
+    path: '/uploadthing/delete',
+    tags: ['uploadthing'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(DeleteFileSchema)

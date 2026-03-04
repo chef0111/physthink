@@ -16,6 +16,11 @@ import {
 } from './dal';
 
 export const createChapter = admin
+  .route({
+    method: 'POST',
+    path: '/chapter/create',
+    tags: ['chapter'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(CreateChapterSchema)
@@ -28,6 +33,11 @@ export const createChapter = admin
   });
 
 export const updateChapterTitle = admin
+  .route({
+    method: 'PATCH',
+    path: '/chapter/update-title',
+    tags: ['chapter'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(UpdateChapterTitleSchema)
@@ -43,6 +53,11 @@ export const updateChapterTitle = admin
   });
 
 export const deleteChapter = admin
+  .route({
+    method: 'DELETE',
+    path: '/chapter/delete',
+    tags: ['chapter'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(DeleteChapterSchema)
@@ -57,6 +72,11 @@ export const deleteChapter = admin
   });
 
 export const reorderChapter = admin
+  .route({
+    method: 'PATCH',
+    path: '/chapter/reorder',
+    tags: ['chapter'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(ReorderChapterSchema)

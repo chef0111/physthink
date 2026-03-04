@@ -25,6 +25,7 @@ import {
   createLesson,
   updateLesson,
 } from './lesson';
+import { generate } from './k2think';
 
 export const router = {
   uploadthing: {
@@ -55,5 +56,8 @@ export const router = {
     updateTitle: updateLessonTitle,
     delete: deleteLesson,
     reorder: reorderLesson,
+  },
+  k2think: {
+    generate,
   },
 };
