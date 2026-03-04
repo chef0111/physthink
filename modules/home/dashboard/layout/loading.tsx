@@ -117,7 +117,7 @@ export function CourseSidebarSkeleton() {
 
 export const SidebarChaptersSkeleton = () => {
   return (
-    <SidebarContent className="p-4 pt-0">
+    <SidebarContent className="px-4 pt-0 pb-18">
       <SidebarGroup className="p-0">
         <SidebarMenu className="gap-1">
           {Array.from({ length: 4 }).map((_, index) => (
@@ -140,7 +140,7 @@ export const SidebarChaptersSkeleton = () => {
 
               <CollapsibleContent className="data-[state=open]:pb-2">
                 <div className="ml-2 flex flex-col gap-2 border-l-2 pr-2 pl-3">
-                  {Array.from({ length: 3 }).map((_, lessonIndex) => {
+                  {Array.from({ length: 6 }).map((_, lessonIndex) => {
                     return (
                       <Card
                         key={lessonIndex}

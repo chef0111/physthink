@@ -9,8 +9,8 @@ export const CourseSidebarHeader = ({
   course: CoursePreviewDTO;
 }) => {
   return (
-    <Link href={`/dashboard/course/${course.slug}`}>
-      <SidebarHeader className="border-sidebar-border hover:bg-muted/50 flex-row items-center justify-between border-b p-4">
+    <SidebarHeader className="border-sidebar-border hover:bg-muted/50 flex-row items-center justify-between border-b p-4">
+      <Link href={`/dashboard/course/${course.slug}`} className="w-full">
         <div className="flex items-center gap-3">
           <div className="bg-primary/10 flex size-10 items-center justify-center rounded-lg">
             <PlayIcon className="text-primary size-5 fill-current" />
@@ -24,8 +24,8 @@ export const CourseSidebarHeader = ({
             </span>
           </div>
         </div>
-        <SidebarTrigger />
-      </SidebarHeader>
-    </Link>
+      </Link>
+      <SidebarTrigger className="z-50" />
+    </SidebarHeader>
   );
 };

@@ -26,7 +26,7 @@ export const CourseSidebarChapters = ({
   const pathname = usePathname();
 
   return (
-    <SidebarContent className="p-4 pt-0">
+    <SidebarContent className="px-4 pt-0 pb-18">
       <SidebarGroup className="p-0">
         <SidebarMenu className="gap-1">
           {course.chapters.map((chapter, index) => (
@@ -37,11 +37,11 @@ export const CourseSidebarChapters = ({
             >
               <CollapsibleTrigger className="w-full outline-none">
                 <div className="bg-muted/50 hover:bg-muted flex items-center justify-between rounded-lg border p-4 transition-colors">
-                  <div className="flex items-center gap-3 text-left">
+                  <div className="flex items-center gap-3 truncate text-left">
                     <ChevronDown className="text-muted-foreground size-4 transition-transform duration-200 in-data-[state=open]:-rotate-180" />
-                    <div>
+                    <div className="w-full truncate">
                       <h3
-                        className="max-w-64 truncate text-sm font-semibold"
+                        className="truncate text-sm font-semibold"
                         title={chapter.title}
                       >
                         {chapter.title}
