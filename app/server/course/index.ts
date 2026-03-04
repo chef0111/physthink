@@ -114,8 +114,8 @@ export const getCourseBySlug = authorized
   .use(readSecurityMiddleware)
   .input(z.object({ slug: z.string() }))
   .output(CoursePreviewSchema)
-  .handler(async ({ input, errors }) => {
-    const course = await getCourseBySlugDAL(input.slug);
+  .handler(async ({ input, context, errors }) => {
+    const course = await getCourseBySlugDAL(input.slug, context.user.id);
     if (!course) {
       throw errors.NOT_FOUND({ message: 'Course not found' });
     }

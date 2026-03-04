@@ -15,6 +15,7 @@ import { Loader } from '@/components/ui/loader';
 import { LessonDTO } from '@/app/server/lesson/dto';
 import { useUpdateLesson } from '@/queries/lesson';
 import { imageTypes, videoTypes } from '@/common/constants';
+import { isEditorEmpty } from '@/lib/utils';
 
 type FormData = z.infer<typeof LessonSchema>;
 
@@ -65,11 +66,16 @@ export function LessonForm({ lesson, courseId, courseSlug }: LessonFormProps) {
 
   const onSubmit = (data: FormData) => {
     if (lesson && courseId && courseSlug) {
+      const payload = { ...data };
+      if (isEditorEmpty(payload.content)) {
+        payload.content = null;
+      }
+
       updateLesson.mutate(
-        { id: lesson.id, courseId, courseSlug, ...data },
+        { id: lesson.id, courseId, courseSlug, ...payload },
         {
           onSuccess: () => {
-            form.reset(data);
+            form.reset(payload);
             setUploaderResetKey((k) => k + 1);
           },
         }

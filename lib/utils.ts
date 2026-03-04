@@ -13,3 +13,23 @@ export const formatBytes = (bytes: number, decimals = 2): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Number.parseFloat((bytes / k ** i).toFixed(dm)) + sizes[i];
 };
+
+export function isEditorEmpty(content: string | null | undefined): boolean {
+  if (!content) return true;
+  try {
+    const parsed = JSON.parse(content);
+    if (!parsed?.root?.children) return false;
+    const children = parsed.root.children;
+    if (children.length === 0) return true;
+    if (
+      children.length === 1 &&
+      children[0].type === 'paragraph' &&
+      (!children[0].children || children[0].children.length === 0)
+    ) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}

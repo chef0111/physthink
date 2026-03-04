@@ -59,6 +59,7 @@ export const CoursePreviewSchema = z.object({
       ),
     })
   ),
+  isEnrolled: z.boolean().default(false),
 });
 
 export const CoursesListSchema = z.object({

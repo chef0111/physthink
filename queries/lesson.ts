@@ -1,5 +1,6 @@
 import { orpc } from '@/lib/orpc';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export function useCreateLesson(courseId: string) {
@@ -23,6 +24,7 @@ export function useCreateLesson(courseId: string) {
 }
 
 export function useUpdateLesson(lessonId: string) {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation(
@@ -32,6 +34,7 @@ export function useUpdateLesson(lessonId: string) {
         await queryClient.invalidateQueries(
           orpc.lesson.get.queryOptions({ input: { id: lessonId } })
         );
+        router.refresh();
       },
       onError: (error) => {
         toast.error('Failed to update lesson', {

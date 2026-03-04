@@ -195,7 +195,7 @@ export class CourseDAL {
     return course;
   }
 
-  static async findBySlug(slug: string) {
+  static async findBySlug(slug: string, userId?: string) {
     const course = await prisma.course.findUnique({
       where: { slug },
       select: {
@@ -212,10 +212,25 @@ export class CourseDAL {
             },
           },
         },
+        ...(userId
+          ? {
+              enrollments: {
+                where: { userId },
+                select: { id: true },
+              },
+            }
+          : {}),
       },
     });
 
-    return course;
+    if (!course) return null;
+
+    const { enrollments, ...rest } = course;
+
+    return {
+      ...rest,
+      isEnrolled: userId ? (enrollments?.length ?? 0) > 0 : false,
+    };
   }
 
   static async findSlug(id: string) {

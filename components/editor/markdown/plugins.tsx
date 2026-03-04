@@ -35,6 +35,7 @@ import { CodePickerPlugin } from '@/components/editor/plugins/picker/code-picker
 import { DividerPickerPlugin } from '@/components/editor/plugins/picker/divider-picker-plugin';
 import { HeadingPickerPlugin } from '@/components/editor/plugins/picker/heading-picker-plugin';
 import { ImagePickerPlugin } from '@/components/editor/plugins/picker/image-picker-plugin';
+import { EquationPickerPlugin } from '@/components/editor/plugins/picker/equation-picker-plugin';
 import { NumberedListPickerPlugin } from '@/components/editor/plugins/picker/numbered-list-picker-plugin';
 import { ParagraphPickerPlugin } from '@/components/editor/plugins/picker/paragraph-picker-plugin';
 import { QuotePickerPlugin } from '@/components/editor/plugins/picker/quote-picker-plugin';
@@ -53,12 +54,19 @@ import { FontFormatToolbarPlugin } from '@/components/editor/plugins/toolbar/fon
 import { HistoryToolbarPlugin } from '@/components/editor/plugins/toolbar/history-toolbar-plugin';
 import { HorizontalRuleToolbarPlugin } from '@/components/editor/plugins/toolbar/horizontal-rule-toolbar-plugin';
 import { ImageToolbarPlugin } from '@/components/editor/plugins/toolbar/image-toolbar-plugin';
+import { EquationToolbarPlugin } from '@/components/editor/plugins/toolbar/equation-toolbar-plugin';
 import { LinkToolbarPlugin } from '@/components/editor/plugins/toolbar/link-toolbar-plugin';
 import { TableToolbarPlugin } from '@/components/editor/plugins/toolbar/table-toolbar-plugin';
 import { ToolbarPlugin } from '@/components/editor/plugins/toolbar/toolbar-plugin';
 import { HR } from '@/components/editor/transformers/markdown-hr-transformer';
 import { IMAGE } from '@/components/editor/transformers/markdown-image-transformer';
 import { TABLE } from '@/components/editor/transformers/markdown-table-transformer';
+import {
+  EQUATION_BLOCK,
+  EQUATION_BLOCK_QUICK,
+  EQUATION_INLINE,
+} from '@/components/editor/transformers/markdown-equation-transformer';
+import { EquationsPlugin } from '@/components/editor/plugins/equations-plugin';
 
 const placeholder = 'Press / for commands...';
 
@@ -97,6 +105,7 @@ export function Plugins() {
                 <LinkToolbarPlugin setIsLinkEditMode={setIsLinkEditMode} />
 
                 <HorizontalRuleToolbarPlugin />
+                <EquationToolbarPlugin />
                 <ImageToolbarPlugin />
                 <TableToolbarPlugin />
               </>
@@ -150,6 +159,7 @@ export function Plugins() {
             QuotePickerPlugin(),
             CodePickerPlugin(),
             DividerPickerPlugin(),
+            EquationPickerPlugin(),
             ImagePickerPlugin(),
             AlignmentPickerPlugin({ alignment: 'left' }),
             AlignmentPickerPlugin({ alignment: 'center' }),
@@ -171,8 +181,13 @@ export function Plugins() {
 
         <DraggableBlockPlugin anchorElem={floatingAnchorElem} />
 
+        <EquationsPlugin />
+
         <MarkdownShortcutPlugin
           transformers={[
+            EQUATION_BLOCK_QUICK,
+            EQUATION_BLOCK,
+            EQUATION_INLINE,
             TABLE,
             HR,
             IMAGE,

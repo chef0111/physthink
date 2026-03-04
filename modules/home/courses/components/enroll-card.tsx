@@ -17,6 +17,7 @@ import {
   BookOpen,
   ChartColumnBig,
   CircleCheck,
+  CircleCheckBig,
   ClockIcon,
 } from 'lucide-react';
 import { useEnrollCourse } from '@/queries/course';
@@ -105,12 +106,12 @@ export const EnrollCard = ({ course }: EnrollCardProps) => {
               </Card>
             </div>
 
-            <Alert className="flex items-center gap-4 border-green-500/30 bg-green-500/10">
+            <Alert className="flex items-center gap-3 border-green-500/30 bg-green-500/10">
               <Button
                 size="icon"
                 className="pointer-events-none rounded-full bg-green-600/10! text-green-600 dark:bg-green-300/10! dark:text-green-300"
               >
-                <CircleCheck className="size-4" />
+                <CircleCheck className="size-5" />
               </Button>
               <div>
                 <AlertTitle className="text-green-600 dark:text-green-300">
@@ -127,12 +128,18 @@ export const EnrollCard = ({ course }: EnrollCardProps) => {
             <Button
               size="lg"
               className="group/btn w-full gap-2 text-base"
-              disabled={isPending}
-              onClick={() => enroll({ courseId: course.id })}
+              disabled={isPending || course.isEnrolled}
+              onClick={() => {
+                if (!course.isEnrolled) enroll({ courseId: course.id });
+              }}
             >
               {isPending ? (
                 <>
                   <Loader /> Enrolling...
+                </>
+              ) : course.isEnrolled ? (
+                <>
+                  <CircleCheckBig /> Already enrolled
                 </>
               ) : (
                 <>
