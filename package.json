@@ -1,5 +1,5 @@
 {
-  "name": "next-fullstack-starter",
+  "name": "physthink",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,10 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.33",
+    "@ai-sdk/provider": "^3.0.8",
+    "@ai-sdk/provider-utils": "^4.0.17",
+    "@ai-sdk/react": "^3.0.113",
     "@arcjet/inspect": "^1.1.0",
     "@arcjet/ip": "^1.1.0",
     "@arcjet/next": "^1.1.0",
@@ -45,6 +49,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/canvas-confetti": "^1.9.0",
     "@uploadthing/react": "^7.3.3",
+    "ai": "^6.0.111",
     "better-auth": "^1.4.18",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",

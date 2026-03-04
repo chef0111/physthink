@@ -32,6 +32,11 @@ import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 import z from 'zod';
 
 export const createCourse = admin
+  .route({
+    method: 'POST',
+    path: '/course/create',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(heavyWriteSecurityMiddleware)
   .input(CourseSchema)
@@ -61,6 +66,11 @@ export const createCourse = admin
   });
 
 export const listCourses = admin
+  .route({
+    method: 'GET',
+    path: '/course/list',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
   .input(QueryParamsSchema)
@@ -71,6 +81,11 @@ export const listCourses = admin
   });
 
 export const listPublicCourses = authorized
+  .route({
+    method: 'GET',
+    path: '/course/list-public',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
   .input(QueryParamsSchema)
@@ -84,6 +99,11 @@ export const listPublicCourses = authorized
   });
 
 export const getCourse = admin
+  .route({
+    method: 'GET',
+    path: '/course/get',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
   .input(z.object({ id: z.string() }))
@@ -97,6 +117,11 @@ export const getCourse = admin
   });
 
 export const getCourseSlug = admin
+  .route({
+    method: 'GET',
+    path: '/course/get-slug',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
   .input(z.object({ id: z.string() }))
@@ -110,6 +135,11 @@ export const getCourseSlug = admin
   });
 
 export const getCourseBySlug = authorized
+  .route({
+    method: 'GET',
+    path: '/course/get-by-slug',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
   .input(z.object({ slug: z.string() }))
@@ -123,6 +153,11 @@ export const getCourseBySlug = authorized
   });
 
 export const updateCourse = admin
+  .route({
+    method: 'PUT',
+    path: '/course/update',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(UpdateCourseSchema)
@@ -142,6 +177,11 @@ export const updateCourse = admin
   });
 
 export const deleteCourse = admin
+  .route({
+    method: 'DELETE',
+    path: '/course/delete',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(DeleteCourseSchema)
@@ -172,6 +212,11 @@ export const deleteCourse = admin
   });
 
 export const enroll = authorized
+  .route({
+    method: 'POST',
+    path: '/course/enroll',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
   .input(EnrollCourseSchema)
@@ -200,6 +245,11 @@ export const enroll = authorized
   });
 
 export const listEnrolled = authorized
+  .route({
+    method: 'GET',
+    path: '/course/list-enrolled',
+    tags: ['course'],
+  })
   .use(standardSecurityMiddleware)
   .use(readSecurityMiddleware)
   .input(QueryParamsSchema)
