@@ -24,6 +24,7 @@ export default async function CourseSlugLayout({
             '--header-height': 'calc(var(--spacing) * 12)',
           } as React.CSSProperties
         }
+        breakpoint={1024}
       >
         <Suspense fallback={<CourseSidebarSkeleton />}>
           <CourseSidebar slug={slug} />
@@ -32,7 +33,9 @@ export default async function CourseSlugLayout({
           <FloatingSidebarTrigger />
           <div className="flex flex-1 flex-col pt-14">
             <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 p-8 md:gap-6">{children}</div>
+              <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 p-8 md:gap-6">
+                {children}
+              </div>
             </div>
           </div>
         </SidebarInset>

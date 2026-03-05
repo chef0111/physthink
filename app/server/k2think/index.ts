@@ -3,8 +3,8 @@ import { authorized } from '@/app/middleware/auth';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 import { GenerateTextInputSchema, GenerateTextOutputSchema } from './dto';
+import type { K2ThinkChatModel } from './chat-settings';
 import { k2think } from './provider';
-import type { K2ThinkChatModelId } from './chat-settings';
 
 export const generate = authorized
   .route({
@@ -17,10 +17,10 @@ export const generate = authorized
   .input(GenerateTextInputSchema)
   .output(GenerateTextOutputSchema)
   .handler(async ({ input }) => {
-    const { prompt, modelId, system } = input;
+    const { prompt, model, system } = input;
 
     const result = await generateText({
-      model: k2think(modelId as K2ThinkChatModelId),
+      model: k2think(model as K2ThinkChatModel),
       prompt,
       system,
     });

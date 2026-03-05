@@ -49,7 +49,7 @@ export const WelcomeBannerFallback = () => {
 
 export const CourseOverviewSkeleton = () => {
   return (
-    <section className="mx-auto w-full">
+    <section className="w-full">
       <div className="relative aspect-21/9 w-full overflow-hidden rounded-xl shadow-lg">
         <Skeleton className="h-full w-full" />
       </div>
@@ -89,6 +89,7 @@ export function CourseSidebarSkeleton() {
       side="left"
       collapsible="offcanvas"
       className="bg-sidebar top-14 border-l"
+      mobileWidth="md"
     >
       {/* Header Skeleton */}
       <div className="border-sidebar-border flex items-center gap-3 border-b p-4">

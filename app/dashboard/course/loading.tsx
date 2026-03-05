@@ -17,6 +17,7 @@ export default async function CourseSlugLoading() {
             '--header-height': 'calc(var(--spacing) * 12)',
           } as React.CSSProperties
         }
+        breakpoint={1024}
       >
         <CourseSidebarSkeleton />
         <SidebarInset>
@@ -24,7 +25,7 @@ export default async function CourseSlugLoading() {
           <div className="flex flex-1 flex-col pt-14">
             <div className="@container/main flex flex-1 flex-col gap-2">
               <div className="flex flex-col gap-4 p-8 md:gap-6">
-                <section className="mx-auto w-full pb-6">
+                <section className="mx-auto w-full max-w-6xl pb-6">
                   <CourseOverviewSkeleton />
                 </section>
               </div>

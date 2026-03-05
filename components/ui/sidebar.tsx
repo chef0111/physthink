@@ -40,6 +40,7 @@ type SidebarContextProps = {
   isMobile: boolean;
   toggleSidebar: () => void;
   hotkey?: boolean;
+  breakpoint?: number;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -61,14 +62,16 @@ function SidebarProvider({
   style,
   children,
   hotkey = true,
+  breakpoint = 768,
   ...props
 }: React.ComponentProps<'div'> & {
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   hotkey?: boolean;
+  breakpoint?: number;
 }) {
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(breakpoint);
   const [openMobile, setOpenMobile] = React.useState(false);
 
   // This is the internal state of the sidebar.
@@ -125,8 +128,18 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      breakpoint,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+      breakpoint,
+    ]
   );
 
   return (
@@ -137,6 +150,7 @@ function SidebarProvider({
           {
             '--sidebar-width': SIDEBAR_WIDTH,
             '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+            '--sidebar-width-mobile': SIDEBAR_WIDTH_MOBILE,
             ...style,
           } as React.CSSProperties
         }
@@ -156,6 +170,7 @@ function Sidebar({
   side = 'left',
   variant = 'sidebar',
   collapsible = 'offcanvas',
+  mobileWidth = 'sm',
   className,
   children,
   dir,
@@ -164,8 +179,15 @@ function Sidebar({
   side?: 'left' | 'right';
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
+  mobileWidth?: 'sm' | 'md' | 'lg';
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, state, openMobile, breakpoint, setOpenMobile } =
+    useSidebar();
+
+  const [isMounted, setIsMounted] = React.useState(false);
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   if (collapsible === 'none') {
     return (
@@ -182,7 +204,7 @@ function Sidebar({
     );
   }
 
-  if (isMobile) {
+  if (isMounted && isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
         <SheetContent
@@ -190,13 +212,14 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width-mobile) p-0 [&>button]:hidden"
           style={
             {
-              '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
+              '--sidebar-width-mobile': SIDEBAR_WIDTH_MOBILE,
             } as React.CSSProperties
           }
           side={side}
+          mobileWidth={mobileWidth}
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
@@ -210,7 +233,15 @@ function Sidebar({
 
   return (
     <div
-      className="group peer text-sidebar-foreground hidden md:block"
+      className={cn(
+        'group peer text-sidebar-foreground hidden',
+        breakpoint === 1024
+          ? 'lg:block'
+          : breakpoint === 640
+            ? 'sm:block'
+            : 'md:block',
+        className
+      )}
       data-state={state}
       data-collapsible={state === 'collapsed' ? collapsible : ''}
       data-variant={variant}
@@ -233,7 +264,12 @@ function Sidebar({
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
-          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex',
+          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
+          breakpoint === 1024
+            ? 'lg:flex'
+            : breakpoint === 640
+              ? 'sm:flex'
+              : 'md:flex',
           // Adjust the padding for floating and inset variants.
           variant === 'floating' || variant === 'inset'
             ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
