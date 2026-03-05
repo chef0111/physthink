@@ -1,1 +1,3 @@
-export type K2ThinkChatModelId = 'MBZUAI-IFM/K2-Think-v2' | (string & {});
+const model = process.env.K2THINK_MODEL_ID as string;
+
+export type K2ThinkChatModel = typeof model | (string & {});

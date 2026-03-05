@@ -37,7 +37,7 @@ export default async function LessonPage({
   const { title, content, thumbnail, video } = currentLesson;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 pb-6">
+    <div className="flex w-full flex-col gap-8 pb-6">
       <div className="w-full">
         <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         <p className="text-muted-foreground mt-2 text-sm">

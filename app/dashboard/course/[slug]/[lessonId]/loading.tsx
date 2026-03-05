@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function LessonLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+    <div className="flex w-full flex-col gap-8">
       <div className="w-full">
         <Skeleton className="h-8 w-3/4 max-w-100" />
         <Skeleton className="mt-4 h-4 w-40" />

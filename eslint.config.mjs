@@ -15,7 +15,7 @@ const eslintConfig = defineConfig([
   ]),
   {
     rules: {
-      'react-hooks/ref': 'warn',
+      'react-hooks/refs': 'warn',
       'react-hooks/immutability': 'warn',
       'react-hooks/static-components': 'warn',
       'react-hooks/set-state-in-effect': 'warn',

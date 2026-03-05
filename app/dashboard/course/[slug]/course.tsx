@@ -28,6 +28,7 @@ export const CourseSidebar = async ({ slug }: { slug: string }) => {
       side="left"
       collapsible="offcanvas"
       className="bg-sidebar top-14 border-l"
+      mobileWidth="md"
     >
       <CourseSidebarHeader course={course} />
       <CourseSidebarProgress course={course} />

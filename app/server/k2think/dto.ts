@@ -4,7 +4,7 @@ import z from 'zod';
 
 export const GenerateTextInputSchema = z.object({
   prompt: z.string().min(1),
-  modelId: z
+  model: z
     .string()
     .optional()
     .default(process.env.K2THINK_MODEL_ID as string),
