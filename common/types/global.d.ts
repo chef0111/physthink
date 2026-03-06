@@ -26,3 +26,5 @@ interface Chapter {
   order: number;
   lessons: Lesson[];
 }
+
+type IconComponent = React.ComponentType<{ className?: string }>;

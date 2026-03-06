@@ -171,6 +171,7 @@ function Sidebar({
   variant = 'sidebar',
   collapsible = 'offcanvas',
   mobileWidth = 'sm',
+  transition = true,
   className,
   children,
   dir,
@@ -180,6 +181,7 @@ function Sidebar({
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
   mobileWidth?: 'sm' | 'md' | 'lg';
+  transition?: boolean;
 }) {
   const { isMobile, state, openMobile, breakpoint, setOpenMobile } =
     useSidebar();
@@ -252,9 +254,10 @@ function Sidebar({
       <div
         data-slot="sidebar-gap"
         className={cn(
-          'relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
+          'relative w-(--sidebar-width) bg-transparent',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
+          transition && 'transition-[width] duration-200 ease-linear',
           variant === 'floating' || variant === 'inset'
             ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(2)))]'
             : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
@@ -264,7 +267,9 @@ function Sidebar({
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
-          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
+          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
+          transition &&
+            'transition-[left,right,width] duration-200 ease-linear',
           breakpoint === 1024
             ? 'lg:flex'
             : breakpoint === 640

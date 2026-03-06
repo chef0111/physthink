@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -28,6 +27,7 @@ model User {
 
   courses         Course[]
   enrollments     Enrollment[]
+  workspaces      Workspace[]
 
   @@unique([email])
   @@map("user")
@@ -165,4 +165,33 @@ model Enrollment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("enrollment")
+}
+
+model Workspace {
+  id        String             @id @default(uuid())
+  title     String             @default("Untitled Workspace")
+  sceneData Json?
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  WorkspaceMessage[]
+
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([userId])
+  @@map("workspace")
+}
+
+model WorkspaceMessage {
+  id          String    @id @default(uuid())
+  role        String
+  content     String
+  codeBlock   String?
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId])
+  @@map("workspace_message")
 }
