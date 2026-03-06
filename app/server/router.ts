@@ -26,6 +26,13 @@ import {
   updateLesson,
 } from './lesson';
 import { generate } from './k2think';
+import {
+  create as createWorkspace,
+  list as listWorkspaces,
+  get as getWorkspace,
+  update as updateWorkspace,
+  remove as removeWorkspace,
+} from './workspace';
 
 export const router = {
   uploadthing: {
@@ -59,5 +66,12 @@ export const router = {
   },
   k2think: {
     generate,
+  },
+  workspace: {
+    create: createWorkspace,
+    list: listWorkspaces,
+    get: getWorkspace,
+    update: updateWorkspace,
+    delete: removeWorkspace,
   },
 };

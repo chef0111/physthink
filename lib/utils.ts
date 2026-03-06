@@ -14,6 +14,14 @@ export const formatBytes = (bytes: number, decimals = 2): string => {
   return Number.parseFloat((bytes / k ** i).toFixed(dm)) + sizes[i];
 };
 
+export function formatDate(date: Date) {
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 export function isEditorEmpty(content: string | null | undefined): boolean {
   if (!content) return true;
   try {

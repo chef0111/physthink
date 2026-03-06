@@ -10,7 +10,9 @@ import { NextPagination } from '@/components/ui/next-pagination';
 import { Calendar } from '@/components/ui/calendar';
 import { CompactCalendar } from '@/modules/home/dashboard/components/compact-calendar';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Box } from 'lucide-react';
+import Link from 'next/link';
+import { Card } from '@/components/ui/card';
 
 export const WelcomeBanner = async () => {
   const session = await requireSession();
@@ -44,6 +46,17 @@ export const WelcomeBanner = async () => {
           <CompactCalendar className="w-full justify-center sm:w-fit lg:hidden" />
         </div>
       </div>
+      <Card className="mt-4 flex w-full flex-col gap-2 space-y-2 p-4 sm:w-fit lg:w-full">
+        <h2 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
+          Activity
+        </h2>
+        <Button className="w-full justify-start gap-2" asChild>
+          <Link href="/dashboard/workspace">
+            <Box className="size-4" />
+            Create 3D Illustration
+          </Link>
+        </Button>
+      </Card>
     </div>
   );
 };
