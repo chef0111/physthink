@@ -1,3 +1,5 @@
+'use client';
+
 import { WorkspaceSummaryDTO } from '@/app/server/workspace/dto';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,15 +24,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { formatDate } from '@/lib/utils';
+import { useDeleteWorkspace } from '@/queries/workspace';
 
 interface WorkspaceCardProps {
   workspace: WorkspaceSummaryDTO;
-  onDelete: (id: string) => void;
 }
 
-export function WorkspaceCard({ workspace, onDelete }: WorkspaceCardProps) {
+export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
+  const { mutate: deleteWorkspace, isPending } = useDeleteWorkspace();
+
   return (
-    <Card className="group cursor-pointer gap-2 p-4 transition-all hover:shadow-md">
+    <Card className="group gap-2 p-4 transition-all hover:shadow-md">
       <Link href={`/dashboard/workspace/${workspace.id}`}>
         <CardHeader className="p-0 pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -50,6 +54,7 @@ export function WorkspaceCard({ workspace, onDelete }: WorkspaceCardProps) {
             <Button
               variant="destructive"
               size="icon"
+              disabled={isPending}
               onClick={(e) => e.stopPropagation()}
             >
               <Trash2 className="size-4" />
@@ -67,9 +72,9 @@ export function WorkspaceCard({ workspace, onDelete }: WorkspaceCardProps) {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
-                onClick={() => onDelete(workspace.id)}
+                onClick={() => deleteWorkspace({ id: workspace.id })}
               >
-                Delete
+                <Trash2 /> Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

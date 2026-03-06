@@ -19,6 +19,7 @@ import {
   updateWorkspace as updateWorkspaceDAL,
   deleteWorkspace as deleteWorkspaceDAL,
 } from './dal';
+import { revalidatePath } from 'next/cache';
 
 export const create = authorized
   .route({
@@ -81,6 +82,9 @@ export const update = authorized
     if (result.count === 0) {
       throw errors.NOT_FOUND({ message: 'Workspace not found' });
     }
+
+    revalidatePath('/dashboard/workspace');
+    revalidatePath(`/dashboard/workspace/${input.id}`);
   });
 
 export const remove = authorized
@@ -97,4 +101,7 @@ export const remove = authorized
     if (result.count === 0) {
       throw errors.NOT_FOUND({ message: 'Workspace not found' });
     }
+
+    revalidatePath('/dashboard/workspace');
+    revalidatePath(`/dashboard/workspace/${input.id}`);
   });
