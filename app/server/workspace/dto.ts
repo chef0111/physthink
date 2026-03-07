@@ -24,6 +24,7 @@ export const WorkspaceMessageSchema = z.object({
   id: z.string(),
   role: z.string(),
   content: z.string(),
+  parts: z.any().nullish(),
   codeBlock: z.string().nullish(),
   createdAt: z.date(),
 });

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import type { SceneElement } from '@/lib/stores/scene-store';
 import { MeshElementRenderer } from './elements/mesh-element';
 import { VectorElementRenderer } from './elements/vector-element';
@@ -11,7 +12,11 @@ import { LightElementRenderer } from './elements/light-element';
 import { GroupElementRenderer } from './elements/group-element';
 import { CustomElementRenderer } from './elements/custom-element';
 
-export function SceneElementRenderer({ element }: { element: SceneElement }) {
+export const SceneElementRenderer = memo(function SceneElementRenderer({
+  element,
+}: {
+  element: SceneElement;
+}) {
   switch (element.type) {
     case 'mesh':
       return <MeshElementRenderer element={element} />;
@@ -34,4 +39,4 @@ export function SceneElementRenderer({ element }: { element: SceneElement }) {
     default:
       return null;
   }
-}
+});

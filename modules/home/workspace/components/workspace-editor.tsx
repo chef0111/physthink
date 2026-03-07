@@ -30,8 +30,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
-import Loading from '@/app/loading';
 import { formatBytes } from '@/lib/utils';
+import { Loader } from '@/components/ui/loader';
 
 const MAX_SCENE_DATA_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -41,12 +41,17 @@ export function WorkspaceEditor() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>(
     'idle'
   );
-  const hydratedRef = useRef(false);
+  const hydratedRef = useRef<string | null>(null);
   useUndoRedo();
 
   const { data: workspace, isLoading } = useQuery(
     orpc.workspace.get.queryOptions({ input: { id: params.id } })
   );
+
+  if (hydratedRef.current !== null && hydratedRef.current !== params.id) {
+    hydratedRef.current = null;
+    useSceneStore.getState().loadScene(null);
+  }
 
   const updateMutation = useUpdateWorkspace({
     onMutate: () => setSaveStatus('saving'),
@@ -59,11 +64,11 @@ export function WorkspaceEditor() {
 
   // Hydrate scene store from DB on first load
   useEffect(() => {
-    if (workspace && !hydratedRef.current) {
-      hydratedRef.current = true;
+    if (workspace && hydratedRef.current !== params.id) {
+      hydratedRef.current = params.id;
       useSceneStore.getState().loadScene(workspace.sceneData);
     }
-  }, [workspace]);
+  }, [workspace, params.id]);
 
   // Auto-save scene changes with debounce
   const debouncedSave = useDebouncedCallback((sceneData: unknown) => {
@@ -88,7 +93,10 @@ export function WorkspaceEditor() {
           debouncedSave(slice);
         }
       },
-      { equalityFn: (a, b) => a === b }
+      {
+        equalityFn: (a, b) =>
+          a.elements === b.elements && a.sceneSettings === b.sceneSettings,
+      }
     );
     return unsubscribe;
   }, [debouncedSave]);
@@ -105,11 +113,7 @@ export function WorkspaceEditor() {
     }
   }, [title, workspace?.title, params.id, updateMutation]);
 
-  if (isLoading) {
-    return <Loading title="Configuring your workspace..." />;
-  }
-
-  if (!workspace) {
+  if (!workspace && !isLoading) {
     return (
       <Empty className="h-dvh">
         <EmptyHeader>
@@ -151,7 +155,7 @@ export function WorkspaceEditor() {
 
         <SidebarInset>
           <div className="@container/main flex flex-1">
-            <WorkspaceCanvas />
+            <WorkspaceCanvas loading={isLoading} />
           </div>
         </SidebarInset>
 
@@ -170,10 +174,16 @@ export function WorkspaceEditor() {
             </p>
           </SidebarHeader>
           <SidebarContent className="flex-1 overflow-y-auto p-0">
-            <WorkspaceChat
-              workspaceId={params.id}
-              initialMessages={dbMessagesToAiMessages(workspace.messages)}
-            />
+            {workspace ? (
+              <WorkspaceChat
+                workspaceId={params.id}
+                initialMessages={dbMessagesToAiMessages(workspace.messages)}
+              />
+            ) : (
+              <div className="text-muted-foreground flex h-full items-center justify-center gap-2 text-sm">
+                <Loader /> Loading chat...
+              </div>
+            )}
           </SidebarContent>
         </Sidebar>
       </div>

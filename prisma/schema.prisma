@@ -186,6 +186,7 @@ model WorkspaceMessage {
   id          String    @id @default(uuid())
   role        String
   content     String
+  parts       Json?
   codeBlock   String?
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)

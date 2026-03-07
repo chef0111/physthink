@@ -64,6 +64,7 @@ class WorkspaceDAL {
             id: true,
             role: true,
             content: true,
+            parts: true,
             codeBlock: true,
             createdAt: true,
           },

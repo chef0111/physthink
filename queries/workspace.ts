@@ -38,6 +38,7 @@ export function useUpdateWorkspace(options?: {
 }
 
 export function useDeleteWorkspace() {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation(
@@ -47,6 +48,7 @@ export function useDeleteWorkspace() {
         await queryClient.invalidateQueries(
           orpc.workspace.list.queryOptions({ input: { page: 1, pageSize: 50 } })
         );
+        router.refresh();
       },
       onError: (error) => {
         toast.error('Failed to delete workspace', {

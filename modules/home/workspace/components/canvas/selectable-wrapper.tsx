@@ -1,13 +1,19 @@
 'use client';
 
-import { useRef, useEffect, type ComponentRef, type ReactNode } from 'react';
+import {
+  memo,
+  useRef,
+  useEffect,
+  type ComponentRef,
+  type ReactNode,
+} from 'react';
 import { TransformControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { useSceneStore } from '@/lib/stores/scene-store';
 import type { SceneElement, Vec3 } from '@/lib/stores/scene-store';
 import type { Object3D } from 'three';
 
-export function SelectableWrapper({
+export const SelectableWrapper = memo(function SelectableWrapper({
   element,
   children,
 }: {
@@ -44,7 +50,7 @@ export function SelectableWrapper({
       )}
     </>
   );
-}
+});
 
 /** Disables OrbitControls while dragging the transform gizmo */
 function ActiveTransformControls({
