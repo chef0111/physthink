@@ -2,16 +2,15 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { orpc, client } from '@/lib/orpc';
+import { useQuery } from '@tanstack/react-query';
+import { orpc } from '@/lib/orpc';
+import { useUpdateWorkspace } from '@/queries/workspace';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { FolderX } from 'lucide-react';
@@ -22,6 +21,7 @@ import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { WorkspaceCanvas } from './canvas';
 import { WorkspaceToolbar } from './toolbar';
 import { WorkspaceHeader } from './workspace-header';
+import { WorkspaceChat, dbMessagesToAiMessages } from './chat';
 import {
   Empty,
   EmptyContent,
@@ -31,6 +31,7 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import Loading from '@/app/loading';
+import { formatBytes } from '@/lib/utils';
 
 const MAX_SCENE_DATA_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -47,9 +48,7 @@ export function WorkspaceEditor() {
     orpc.workspace.get.queryOptions({ input: { id: params.id } })
   );
 
-  const updateMutation = useMutation({
-    mutationFn: (input: { id: string; title?: string; sceneData?: unknown }) =>
-      client.workspace.update(input),
+  const updateMutation = useUpdateWorkspace({
     onMutate: () => setSaveStatus('saving'),
     onSuccess: () => {
       setSaveStatus('saved');
@@ -70,7 +69,9 @@ export function WorkspaceEditor() {
   const debouncedSave = useDebouncedCallback((sceneData: unknown) => {
     const json = JSON.stringify(sceneData);
     if (json.length > MAX_SCENE_DATA_SIZE) {
-      console.warn('Scene data exceeds 2MB limit, skipping auto-save');
+      console.warn(
+        `Scene data exceeds ${formatBytes(MAX_SCENE_DATA_SIZE)} limit, skipping auto-save`
+      );
       return;
     }
     updateMutation.mutate({ id: params.id, sceneData });
@@ -168,18 +169,12 @@ export function WorkspaceEditor() {
               Describe the 3D illustration you want
             </p>
           </SidebarHeader>
-          <SidebarContent className="flex-1 overflow-y-auto p-4">
-            <p className="text-muted-foreground text-center text-sm">
-              AI Chat is coming soon!
-            </p>
-          </SidebarContent>
-          <SidebarFooter className="border-t p-3">
-            <Textarea
-              placeholder="Describe the 3D illustration you want..."
-              rows={3}
-              disabled
+          <SidebarContent className="flex-1 overflow-y-auto p-0">
+            <WorkspaceChat
+              workspaceId={params.id}
+              initialMessages={dbMessagesToAiMessages(workspace.messages)}
             />
-          </SidebarFooter>
+          </SidebarContent>
         </Sidebar>
       </div>
     </SidebarProvider>

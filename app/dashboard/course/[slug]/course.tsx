@@ -27,7 +27,7 @@ export const CourseSidebar = async ({ slug }: { slug: string }) => {
     <Sidebar
       side="left"
       collapsible="offcanvas"
-      className="bg-sidebar top-14 border-l"
+      className="bg-sidebar top-14 border-l pb-14"
       mobileWidth="md"
     >
       <CourseSidebarHeader course={course} />
