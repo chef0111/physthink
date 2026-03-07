@@ -116,8 +116,42 @@ const ElementSchema = z.discriminatedUnion('type', [
 
 export const sceneTools = {
   addElement: tool({
-    description:
-      'Add a new element to the physics illustration. Use this to create: objects (box, sphere, cylinder for blocks/wheels/objects), surfaces (plane for ground/inclines), force vectors (gravity, normal, friction, tension, applied — use appropriate colors), connectors (springs, ropes), trajectories (curves), presets (pulley, pendulum, cart, ramp, spring, weight-block), annotations (labels for variables like m/g/θ/N, angle-markers, dimensions), or lights. Position force vectors at the center of mass of the object they act on.',
+    description: `Add a new element to the physics illustration.
+
+GEOMETRY TYPES:
+- mesh: 3D object shapes — geometry options: box, sphere, cylinder, cone, capsule, torus, plane
+- vector: arrow for forces/velocities/accelerations — specify from & to points
+- connector: spring, rope, rod, wire between two 3D points
+- curve: trajectory path through an array of 3D points
+- preset: pulley, pendulum, cart, ramp, spring, weight-block (with params)
+- annotation: label, angle-marker, dimension, coordinate-axes, region
+- light: ambient, directional, point, spot
+
+GEOMETRY ARGS (geometryArgs array, maps to Three.js constructor arguments):
+- box:      [width, height, depth]                    default [1, 1, 1]
+- sphere:   [radius, widthSegments, heightSegments]   default [0.5, 32, 32]
+- cylinder: [radiusTop, radiusBottom, height, segs]   default [0.5, 0.5, 1, 32]
+- cone:     [radius, height, radialSegments]           default [0.5, 1, 32]
+- plane:    [width, height]                           default [2, 2]
+- capsule:  [radius, length, capSegs, radialSegs]     default [0.5, 1, 4, 8]
+- torus:    [radius, tube, radialSegs, tubularSegs]   default [0.5, 0.2, 16, 100]
+
+ROTATION (Euler angles in RADIANS — NOT degrees):
+- 30° = 0.5236 rad,  45° = 0.7854 rad,  60° = 1.0472 rad,  90° = 1.5708 rad
+- Inclined plane at angle θ: rotation = [0, 0, -θ_radians]  (negative Z tilts right edge up)
+
+INCLINED PLANE PLACEMENT:
+- Ramp of length L at angle θ centred so base is at y=0: position = [L·cos(θ)/2, L·sin(θ)/2, 0]
+- 30° ramp L=6: position ≈ [2.598, 1.5, 0], rotation = [0, 0, -0.5236], geometryArgs = [6, 0.1]
+- Object at distance d along slope (box half-height hH): x = d·cos(θ) − hH·sin(θ), y = d·sin(θ) + hH·cos(θ)
+
+FORCE VECTORS on incline at angle θ, object centre (ox, oy):
+- Gravity (down):         from=[ox,oy,0], to=[ox, oy−magnitude, 0]
+- Normal (⊥ to incline):  direction [−sin(θ), cos(θ), 0]
+- Friction (up slope):    direction [cos(θ), sin(θ), 0]
+- mg·sinθ component (down slope, dashed): direction [−cos(θ), −sin(θ), 0]
+
+Position force vectors at the centre of mass of the object they act on.`,
     inputSchema: z.object({
       element: ElementSchema.describe('The element to add to the scene'),
     }),

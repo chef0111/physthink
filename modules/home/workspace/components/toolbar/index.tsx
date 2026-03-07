@@ -172,7 +172,7 @@ export function WorkspaceToolbar() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <Card className="absolute top-1/3 left-3 z-20 flex -translate-y-1/3 flex-col gap-1 overflow-visible rounded-lg p-1 shadow-2xl">
+      <Card className="absolute top-1/3 left-3 z-20 flex -translate-y-1/3 flex-col gap-1 overflow-visible rounded-md p-1 shadow-2xl">
         {/* AI shortcut */}
         <ToolbarButton
           icon={Sparkles}
@@ -213,7 +213,7 @@ export function WorkspaceToolbar() {
                 />
 
                 {expandedGroup === group.id && (
-                  <Card className="absolute top-0 left-full z-20 ml-2 flex flex-col gap-0.5 rounded-lg p-1 shadow-xl">
+                  <Card className="absolute top-0 left-full z-20 ml-2 flex max-h-64 flex-col gap-0.5 overflow-auto rounded-lg p-1 shadow-xl">
                     {group.buttons.map((btn) => (
                       <ToolbarButton
                         key={btn.id}

@@ -1,0 +1,361 @@
+[
+  {
+    "name": "Free-body diagram on inclined plane",
+    "category": "mechanics",
+    "tags": [
+      "incline",
+      "ramp",
+      "forces",
+      "free-body",
+      "normal",
+      "gravity",
+      "friction"
+    ],
+    "content": "Free-body diagram on an inclined plane — step-by-step with exact 3D coordinates for a standard 30° (θ = π/6 ≈ 0.5236 rad) example. ROTATION NOTE: use Euler radians, negative Z tilts right edge up.\n\n1) CREATE THE INCLINE SURFACE:\n   - mesh, geometry='plane', geometryArgs=[6, 0.1] (length 6, thin slab)\n   - rotation=[0, 0, -0.5236]  (30° tilt around Z-axis)\n   - position=[2.598, 1.5, 0]  (= [L·cos(θ)/2, L·sin(θ)/2, 0] centres ramp so base is at origin)\n   - material={color:'#8B7355'}\n   OR use the 'ramp' preset with params={angle:30, length:6}.\n\n2) ADD A GROUND PLANE:\n   - mesh, geometry='plane', geometryArgs=[10, 0.1], position=[2.598, 0, 0]\n\n3) PLACE THE BLOCK ON THE INCLINE:\n   - Say block is 1×1×1 (half-height hH=0.5), distance d=2 m along slope from base:\n     x = d·cos(θ) − hH·sin(θ) = 2·0.866 − 0.5·0.5 = 1.482\n     y = d·sin(θ) + hH·cos(θ) = 2·0.5   + 0.5·0.866 = 1.433\n   - position=[1.482, 1.433, 0], rotation=[0, 0, -0.5236], geometryArgs=[1,1,1]\n   - Let ox=1.482, oy=1.433 for the force vectors below.\n\n4) DRAW GRAVITY VECTOR (mg straight down, dark red):\n   - from=[ox, oy, 0], to=[ox, oy-2, 0]  (length proportional to mg; scale: 1 unit = ~5 N)\n   - color='#8B0000', label='mg'\n\n5) DRAW NORMAL FORCE (perpendicular to incline, green):\n   - N direction = [-sin(θ), cos(θ), 0] = [-0.5, 0.866, 0]\n   - from=[ox, oy, 0], to=[ox + N·(-0.5), oy + N·0.866, 0]  (use N ≈ mg·cos(θ))\n   - color='#00AA00', label='N'\n\n6) DRAW FRICTION FORCE (along incline opposing motion, orange):\n   - Up-slope direction = [cos(θ), sin(θ), 0] = [0.866, 0.5, 0]\n   - from=[ox, oy, 0], to=[ox + f·0.866, oy + f·0.5, 0]\n   - color='#FF8800', label='f', dashed=false\n\n7) DRAW GRAVITY COMPONENTS (dashed red):\n   - mg·sinθ down the slope: direction [-cos(θ), -sin(θ), 0] = [-0.866, -0.5, 0]\n   - mg·cosθ into surface:   direction [sin(θ), -cos(θ), 0] = [0.5, -0.866, 0]\n   - Both dashed=true, color='#CC0000'\n\n8) ADD ANGLE MARKER annotation at the ramp base (position=[0,0,0]) showing θ=30°.\n\n9) ADD LABELS: 'm', 'g', 'θ', 'N', 'f' using annotation elements near each force.\n\nPhysics: Along incline: ma = mg·sinθ − f − F_applied·cosα. Perpendicular: N = mg·cosθ + F_applied·sinα. Kinetic friction: f = μN."
+  },
+  {
+    "name": "Projectile motion trajectory",
+    "category": "mechanics",
+    "tags": ["projectile", "trajectory", "parabola", "velocity", "gravity"],
+    "content": "Projectile motion illustration: 1) Create a ground plane as the horizontal surface. 2) Mark the launch point with a sphere or marker. 3) Draw the initial velocity vector v₀ at launch angle θ from horizontal in cyan. 4) Show velocity components: v₀·cosθ horizontal (dashed cyan) and v₀·sinθ vertical (dashed cyan). 5) Draw the parabolic trajectory as a curve element with computed points: x(t) = v₀·cosθ·t, y(t) = v₀·sinθ·t - ½gt². 6) At several points along trajectory, show velocity vectors (tangent to path). 7) Show gravity vector (mg) at the peak in dark red. 8) Mark the maximum height H = v₀²sin²θ/(2g) and range R = v₀²sin(2θ)/g with dimension annotations."
+  },
+  {
+    "name": "Atwood machine",
+    "category": "mechanics",
+    "tags": ["atwood", "pulley", "tension", "masses", "acceleration"],
+    "content": "Atwood machine illustration: 1) Create a pulley preset at the top. 2) Hang two masses (box meshes) on either side using rope connectors through the pulley. 3) Draw gravity vectors (m₁g and m₂g) on each mass in dark red pointing down. 4) Draw tension vectors (T) on each mass in blue pointing up along the rope. 5) Label each mass (m₁, m₂). 6) Show acceleration direction on the heavier mass (downward) and lighter mass (upward) with yellow arrows. 7) The acceleration a = (m₂-m₁)g/(m₁+m₂) and tension T = 2m₁m₂g/(m₁+m₂) for m₂ > m₁."
+  },
+  {
+    "name": "Spring-mass system",
+    "category": "mechanics",
+    "tags": ["spring", "hooke", "oscillation", "SHM", "harmonic", "restoring"],
+    "content": "Spring-mass system illustration: 1) Create a fixed wall or ceiling attachment point. 2) Attach a spring connector to a mass (box or sphere). 3) Show the natural length position with a dashed line or marker. 4) Draw the spring force vector F = -kx in blue pointing toward equilibrium. 5) If displaced, show the displacement x with a dimension annotation. 6) Optionally show the velocity vector at different positions (max at equilibrium, zero at extremes). 7) Label spring constant k and mass m. 8) Period T = 2π√(m/k), frequency f = 1/T, angular frequency ω = √(k/m)."
+  },
+  {
+    "name": "Circular motion / centripetal force",
+    "category": "mechanics",
+    "tags": ["circular", "centripetal", "centrifugal", "radius", "angular"],
+    "content": "Circular motion illustration: 1) Draw a circular path as a curve element (closed=true). 2) Place the object (sphere/box) at a point on the circle. 3) Draw the velocity vector tangent to the circle in cyan. 4) Draw the centripetal acceleration vector pointing toward the center in yellow. 5) Draw the centripetal force vector pointing toward the center in red (same direction as acceleration). 6) Mark the radius r with a dimension annotation from center to object. 7) Label: v (tangential velocity), a_c = v²/r (centripetal acceleration), F_c = mv²/r (centripetal force). 8) Optionally show the angular velocity ω with a curved arrow around the center."
+  },
+  {
+    "name": "Collision / momentum conservation",
+    "category": "mechanics",
+    "tags": [
+      "collision",
+      "momentum",
+      "elastic",
+      "inelastic",
+      "before",
+      "after"
+    ],
+    "content": "Collision illustration: 1) Show the 'before' state: two objects approaching each other with velocity vectors (cyan arrows). 2) Label masses m₁, m₂ and velocities v₁, v₂. 3) Show the 'after' state (offset in z or as a separate region): objects with new velocities v₁', v₂'. 4) Use annotations to show momentum: p = mv for each object. 5) For elastic collisions: kinetic energy is conserved. For perfectly inelastic: objects stick together, v_f = (m₁v₁ + m₂v₂)/(m₁ + m₂). 6) Use color coding: object 1 in blue, object 2 in red. 7) Optionally add a 'before/after' label annotation."
+  },
+  {
+    "name": "Pendulum / simple harmonic motion",
+    "category": "mechanics",
+    "tags": ["pendulum", "swing", "period", "gravity", "angle", "SHM"],
+    "content": "Pendulum illustration: 1) Use the pendulum preset (pivot + rod + bob) or build from a fixed point + rod connector + sphere. 2) Show the pendulum displaced at angle θ from vertical. 3) Draw gravity vector (mg) straight down on the bob in dark red. 4) Decompose gravity: mg·cosθ along the rod (dashed) and mg·sinθ tangent to the arc (dashed, this is the restoring force). 5) Draw tension T along the rod toward the pivot in blue. 6) Mark angle θ with angle-marker annotation. 7) Show the arc path as a curve. 8) Label length L. Period T = 2π√(L/g) for small angles."
+  },
+  {
+    "name": "Work-energy and potential energy",
+    "category": "mechanics",
+    "tags": [
+      "work",
+      "energy",
+      "kinetic",
+      "potential",
+      "height",
+      "conservation"
+    ],
+    "content": "Energy conservation illustration: 1) Create a surface/ramp showing the path of the object. 2) Show the object at two positions: high point (A) and low point (B). 3) Mark height h with a dimension annotation. 4) At point A: label KE_A = ½mv_A², PE_A = mgh. 5) At point B: label KE_B = ½mv_B², PE_B = 0. 6) Draw velocity vectors at each point (smaller at top, larger at bottom if starting from rest). 7) Show gravity vector at each position. 8) Add annotation: E_total = KE + PE = constant (if no friction). 9) Conservation equation: mgh + ½mv_A² = ½mv_B²."
+  },
+  {
+    "name": "Torque and rotational equilibrium",
+    "category": "mechanics",
+    "tags": ["torque", "moment", "rotation", "lever", "fulcrum", "equilibrium"],
+    "content": "Torque illustration: 1) Create a lever/beam (box mesh, elongated) balanced on a fulcrum (triangle/preset). 2) Place weights/forces at different positions along the beam. 3) Draw force vectors (gravity on each weight) pointing down in dark red. 4) Mark the lever arms (distances from fulcrum to each force) with dimension annotations. 5) Show the pivot point clearly. 6) Label each torque: τ = r × F = rF·sinθ. 7) For equilibrium: Στ = 0, so r₁F₁ = r₂F₂. 8) Add a curved arrow at the pivot showing the positive rotation direction."
+  },
+  {
+    "name": "Rolling and rotational dynamics",
+    "category": "mechanics",
+    "tags": [
+      "rolling",
+      "rotation",
+      "moment of inertia",
+      "angular acceleration",
+      "torque",
+      "cylinder",
+      "sphere"
+    ],
+    "content": "Rolling dynamics illustration: 1) Create an incline (ramp preset). 2) Place a rolling object (sphere or cylinder) at the top. 3) Show gravity (mg) straight down in dark red. 4) Show normal force (N) perpendicular to incline in green. 5) Show friction force (f) up the incline in orange — this friction causes rotation, not just sliding. 6) Mark the radius R of the rolling object. 7) At the contact point, show the angular velocity ω with a curved arrow. 8) Label: a = g·sinθ/(1 + I/(mR²)). Moment of inertia: sphere I = (2/5)mR², cylinder I = (1/2)mR², hoop I = mR². Rolling condition: v = ωR. KE_total = ½mv² + ½Iω²."
+  },
+  {
+    "name": "Gravitational orbits / Kepler's laws",
+    "category": "mechanics",
+    "tags": [
+      "orbit",
+      "satellite",
+      "kepler",
+      "gravitational",
+      "ellipse",
+      "planetary"
+    ],
+    "content": "Orbital motion illustration: 1) Place a large sphere (planet) at the center. 2) Draw an elliptical orbit path as a curve (closed=true). 3) Place a small sphere (satellite/planet) on the orbit. 4) Draw velocity vector tangent to orbit in cyan. 5) Draw gravitational force vector toward center in dark red. 6) Mark the semi-major axis a, periapsis, and apoapsis with dimension annotations. 7) Label: Kepler's 3rd law T² = (4π²/GM)a³. Orbital velocity: v = √(GM/r). Escape velocity: v_esc = √(2GM/R). For circular orbit: F_gravity = F_centripetal → GMm/r² = mv²/r. 8) Show equal areas swept in equal times (Kepler's 2nd law) with shaded regions."
+  },
+  {
+    "name": "Fluid pressure and buoyancy",
+    "category": "mechanics",
+    "tags": [
+      "fluid",
+      "pressure",
+      "buoyancy",
+      "archimedes",
+      "float",
+      "submerged"
+    ],
+    "content": "Buoyancy illustration: 1) Create a container (transparent box with blue-tinted material for water). 2) Place an object partially or fully submerged in the fluid. 3) Draw the weight vector (mg) downward on the object in dark red. 4) Draw the buoyant force vector (F_b) upward in cyan, equal to the weight of displaced fluid. 5) Mark the water surface level. 6) Label: F_b = ρ_fluid · V_displaced · g (Archimedes' principle). 7) If floating: F_b = mg. If sinking: mg > F_b. 8) Optionally show pressure arrows on the object's surfaces (increasing with depth). Hydrostatic pressure: P = P₀ + ρgh."
+  },
+  {
+    "name": "Standing waves and resonance",
+    "category": "waves",
+    "tags": [
+      "standing wave",
+      "resonance",
+      "node",
+      "antinode",
+      "harmonic",
+      "string",
+      "frequency"
+    ],
+    "content": "Standing wave illustration: 1) Draw a horizontal string/rod between two fixed endpoints (use a line or elongated box). 2) Draw the fundamental mode (n=1): a single half-wavelength sine curve between the endpoints. 3) Mark nodes (zero displacement) with small dots and antinodes (maximum displacement) with labels. 4) Show the 2nd harmonic (n=2) and 3rd harmonic (n=3) as additional curves offset vertically, each with n half-wavelengths. 5) Label wavelength: λ_n = 2L/n, frequency: f_n = nv/(2L) = n·f₁. 6) Mark L (string length) with a dimension annotation. 7) For pipe open at both ends: same as string. For pipe closed at one end: only odd harmonics f_n = nv/(4L), n=1,3,5... 8) Wave speed on string: v = √(T/μ) where T = tension, μ = mass/length."
+  },
+  {
+    "name": "Doppler effect",
+    "category": "waves",
+    "tags": [
+      "doppler",
+      "frequency shift",
+      "sound",
+      "source",
+      "observer",
+      "wavelength"
+    ],
+    "content": "Doppler effect illustration: 1) Place a sound source (sphere) moving to the right with a velocity vector v_s in cyan. 2) Draw concentric circles (wavefronts) centered on previous source positions — compressed in front, stretched behind. 3) Place a stationary observer to the right. 4) Label: f_observed = f_source · (v ± v_observer)/(v ∓ v_source), where v = speed of sound. 5) Approaching: wavelengths shorter, frequency higher. Receding: wavelengths longer, frequency lower. 6) For light: Doppler redshift z = Δλ/λ ≈ v/c (for v ≪ c). 7) Shock wave / sonic boom when v_source > v_sound: Mach cone with half-angle sinθ = v/v_source."
+  },
+  {
+    "name": "Electric field lines and point charges",
+    "category": "electromagnetism",
+    "tags": ["electric", "field", "charge", "coulomb", "field lines"],
+    "content": "Electric field illustration: 1) Place point charges as small spheres (positive=red, negative=blue). 2) Draw field lines as curves radiating outward from positive charges and inward toward negative charges. 3) For a dipole: field lines curve from positive to negative. 4) Show the electric field vector E at a test point using a vector element. 5) Mark the distance r between charges with a dimension annotation. 6) Label charges q₁, q₂. Coulomb's law: F = k_e·q₁q₂/r². Electric field: E = k_e·q/r² pointing away from positive charges. 7) Field line density indicates field strength. 8) Equipotential lines are perpendicular to field lines."
+  },
+  {
+    "name": "Electric circuits: series and parallel",
+    "category": "electromagnetism",
+    "tags": [
+      "circuit",
+      "resistor",
+      "series",
+      "parallel",
+      "voltage",
+      "current",
+      "ohm"
+    ],
+    "content": "Circuit illustration: 1) Draw a battery (two parallel lines, long=+, short=-) connected by wire paths. 2) Place resistors (box meshes) along the wire paths. 3) For series circuit: resistors end-to-end, same current through all: I = V/(R₁+R₂+...), R_total = R₁+R₂+... 4) For parallel circuit: resistors between the same two nodes: 1/R_total = 1/R₁+1/R₂+..., same voltage across all. 5) Add current direction arrows (cyan) showing conventional current flow (+→-). 6) Label voltage drops across each resistor with annotations: V_i = IR_i. 7) Kirchhoff's rules: junction rule (ΣI_in = ΣI_out), loop rule (ΣV = 0 around any loop). 8) Power: P = IV = I²R = V²/R."
+  },
+  {
+    "name": "Magnetic field from current-carrying wire",
+    "category": "electromagnetism",
+    "tags": [
+      "magnetic field",
+      "current",
+      "wire",
+      "ampere",
+      "right-hand rule",
+      "solenoid"
+    ],
+    "content": "Magnetic field illustration: 1) Draw a long straight wire (cylinder) carrying current I upward (cyan arrow). 2) Draw concentric circular magnetic field lines (B) around the wire — use closed curve elements. 3) Use the right-hand rule: thumb in current direction, fingers curl in B direction. 4) Show B vectors at several points tangent to the circles. 5) Label: B = μ₀I/(2πr) for a long straight wire. 6) For a solenoid: draw a coil of wire (helix shape), show uniform B field inside (parallel arrows) and weak field outside. B_solenoid = μ₀nI (n = turns/length). 7) Force between parallel wires: F/L = μ₀I₁I₂/(2πd) — same direction currents attract, opposite repel."
+  },
+  {
+    "name": "Electromagnetic induction / Faraday's law",
+    "category": "electromagnetism",
+    "tags": [
+      "induction",
+      "faraday",
+      "emf",
+      "magnetic flux",
+      "lenz",
+      "generator"
+    ],
+    "content": "Electromagnetic induction illustration: 1) Draw a rectangular conducting loop (box frame or closed curve). 2) Show a uniform magnetic field B passing through the loop (parallel vector arrows). 3) Show the area vector A perpendicular to the loop surface. 4) Magnetic flux: Φ = B·A·cosθ. 5) If B changes or the loop moves/rotates: induced EMF ε = -dΦ/dt (Faraday's law). 6) Show induced current direction using Lenz's law — opposes the change in flux (draw current arrow and the B field it would create). 7) For a rotating loop (generator): ε = NBAω·sin(ωt). 8) For a bar sliding on rails: ε = BLv, induced current I = BLv/R."
+  },
+  {
+    "name": "Snell's law / refraction at an interface",
+    "category": "waves",
+    "tags": [
+      "refraction",
+      "snell",
+      "reflection",
+      "critical angle",
+      "total internal reflection",
+      "glass",
+      "water"
+    ],
+    "content": "Refraction illustration: 1) Draw a horizontal interface between two media (e.g. air-glass or air-water) — use a plane with distinct colors above/below. 2) Draw the incident ray approaching the surface at angle θ₁ from the normal. 3) Draw the normal line (dashed, perpendicular to surface). 4) Draw the refracted ray bending toward/away from normal depending on n₂ vs n₁. 5) Snell's law: n₁ sinθ₁ = n₂ sinθ₂. Going into denser medium (n₂ > n₁): bends toward normal. Going into less dense: bends away. 6) Draw the reflected ray at angle θ₁ on the same side. 7) Label both media with their indices of refraction. 8) Critical angle θ_c = arcsin(n₂/n₁) for total internal reflection (only when n₁ > n₂)."
+  },
+  {
+    "name": "Lens and ray diagram (optics)",
+    "category": "waves",
+    "tags": ["lens", "convex", "concave", "ray", "focal", "image", "object"],
+    "content": "Ray diagram illustration: 1) Place a lens (convex-lens or concave-lens preset) at the center. 2) Mark the focal points F and F' on both sides with annotation labels. 3) Place the object (an upright vector/arrow) on one side. 4) Draw three principal rays as curve/line elements: a) Parallel ray → refracts through focal point. b) Central ray → passes straight through center. c) Focal ray → refracts parallel to axis. 5) Mark the image position where rays converge (real image) or appear to diverge from (virtual image, use dashed lines). 6) Label object distance d_o, image distance d_i, focal length f. Thin lens equation: 1/f = 1/d_o + 1/d_i. Magnification: M = -d_i/d_o."
+  },
+  {
+    "name": "Double-slit interference / diffraction",
+    "category": "waves",
+    "tags": [
+      "interference",
+      "diffraction",
+      "double slit",
+      "young",
+      "fringe",
+      "wavelength",
+      "constructive",
+      "destructive"
+    ],
+    "content": "Double-slit interference illustration: 1) Draw a barrier with two narrow slits (two gaps in a box/plane). 2) Draw incoming plane waves hitting the barrier (parallel lines or curves). 3) Beyond the slits, draw semi-circular wavefronts emanating from each slit. 4) On a distant screen (plane), show the interference pattern: central bright fringe + alternating bright/dark fringes. 5) Label slit separation d, screen distance L, fringe position y. 6) Constructive interference (bright): d·sinθ = mλ, position: y_m = mλL/d (m = 0,±1,±2,...). 7) Destructive interference (dark): d·sinθ = (m+½)λ. 8) Single-slit diffraction: first minimum at a·sinθ = λ (a = slit width)."
+  },
+  {
+    "name": "Thermodynamic PV diagrams / Carnot cycle",
+    "category": "thermodynamics",
+    "tags": [
+      "PV diagram",
+      "carnot",
+      "isothermal",
+      "adiabatic",
+      "thermodynamic cycle",
+      "engine",
+      "efficiency"
+    ],
+    "content": "PV diagram illustration: 1) Create a 2D coordinate region with P (pressure) on vertical axis and V (volume) on horizontal axis. Use annotation labels for axes. 2) For an ideal gas: draw isothermal curves (PV = const, hyperbolas) and adiabatic curves (PV^γ = const, steeper than isotherms). 3) Carnot cycle: draw 4 processes forming a closed loop — isothermal expansion (A→B at T_H), adiabatic expansion (B→C), isothermal compression (C→D at T_C), adiabatic compression (D→A). 4) Shade the enclosed area = net work done per cycle. 5) Label: Carnot efficiency η = 1 - T_C/T_H. 6) First law: ΔU = Q - W. For isothermal: ΔU = 0, W = Q = nRT·ln(V₂/V₁). For adiabatic: Q = 0, W = -ΔU."
+  },
+  {
+    "name": "Heat transfer and phase changes",
+    "category": "thermodynamics",
+    "tags": [
+      "heat transfer",
+      "conduction",
+      "convection",
+      "radiation",
+      "phase change",
+      "calorimetry",
+      "melting",
+      "boiling"
+    ],
+    "content": "Heat transfer illustration: 1) For conduction: draw a rod/slab between hot (red) and cold (blue) reservoirs. Show heat flow arrows through the material. Label: P = kA(T_H - T_C)/L (Fourier's law). 2) For convection: show a fluid (water in pot) with circular flow arrows indicating convection currents — warm fluid rises, cool fluid sinks. 3) For radiation: show wavy arrows (electromagnetic waves) emitted from a hot surface. Label: P = σAεT⁴ (Stefan-Boltzmann). 4) Phase change diagram: show temperature vs heat added graph — flat plateaus during phase changes (melting at 0°C, boiling at 100°C for water). Q = mL_f for melting, Q = mL_v for boiling, Q = mcΔT for temperature changes."
+  },
+  {
+    "name": "Kinematics: equations of motion",
+    "category": "mechanics",
+    "tags": [
+      "kinematics",
+      "velocity",
+      "acceleration",
+      "displacement",
+      "constant acceleration",
+      "motion",
+      "1D",
+      "2D"
+    ],
+    "content": "Kinematics illustration: 1) Draw a horizontal axis (x-axis) with an origin marker. 2) Place an object (sphere or box) at initial position x₀. 3) Draw velocity vector v₀ in cyan and acceleration vector a in yellow. 4) Show the object at a later position with updated velocity vector. 5) Label the kinematic equations of constant acceleration: v = v₀ + at, x = x₀ + v₀t + ½at², v² = v₀² + 2a(x - x₀), x = x₀ + ½(v₀ + v)t. 6) For 2D motion: decompose into x and y components independently. Position: r(t) = r₀ + v₀t + ½at². 7) Show position-time, velocity-time, and acceleration-time graphs as annotation panels: x(t) is parabolic for constant a, v(t) is linear, a(t) is constant. 8) Average velocity: v_avg = Δx/Δt. Instantaneous velocity: v = dx/dt."
+  },
+  {
+    "name": "Damped and driven harmonic oscillation",
+    "category": "mechanics",
+    "tags": [
+      "damped",
+      "driven",
+      "oscillation",
+      "resonance",
+      "damping ratio",
+      "quality factor",
+      "overdamped",
+      "underdamped",
+      "critical damping"
+    ],
+    "content": "Damped harmonic oscillator illustration: 1) Draw a spring-mass system with a damper (dashpot) element. 2) Show the displacement-time graph with exponentially decaying amplitude: x(t) = A·e^(-ζω₀t)·cos(ω₁t + φ), where ω₁ = ω₀√(1-ζ²). 3) Equation of motion: m·d²x/dt² + c·dx/dt + kx = F(t), rewritten as d²x/dt² + 2ζω₀·dx/dt + ω₀²x = F(t)/m. 4) ω₀ = √(k/m) is the natural frequency, ζ = c/(2mω₀) is the damping ratio. 5) Three regimes: underdamped (ζ < 1, oscillates with decay), critically damped (ζ = 1, fastest return without oscillation), overdamped (ζ > 1, slow exponential return). 6) Draw all three on the same time graph with different colors. 7) Quality factor: Q = 1/(2ζ) = 2π × (energy stored)/(energy lost per cycle). 8) For driven oscillator: resonance peak at ω_r = ω₀√(1 - 2ζ²), amplitude A = F₀/(mZ_mω) where Z_m is mechanical impedance. 9) At resonance, amplitude is maximal and phase shift is -90°."
+  },
+  {
+    "name": "Electric potential and capacitors",
+    "category": "electromagnetism",
+    "tags": [
+      "potential",
+      "voltage",
+      "capacitor",
+      "equipotential",
+      "energy",
+      "dielectric",
+      "RC circuit"
+    ],
+    "content": "Electric potential and capacitors illustration: 1) For electric potential: draw point charges and their equipotential surfaces (concentric circles for single charge, distorted ovals for dipole). Equipotential lines are perpendicular to field lines. V = k_e·q/r for a point charge. 2) For a parallel-plate capacitor: draw two parallel conducting plates with +Q and -Q charges. Show uniform E field between plates (parallel arrows from + to -). Label: C = ε₀A/d (vacuum), C = κε₀A/d (with dielectric). 3) Show a dielectric slab (orange) inserted between plates — it reduces E and increases C by factor κ. 4) Energy stored: U = ½CV² = ½Q²/C = ½QV. Energy density: u = ½ε₀E². 5) Capacitors in series: 1/C_total = 1/C₁ + 1/C₂. Capacitors in parallel: C_total = C₁ + C₂. 6) RC circuit: show battery + resistor + capacitor. Charging: V(t) = V₀(1 - e^(-t/RC)), I(t) = (V₀/R)e^(-t/RC). Discharging: V(t) = V₀·e^(-t/RC). Time constant τ = RC."
+  },
+  {
+    "name": "Electromagnetic wave propagation",
+    "category": "electromagnetism",
+    "tags": [
+      "electromagnetic wave",
+      "EM wave",
+      "Maxwell",
+      "Poynting",
+      "transverse",
+      "E field",
+      "B field",
+      "radiation"
+    ],
+    "content": "Electromagnetic wave illustration: 1) Draw a propagating wave along the z-axis. 2) Show the electric field E oscillating in the x-z plane (vertical sinusoid, red arrows) and magnetic field B oscillating in the y-z plane (horizontal sinusoid, blue arrows), perpendicular to each other and to the propagation direction. 3) E and B are in phase, reaching maxima and minima together. 4) Label: c = 1/√(ε₀μ₀) = fλ. Relationship: E₀ = cB₀. 5) Poynting vector: S = (1/μ₀)(E × B) — points in the propagation direction, gives energy flux (W/m²). Average intensity: I = ½ε₀cE₀² = E₀²/(2μ₀c) = S_avg. 6) Impedance of free space: Z₀ = √(μ₀/ε₀) = E/H ≈ 376.7 Ω. 7) Radiation pressure: P = I/c (absorbed), P = 2I/c (reflected). 8) EM spectrum bands: radio < microwave < IR < visible (400-700 nm) < UV < X-ray < gamma. Energy: E = hf."
+  },
+  {
+    "name": "Polarization of light",
+    "category": "waves",
+    "tags": [
+      "polarization",
+      "Malus",
+      "Brewster",
+      "polarizer",
+      "linear",
+      "circular",
+      "elliptical",
+      "wave plate"
+    ],
+    "content": "Polarization illustration: 1) Show unpolarized light as a beam with E-field arrows in all directions perpendicular to propagation. 2) Pass through a linear polarizer (sheet/filter): output is linearly polarized with E oscillating in one plane only. 3) Malus's law: when polarized light passes through a second polarizer (analyzer) at angle θ to the first, transmitted intensity I = I₀·cos²θ. At θ = 0° full transmission, at θ = 90° (crossed polarizers) zero transmission. 4) Brewster's angle: θ_B = arctan(n₂/n₁). Reflected light at this angle is completely s-polarized (E perpendicular to plane of incidence). For air-glass (n=1.52): θ_B ≈ 56.7°. 5) Circular polarization: E-field vector rotates in a circle as the wave propagates. Created by a quarter-wave plate on linearly polarized light at 45°. Right-hand vs left-hand circular. 6) Elliptical polarization: general case where E traces an ellipse. 7) Degree of polarization: DOP = (I_max - I_min)/(I_max + I_min)."
+  },
+  {
+    "name": "Entropy and the second law of thermodynamics",
+    "category": "thermodynamics",
+    "tags": [
+      "entropy",
+      "second law",
+      "irreversible",
+      "heat engine",
+      "refrigerator",
+      "Carnot",
+      "disorder"
+    ],
+    "content": "Entropy and second law illustration: 1) Draw a heat engine diagram: hot reservoir (T_H, red) → engine (circle) → cold reservoir (T_C, blue). Arrows: Q_H flows in from hot, W = Q_H - Q_C is work output, Q_C flows out to cold. 2) Efficiency: η = W/Q_H = 1 - Q_C/Q_H. Carnot (maximum) efficiency: η_Carnot = 1 - T_C/T_H. 3) Refrigerator/heat pump: reversed arrows. COP_refrigerator = Q_C/W = T_C/(T_H - T_C). COP_heat_pump = Q_H/W = T_H/(T_H - T_C). 4) Entropy: ΔS = Q_rev/T for reversible process. Clausius inequality: ΔS ≥ Q/T. 5) Second law statements: (Kelvin-Planck) no engine operating in a cycle can convert heat entirely to work; (Clausius) heat cannot spontaneously flow from cold to hot. 6) Statistical interpretation: S = k_B·ln(Ω) where Ω = number of microstates. Entropy of universe always increases: ΔS_universe ≥ 0. 7) Free expansion of ideal gas: ΔS = nR·ln(V₂/V₁) > 0 (irreversible)."
+  },
+  {
+    "name": "Vehicle on inclined surface",
+    "category": "mechanics",
+    "tags": [
+      "vehicle",
+      "truck",
+      "car",
+      "incline",
+      "ramp",
+      "forces",
+      "gravity",
+      "normal",
+      "friction",
+      "weight"
+    ],
+    "content": "Vehicle on an inclined surface — step-by-step with exact 3D coordinates for a truck at 30° (θ = π/6 ≈ 0.5236 rad).\n\n1) CREATE THE INCLINE:\n   - Use the 'ramp' preset with params={angle:30, length:10} (preferred), OR\n   - mesh plane: geometryArgs=[10, 0.1], rotation=[0,0,-0.5236], position=[4.330, 2.5, 0]\n\n2) ADD GROUND PLANE:\n   - mesh plane: geometryArgs=[14, 0.1], position=[4.330, 0, 0]\n\n3) PLACE THE TRUCK:\n   - Use the 'truck' preset if available, OR approximate with a box: geometryArgs=[4, 1.5, 2]\n   - Half-height hH = 0.75. Place vehicle at distance d=3 m up the slope from base:\n     x = d·cos(θ) − hH·sin(θ) = 3·0.866 − 0.75·0.5 = 2.223\n     y = d·sin(θ) + hH·cos(θ) = 3·0.5   + 0.75·0.866 = 2.149\n   - position=[2.223, 2.149, 0], rotation=[0, 0, -0.5236]\n   - Let ox=2.223, oy=2.149 for force vectors.\n\n4) GRAVITY (mg straight down, dark red, from centre of mass):\n   - For a 1500 kg truck: mg = 1500×9.8 = 14700 N; scale 1 unit = 5000 N → length ≈ 2.94\n   - from=[ox, oy, 0], to=[ox, oy-2.94, 0], color='#8B0000', label='mg = 14700 N'\n\n5) NORMAL FORCE (perpendicular to incline surface, green):\n   - N = mg·cos(30°) = 14700×0.866 ≈ 12730 N → length ≈ 2.546\n   - from=[ox, oy, 0], to=[ox + 2.546·(-0.5), oy + 2.546·0.866, 0]\n   - color='#00AA00', label='N'\n\n6) FRICTION or NET TRACTION force (along the incline, orange):\n   - mg·sin(30°) = 14700×0.5 = 7350 N → length ≈ 1.47\n   - For a stationary or decelerating vehicle: friction acts UP the slope\n     from=[ox, oy, 0], to=[ox + 1.47·0.866, oy + 1.47·0.5, 0], color='#FF8800', label='f'\n\n7) GRAVITY COMPONENTS (dashed):\n   - mg·sinθ down slope: from=[ox,oy,0], to=[ox − 1.47·0.866, oy − 1.47·0.5, 0], dashed=true, color='#CC0000', label='mg·sinθ'\n   - mg·cosθ into surface: from=[ox,oy,0], to=[ox + 1.27·0.5, oy − 1.27·0.866, 0], dashed=true, color='#CC0000', label='mg·cosθ'\n\n8) ANGLE MARKER at ramp base showing θ = 30°.\n\n9) LABELS for m, g, θ, N, f.\n\nPhysics: Equilibrium along incline requires f ≥ mg·sin(θ). Required friction coefficient μ ≥ tan(θ). For 30°: μ ≥ tan(30°) ≈ 0.577."
+  }
+]

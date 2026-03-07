@@ -149,13 +149,16 @@ export interface SceneState {
   sceneSettings: SceneSettings;
   activeTool: ActiveTool;
   activeSubTool: string | null;
+  sceneLoading: boolean;
 
   addElement: (element: SceneElement) => boolean;
+  addElements: (elements: SceneElement[]) => boolean;
   updateElement: (id: string, updates: Partial<SceneElement>) => void;
   removeElement: (id: string) => void;
   setSelected: (id: string | null) => void;
   setSceneSettings: (settings: Partial<SceneSettings>) => void;
   setActiveTool: (tool: ActiveTool, subTool?: string | null) => void;
+  setSceneLoading: (loading: boolean) => void;
   loadScene: (data: unknown) => void;
   getElementCount: () => number;
 }
@@ -212,6 +215,7 @@ export const useSceneStore = create<SceneState>()(
       sceneSettings: { ...DEFAULT_SETTINGS },
       activeTool: 'select',
       activeSubTool: null,
+      sceneLoading: false,
 
       addElement: (element) => {
         const count = get().getElementCount();
@@ -228,6 +232,25 @@ export const useSceneStore = create<SceneState>()(
           );
         }
         return true;
+      },
+
+      addElements: (elements) => {
+        if (elements.length === 0) return true;
+        const count = get().getElementCount();
+        const allowed = elements.slice(0, ELEMENT_HARD_LIMIT - count);
+        if (allowed.length === 0) {
+          console.warn(
+            `Scene element hard limit (${ELEMENT_HARD_LIMIT}) reached. Cannot add more elements.`
+          );
+          return false;
+        }
+        set((state) => ({ elements: [...state.elements, ...allowed] }));
+        if (count + allowed.length >= ELEMENT_SOFT_LIMIT) {
+          console.warn(
+            `Scene has ${count + allowed.length} elements. Performance may degrade.`
+          );
+        }
+        return allowed.length === elements.length;
       },
 
       updateElement: (id, updates) => {
@@ -252,6 +275,8 @@ export const useSceneStore = create<SceneState>()(
 
       setActiveTool: (tool, subTool = null) =>
         set({ activeTool: tool, activeSubTool: subTool }),
+
+      setSceneLoading: (loading) => set({ sceneLoading: loading }),
 
       loadScene: (data) => {
         if (!data || typeof data !== 'object') {
@@ -280,7 +305,8 @@ export const useSceneStore = create<SceneState>()(
         sceneSettings: state.sceneSettings,
       }),
       equality: (pastState, currentState) =>
-        JSON.stringify(pastState) === JSON.stringify(currentState),
+        pastState.elements === currentState.elements &&
+        pastState.sceneSettings === currentState.sceneSettings,
       limit: 50,
     }
   )

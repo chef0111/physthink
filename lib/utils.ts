@@ -22,6 +22,48 @@ export function formatDate(date: Date) {
   });
 }
 
+export function formatToolName(name: string): string {
+  return name
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim();
+}
+
+export function formatArgValue(value: unknown, depth = 0): string {
+  if (value === null || value === undefined) return 'null';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return String(value);
+  if (Array.isArray(value)) {
+    if (value.length <= 4 && value.every((v) => typeof v === 'number'))
+      return `[${value.join(', ')}]`;
+    return `[${value.length} items]`;
+  }
+  if (typeof value === 'object' && depth < 1) {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) return '{}';
+    return entries
+      .slice(0, 6)
+      .map(([k, v]) => `${k}: ${formatArgValue(v, depth + 1)}`)
+      .join(', ');
+  }
+  return '{...}';
+}
+
+export function preprocessMath(content: string): string {
+  // \[...\] → $$...$$ (display math)
+  content = content.replace(
+    /\\\[([\s\S]*?)\\\]/g,
+    (_, inner: string) => `$$${inner}$$`
+  );
+  // \(...\) → $...$ (inline math)
+  content = content.replace(
+    /\\\(([\s\S]*?)\\\)/g,
+    (_, inner: string) => `$${inner}$`
+  );
+  return content;
+}
+
 export function isEditorEmpty(content: string | null | undefined): boolean {
   if (!content) return true;
   try {

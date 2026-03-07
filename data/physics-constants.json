@@ -1,0 +1,362 @@
+[
+  {
+    "name": "Standard gravity",
+    "symbol": "g",
+    "value": 9.80665,
+    "unit": "m/s²",
+    "category": "mechanics",
+    "description": "Standard acceleration due to gravity at Earth's surface",
+    "content": "Standard gravity (g) = 9.80665 m/s² (defined exact). The acceleration due to gravity at Earth's surface. Commonly rounded to 9.8 or 9.81 m/s² in problems. Weight W = mg. Free-fall distance: d = ½gt². Terminal velocity depends on drag."
+  },
+  {
+    "name": "Gravitational constant",
+    "symbol": "G",
+    "value": 6.6743e-11,
+    "unit": "N·m²/kg²",
+    "category": "mechanics",
+    "description": "Universal gravitational constant",
+    "content": "Gravitational constant (G) = 6.674 × 10⁻¹¹ N·m²/kg² (CODATA 2022). Newton's law of gravitation: F = Gm₁m₂/r². Gravitational potential energy: U = -Gm₁m₂/r. Orbital velocity: v = √(GM/r). Escape velocity: v_esc = √(2GM/R). Relates to surface gravity: g = GM/R²."
+  },
+  {
+    "name": "Earth mass",
+    "symbol": "M_E",
+    "value": 5.972e24,
+    "unit": "kg",
+    "category": "mechanics",
+    "description": "Mass of the Earth",
+    "content": "Earth mass (M_E) = 5.972 × 10²⁴ kg. Surface gravity: g = GM_E/R_E² ≈ 9.81 m/s². Used in orbital mechanics, satellite motion, and gravitational field calculations. Earth–Moon distance ≈ 3.844 × 10⁸ m."
+  },
+  {
+    "name": "Earth radius",
+    "symbol": "R_E",
+    "value": 6.371e6,
+    "unit": "m",
+    "category": "mechanics",
+    "description": "Mean radius of the Earth",
+    "content": "Earth radius (R_E) = 6.371 × 10⁶ m = 6371 km. Used with Earth mass for surface gravity and orbital calculations. Geosynchronous orbit radius ≈ 42164 km from center. Low Earth orbit ≈ 200–2000 km altitude."
+  },
+  {
+    "name": "Sun mass",
+    "symbol": "M_☉",
+    "value": 1.989e30,
+    "unit": "kg",
+    "category": "mechanics",
+    "description": "Mass of the Sun",
+    "content": "Solar mass (M_☉) = 1.989 × 10³⁰ kg. Earth–Sun distance (1 AU) ≈ 1.496 × 10¹¹ m. Kepler's 3rd law: T² = (4π²/GM_☉)a³. Solar surface gravity ≈ 274 m/s²."
+  },
+  {
+    "name": "Speed of light",
+    "symbol": "c",
+    "value": 299792458,
+    "unit": "m/s",
+    "category": "waves_optics",
+    "description": "Speed of light in vacuum",
+    "content": "Speed of light (c) = 2.998 × 10⁸ m/s (exact by SI definition). Maximum speed of information or matter. Special relativity: E = mc², E² = (pc)² + (mc²)², time dilation: Δt' = γΔt where γ = 1/√(1-v²/c²). Electromagnetic waves travel at c in vacuum: c = 1/√(ε₀μ₀) = fλ."
+  },
+  {
+    "name": "Speed of sound in air",
+    "symbol": "v_sound",
+    "value": 343,
+    "unit": "m/s",
+    "category": "waves_optics",
+    "description": "Speed of sound in dry air at 20 °C",
+    "content": "Speed of sound in air (v_sound) ≈ 343 m/s at 20 °C (68 °F) in dry air. Temperature dependence: v ≈ 331.3 + 0.606·T(°C) m/s. In water ≈ 1480 m/s, in steel ≈ 5960 m/s. Mach number: M = v/v_sound. Sound intensity: I = P/(4πr²). Decibel: β = 10·log₁₀(I/I₀) where I₀ = 10⁻¹² W/m²."
+  },
+  {
+    "name": "Index of refraction of water",
+    "symbol": "n_water",
+    "value": 1.333,
+    "unit": "dimensionless",
+    "category": "waves_optics",
+    "description": "Index of refraction of water at visible wavelengths",
+    "content": "Index of refraction of water (n_water) ≈ 1.333 at 589 nm (sodium D line). Snell's law: n₁ sinθ₁ = n₂ sinθ₂. Speed of light in water: v = c/n ≈ 2.25 × 10⁸ m/s. Critical angle for total internal reflection (water→air): θ_c = arcsin(1/1.333) ≈ 48.8°."
+  },
+  {
+    "name": "Index of refraction of glass",
+    "symbol": "n_glass",
+    "value": 1.52,
+    "unit": "dimensionless",
+    "category": "waves_optics",
+    "description": "Typical index of refraction of crown glass",
+    "content": "Index of refraction of crown glass (n_glass) ≈ 1.52 at 589 nm. Varies by glass type: crown glass 1.50–1.54, flint glass 1.60–1.70, diamond 2.42. Snell's law: n₁ sinθ₁ = n₂ sinθ₂. Thin lens equation: 1/f = (n-1)(1/R₁ - 1/R₂) (lensmaker's equation). Brewster's angle: θ_B = arctan(n₂/n₁)."
+  },
+  {
+    "name": "Planck constant",
+    "symbol": "h",
+    "value": 6.62607015e-34,
+    "unit": "J·s",
+    "category": "quantum",
+    "description": "Planck constant relating energy to frequency",
+    "content": "Planck constant (h) = 6.626 × 10⁻³⁴ J·s (exact by 2019 SI definition). Relates photon energy to frequency: E = hf. De Broglie wavelength: λ = h/p = h/(mv). Photoelectric effect: KE_max = hf - φ (work function). Planck's radiation law: B(ν,T) = (2hν³/c²)·1/(e^(hν/k_BT) - 1). Energy quantisation: E_n = nhf."
+  },
+  {
+    "name": "Reduced Planck constant",
+    "symbol": "ℏ",
+    "value": 1.054571817e-34,
+    "unit": "J·s",
+    "category": "quantum",
+    "description": "Reduced Planck constant (h-bar)",
+    "content": "Reduced Planck constant (ℏ) = h/(2π) = 1.055 × 10⁻³⁴ J·s. Heisenberg uncertainty principle: ΔxΔp ≥ ℏ/2, ΔEΔt ≥ ℏ/2. Angular momentum quantisation: L = nℏ. Schrödinger equation: iℏ ∂ψ/∂t = Ĥψ. Bohr model: L_n = nℏ."
+  },
+  {
+    "name": "Electron mass",
+    "symbol": "m_e",
+    "value": 9.1093837139e-31,
+    "unit": "kg",
+    "category": "quantum",
+    "description": "Rest mass of an electron",
+    "content": "Electron mass (m_e) = 9.109 × 10⁻³¹ kg = 0.511 MeV/c² (CODATA 2022). Bohr model energy levels: E_n = -13.6 eV/n². Classical electron radius: r_e = k_e·e²/(m_e·c²) = 2.818 × 10⁻¹⁵ m. Compton wavelength: λ_C = h/(m_e·c) = 2.426 × 10⁻¹² m. Electron charge-to-mass ratio: e/m_e = 1.759 × 10¹¹ C/kg."
+  },
+  {
+    "name": "Proton mass",
+    "symbol": "m_p",
+    "value": 1.67262192595e-27,
+    "unit": "kg",
+    "category": "quantum",
+    "description": "Rest mass of a proton",
+    "content": "Proton mass (m_p) = 1.673 × 10⁻²⁷ kg = 938.3 MeV/c² (CODATA 2022). Proton-to-electron mass ratio: m_p/m_e ≈ 1836.15. Composed of two up quarks and one down quark (uud). Nuclear radius ≈ 0.88 fm. Used in nuclear physics, particle physics, and mass spectrometry."
+  },
+  {
+    "name": "Neutron mass",
+    "symbol": "m_n",
+    "value": 1.67492750056e-27,
+    "unit": "kg",
+    "category": "quantum",
+    "description": "Rest mass of a neutron",
+    "content": "Neutron mass (m_n) = 1.675 × 10⁻²⁷ kg = 939.6 MeV/c² (CODATA 2022). Slightly heavier than proton: m_n - m_p = 1.293 MeV/c². Free neutron half-life ≈ 10.2 min (beta decay: n → p + e⁻ + ν̄_e). Composed of one up and two down quarks (udd). Nuclear binding energy: B = [Zm_p + Nm_n - M_nucleus]c²."
+  },
+  {
+    "name": "Atomic mass unit",
+    "symbol": "u",
+    "value": 1.66053906892e-27,
+    "unit": "kg",
+    "category": "quantum",
+    "description": "Unified atomic mass unit (1/12 of carbon-12 mass)",
+    "content": "Atomic mass unit (u) = 1.661 × 10⁻²⁷ kg (CODATA 2022). Defined as 1/12 of the mass of a carbon-12 atom. Energy equivalent: 1 u = 931.494 MeV/c². Proton mass ≈ 1.00728 u, neutron mass ≈ 1.00866 u. Mass defect in nuclear reactions: Δm = (reactant masses - product masses), energy released: E = Δm·c²."
+  },
+  {
+    "name": "Electron volt",
+    "symbol": "eV",
+    "value": 1.602176634e-19,
+    "unit": "J",
+    "category": "quantum",
+    "description": "Energy gained by an electron through 1 volt potential difference",
+    "content": "Electron volt (eV) = 1.602 × 10⁻¹⁹ J (exact). Energy unit for atomic/nuclear/particle physics. Visible photon energies: 1.8–3.1 eV. Hydrogen ionisation: 13.6 eV. Thermal energy at room temp: k_BT ≈ 0.026 eV (≈ 1/40 eV). Common multiples: keV (10³), MeV (10⁶), GeV (10⁹). Wavelength-energy: E(eV) = 1240/λ(nm)."
+  },
+  {
+    "name": "Bohr radius",
+    "symbol": "a₀",
+    "value": 5.29177210544e-11,
+    "unit": "m",
+    "category": "quantum",
+    "description": "Most probable distance of electron from nucleus in hydrogen ground state",
+    "content": "Bohr radius (a₀) = 5.292 × 10⁻¹¹ m ≈ 0.529 Å (CODATA 2022). Defined as a₀ = ℏ/(m_e·c·α) = 4πε₀ℏ²/(m_e·e²). Hydrogen orbital radii: r_n = n²a₀. Sets the scale of atomic structure. Used as unit of length in atomic physics."
+  },
+  {
+    "name": "Rydberg constant",
+    "symbol": "R_∞",
+    "value": 10973731.568157,
+    "unit": "m⁻¹",
+    "category": "quantum",
+    "description": "Rydberg constant for hydrogen spectral lines",
+    "content": "Rydberg constant (R_∞) = 1.097 × 10⁷ m⁻¹ (CODATA 2022, one of the most precisely known constants). Hydrogen spectral lines: 1/λ = R_∞(1/n₁² - 1/n₂²). Rydberg energy: E_R = hcR_∞ = 13.606 eV. Lyman series (n₁=1, UV), Balmer series (n₁=2, visible), Paschen series (n₁=3, IR)."
+  },
+  {
+    "name": "Fine-structure constant",
+    "symbol": "α",
+    "value": 0.0072973525643,
+    "unit": "dimensionless",
+    "category": "quantum",
+    "description": "Electromagnetic coupling constant",
+    "content": "Fine-structure constant (α) = e²/(4πε₀ℏc) ≈ 1/137.036 (CODATA 2022). Dimensionless measure of electromagnetic coupling strength. Determines atomic fine structure splitting. α = k_e·e²/(ℏc). Sets the scale of QED corrections. Small value (≈ 0.007) allows perturbative treatment of electromagnetic interactions."
+  },
+  {
+    "name": "Elementary charge",
+    "symbol": "e",
+    "value": 1.602176634e-19,
+    "unit": "C",
+    "category": "electromagnetism",
+    "description": "Electric charge of a proton",
+    "content": "Elementary charge (e) = 1.602 × 10⁻¹⁹ C (exact by 2019 SI definition). The magnitude of charge on a proton (+e) or electron (-e). Coulomb's law: F = k_e·q₁q₂/r². Current: I = dQ/dt = nAv_d·e. Quantisation of charge: all observed charges are integer multiples of e (quarks carry e/3 and 2e/3)."
+  },
+  {
+    "name": "Vacuum permittivity",
+    "symbol": "ε₀",
+    "value": 8.8541878188e-12,
+    "unit": "F/m",
+    "category": "electromagnetism",
+    "description": "Electric permittivity of free space",
+    "content": "Vacuum permittivity (ε₀) = 8.854 × 10⁻¹² F/m (CODATA 2022). Coulomb's law: F = (1/4πε₀)·q₁q₂/r². Gauss's law: ∮E·dA = Q_enc/ε₀. Capacitance of parallel plates: C = ε₀A/d. In dielectrics: ε = κε₀ where κ is dielectric constant. Related to c: c = 1/√(ε₀μ₀)."
+  },
+  {
+    "name": "Vacuum permeability",
+    "symbol": "μ₀",
+    "value": 1.25663706127e-6,
+    "unit": "N/A²",
+    "category": "electromagnetism",
+    "description": "Magnetic permeability of free space",
+    "content": "Vacuum permeability (μ₀) = 4π × 10⁻⁷ N/A² ≈ 1.257 × 10⁻⁶ N/A² (CODATA 2022). Ampère's law: ∮B·dl = μ₀I_enc. Biot-Savart law: dB = (μ₀/4π)·I(dl×r̂)/r². Magnetic field of long wire: B = μ₀I/(2πr). Solenoid: B = μ₀nI. Related to c: c = 1/√(ε₀μ₀)."
+  },
+  {
+    "name": "Coulomb constant",
+    "symbol": "k_e",
+    "value": 8.9875517923e9,
+    "unit": "N·m²/C²",
+    "category": "electromagnetism",
+    "description": "Coulomb constant (1/4πε₀)",
+    "content": "Coulomb constant (k_e) = 1/(4πε₀) = 8.988 × 10⁹ N·m²/C². Coulomb's law: F = k_e·q₁q₂/r² (like charges repel, unlike attract). Electric field of point charge: E = k_e·q/r². Electric potential: V = k_e·q/r. Potential energy: U = k_e·q₁q₂/r."
+  },
+  {
+    "name": "Faraday constant",
+    "symbol": "F",
+    "value": 96485.33212,
+    "unit": "C/mol",
+    "category": "electromagnetism",
+    "description": "Electric charge per mole of electrons",
+    "content": "Faraday constant (F) = N_A·e = 96485 C/mol (exact). Charge carried by one mole of electrons. Electrolysis: m = (M·I·t)/(n·F) (mass deposited). Faraday's laws of electrolysis. Relates electrochemistry to molar quantities. Nernst equation: E = E° - (RT/nF)ln(Q)."
+  },
+  {
+    "name": "Magnetic flux quantum",
+    "symbol": "Φ₀",
+    "value": 2.067833848e-15,
+    "unit": "Wb",
+    "category": "electromagnetism",
+    "description": "Quantum of magnetic flux",
+    "content": "Magnetic flux quantum (Φ₀) = h/(2e) = 2.068 × 10⁻¹⁵ Wb (exact). Fundamental unit of magnetic flux in superconductors. Flux through a superconducting loop is quantised: Φ = nΦ₀. Important in Josephson junctions and SQUIDs (superconducting quantum interference devices)."
+  },
+  {
+    "name": "Bohr magneton",
+    "symbol": "μ_B",
+    "value": 9.2740100657e-24,
+    "unit": "J/T",
+    "category": "electromagnetism",
+    "description": "Natural unit of electron magnetic moment",
+    "content": "Bohr magneton (μ_B) = eℏ/(2m_e) = 9.274 × 10⁻²⁴ J/T (CODATA 2022). Natural unit for electron magnetic dipole moment. Electron spin magnetic moment: μ_s ≈ -g_s·μ_B·S/ℏ where g_s ≈ 2.002. Energy in magnetic field: U = -μ·B. Zeeman effect splitting: ΔE = g·μ_B·m_j·B."
+  },
+  {
+    "name": "Boltzmann constant",
+    "symbol": "k_B",
+    "value": 1.380649e-23,
+    "unit": "J/K",
+    "category": "thermodynamics",
+    "description": "Boltzmann constant relating temperature to energy",
+    "content": "Boltzmann constant (k_B) = 1.381 × 10⁻²³ J/K (exact by 2019 SI definition). Average translational KE of ideal gas molecule: KE = (3/2)k_BT. Ideal gas law (microscopic): PV = Nk_BT. Equipartition theorem: ½k_BT per quadratic degree of freedom. Maxwell-Boltzmann distribution: P(E) ∝ e^(-E/k_BT). Entropy: S = k_B·ln(Ω)."
+  },
+  {
+    "name": "Avogadro number",
+    "symbol": "N_A",
+    "value": 6.02214076e23,
+    "unit": "mol⁻¹",
+    "category": "thermodynamics",
+    "description": "Number of particles per mole",
+    "content": "Avogadro number (N_A) = 6.022 × 10²³ mol⁻¹ (exact by 2019 SI definition). Relates moles to particle count: N = nN_A. Gas constant R = N_A·k_B = 8.314 J/(mol·K). Molar mass M relates to molecular mass m: M = N_A·m. One mole of any ideal gas at STP occupies 22.4 L."
+  },
+  {
+    "name": "Gas constant",
+    "symbol": "R",
+    "value": 8.314462618,
+    "unit": "J/(mol·K)",
+    "category": "thermodynamics",
+    "description": "Universal gas constant",
+    "content": "Gas constant (R) = N_A·k_B = 8.314 J/(mol·K) (exact). Ideal gas law: PV = nRT. Equivalent: R = 0.08206 L·atm/(mol·K) = 8.314 Pa·m³/(mol·K). Internal energy of ideal gas: U = (f/2)nRT (f = degrees of freedom). c_P - c_V = R (Mayer's relation for ideal gases). Adiabatic: PV^γ = const, γ = c_P/c_V."
+  },
+  {
+    "name": "Stefan-Boltzmann constant",
+    "symbol": "σ",
+    "value": 5.670374419e-8,
+    "unit": "W/(m²·K⁴)",
+    "category": "thermodynamics",
+    "description": "Stefan-Boltzmann constant for blackbody radiation",
+    "content": "Stefan-Boltzmann constant (σ) = 2π⁵k_B⁴/(15h³c²) = 5.670 × 10⁻⁸ W/(m²·K⁴) (exact). Stefan-Boltzmann law: total power radiated by blackbody P = σAT⁴. Net radiative heat transfer: P_net = σA(T⁴ - T_env⁴). Wien's displacement law: λ_max·T = 2.898 × 10⁻³ m·K."
+  },
+  {
+    "name": "Wien displacement constant",
+    "symbol": "b",
+    "value": 2.897771955e-3,
+    "unit": "m·K",
+    "category": "thermodynamics",
+    "description": "Wien displacement law constant",
+    "content": "Wien displacement constant (b) = 2.898 × 10⁻³ m·K (exact). Wien's displacement law: λ_max = b/T — the peak wavelength of blackbody radiation is inversely proportional to temperature. Sun (T ≈ 5778 K): λ_max ≈ 502 nm (green-yellow). Human body (T ≈ 310 K): λ_max ≈ 9.35 μm (infrared)."
+  },
+  {
+    "name": "Atmospheric pressure",
+    "symbol": "atm",
+    "value": 101325,
+    "unit": "Pa",
+    "category": "thermodynamics",
+    "description": "Standard atmospheric pressure at sea level",
+    "content": "Standard atmosphere (atm) = 101325 Pa = 101.325 kPa = 1.013 bar = 760 mmHg = 14.696 psi (exact by definition). Pressure at sea level. Hydrostatic pressure: P = P₀ + ρgh. Barometric formula: P(h) = P₀·e^(-mgh/k_BT). Boiling point of water at 1 atm = 100 °C. Gauge pressure = absolute pressure - atmospheric pressure."
+  },
+  {
+    "name": "Specific heat capacity of water",
+    "symbol": "c_water",
+    "value": 4184,
+    "unit": "J/(kg·K)",
+    "category": "thermodynamics",
+    "description": "Specific heat capacity of liquid water at 20 °C",
+    "content": "Specific heat of liquid water (c_water) = 4184 J/(kg·K) ≈ 4.184 kJ/(kg·K) at 20 °C. One of the highest of common substances. Heat transfer: Q = mcΔT. Calorimetry: m₁c₁ΔT₁ = m₂c₂ΔT₂. Ice: c_ice ≈ 2090 J/(kg·K). Steam: c_steam ≈ 2010 J/(kg·K). Water's high c explains its role as thermal moderator in climate and biology."
+  },
+  {
+    "name": "Latent heat of fusion of water",
+    "symbol": "L_f",
+    "value": 334000,
+    "unit": "J/kg",
+    "category": "thermodynamics",
+    "description": "Latent heat of fusion (melting) of water/ice at 0 °C",
+    "content": "Latent heat of fusion of water (L_f) = 334 kJ/kg = 334 J/g = 6.01 kJ/mol at 0 °C. Energy to melt ice without changing temperature: Q = mL_f. Phase change occurs at constant temperature. Total energy to heat ice at -20°C to water at 0°C: Q = mc_ice·20 + mL_f. Clausius-Clapeyron: dP/dT = L/(TΔv)."
+  },
+  {
+    "name": "Latent heat of vaporization of water",
+    "symbol": "L_v",
+    "value": 2260000,
+    "unit": "J/kg",
+    "category": "thermodynamics",
+    "description": "Latent heat of vaporization of water at 100 °C",
+    "content": "Latent heat of vaporisation of water (L_v) = 2260 kJ/kg = 2260 J/g = 40.66 kJ/mol at 100 °C, 1 atm. Energy to boil water without changing temperature: Q = mL_v. Much larger than L_f because hydrogen bonds must be fully broken. Total energy to heat water from 0°C to steam at 100°C: Q = mc_water·100 + mL_v."
+  },
+  {
+    "name": "Density of water",
+    "symbol": "ρ_water",
+    "value": 1000,
+    "unit": "kg/m³",
+    "category": "thermodynamics",
+    "description": "Density of liquid water at 4 °C",
+    "content": "Density of water (ρ_water) = 1000 kg/m³ = 1 g/cm³ at 4 °C (maximum density). Buoyancy: F_b = ρ_water·V_displaced·g (Archimedes' principle). Hydrostatic pressure: P = ρgh (at depth h=10 m, P ≈ 1 atm). Continuity: A₁v₁ = A₂v₂. Bernoulli: P + ½ρv² + ρgh = const. Ice density ≈ 917 kg/m³ (floats)."
+  },
+  {
+    "name": "Specific heat capacity of air",
+    "symbol": "c_air",
+    "value": 1005,
+    "unit": "J/(kg·K)",
+    "category": "thermodynamics",
+    "description": "Specific heat capacity of dry air at constant pressure, 20 °C",
+    "content": "Specific heat of dry air at constant pressure (c_p,air) ≈ 1005 J/(kg·K) at 20 °C. At constant volume: c_v,air ≈ 718 J/(kg·K). Heat capacity ratio: γ = c_p/c_v ≈ 1.40 (diatomic gas). Adiabatic process: TV^(γ-1) = const. Speed of sound: v = √(γRT/M) where M = 0.029 kg/mol for air. Air density at STP ≈ 1.225 kg/m³."
+  },
+  {
+    "name": "Thermal conductivity of copper",
+    "symbol": "k_Cu",
+    "value": 401,
+    "unit": "W/(m·K)",
+    "category": "thermodynamics",
+    "description": "Thermal conductivity of copper at 25 °C",
+    "content": "Thermal conductivity of copper (k_Cu) = 401 W/(m·K) at 25 °C. Fourier's law: Q/t = -kA(dT/dx). Common conductivities: silver 429, copper 401, aluminium 237, iron 80, glass 0.8, wood 0.1–0.2, air 0.026, styrofoam 0.03 W/(m·K). R-value (thermal resistance): R = L/k. Heat conduction through slab: P = kA(T_hot - T_cold)/L."
+  },
+  {
+    "name": "Coefficient of linear expansion of steel",
+    "symbol": "α_steel",
+    "value": 1.2e-5,
+    "unit": "K⁻¹",
+    "category": "thermodynamics",
+    "description": "Linear thermal expansion coefficient of steel",
+    "content": "Linear thermal expansion of steel (α_steel) ≈ 1.2 × 10⁻⁵ K⁻¹. Linear expansion: ΔL = αL₀ΔT. Area expansion: ΔA ≈ 2αA₀ΔT. Volume expansion: ΔV ≈ 3αV₀ΔT (solids) or ΔV = βV₀ΔT (liquids, β is volume expansion coeff). Common values: aluminium 2.3 × 10⁻⁵, copper 1.7 × 10⁻⁵, glass 0.9 × 10⁻⁵, concrete 1.2 × 10⁻⁵ K⁻¹."
+  },
+  {
+    "name": "Impedance of free space",
+    "symbol": "Z₀",
+    "value": 376.730313412,
+    "unit": "Ω",
+    "category": "electromagnetism",
+    "description": "Characteristic impedance of vacuum for electromagnetic waves",
+    "content": "Impedance of free space (Z₀) = √(μ₀/ε₀) = μ₀c ≈ 376.73 Ω (CODATA 2022: 376.730313412(59) Ω). Relates E and B field amplitudes in a plane EM wave in vacuum: E = Z₀H, where H = B/μ₀. Also called wave impedance or intrinsic impedance of free space. Approximately 120π Ω. In a dielectric medium: η = Z₀/n (n = refractive index). Used in antenna theory, waveguide design, and EM wave power calculations. Poynting vector: S = E²/Z₀ = E × H."
+  }
+]
