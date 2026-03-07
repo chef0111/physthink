@@ -26,7 +26,7 @@ export const CourseSidebarChapters = ({
   const pathname = usePathname();
 
   return (
-    <SidebarContent className="px-4 pt-0 pb-18">
+    <SidebarContent className="px-4 pt-0 pb-4">
       <SidebarGroup className="p-0">
         <SidebarMenu className="gap-1">
           {course.chapters.map((chapter, index) => (

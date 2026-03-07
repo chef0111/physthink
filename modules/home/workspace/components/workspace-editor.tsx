@@ -6,13 +6,11 @@ import { useQuery } from '@tanstack/react-query';
 import { orpc } from '@/lib/orpc';
 import { useUpdateWorkspace } from '@/queries/workspace';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { FolderX } from 'lucide-react';
@@ -23,6 +21,7 @@ import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { WorkspaceCanvas } from './canvas';
 import { WorkspaceToolbar } from './toolbar';
 import { WorkspaceHeader } from './workspace-header';
+import { WorkspaceChat, dbMessagesToAiMessages } from './chat';
 import {
   Empty,
   EmptyContent,
@@ -170,18 +169,12 @@ export function WorkspaceEditor() {
               Describe the 3D illustration you want
             </p>
           </SidebarHeader>
-          <SidebarContent className="flex-1 overflow-y-auto p-4">
-            <p className="text-muted-foreground text-center text-sm">
-              AI Chat is coming soon!
-            </p>
-          </SidebarContent>
-          <SidebarFooter className="border-t p-3">
-            <Textarea
-              placeholder="Describe the 3D illustration you want..."
-              rows={3}
-              disabled
+          <SidebarContent className="flex-1 overflow-y-auto p-0">
+            <WorkspaceChat
+              workspaceId={params.id}
+              initialMessages={dbMessagesToAiMessages(workspace.messages)}
             />
-          </SidebarFooter>
+          </SidebarContent>
         </Sidebar>
       </div>
     </SidebarProvider>

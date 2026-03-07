@@ -5,7 +5,6 @@ import ThemeToggle from '@/components/ui/theme-toggle';
 import { Brand } from '@/components/ui/brand';
 import { authClient } from '@/lib/auth-client';
 import { UserDropdown } from '@/components/user/user-dropdown';
-import { DesktopNav } from '../header/desktop-nav';
 import { LoginButton } from '../header/login-button';
 import { NavigationMenuItem } from '@/components/ui/navigation-menu';
 import Link from 'next/link';
