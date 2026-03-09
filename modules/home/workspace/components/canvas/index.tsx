@@ -8,7 +8,7 @@ import { SceneEnvironment } from './scene-environment';
 import { SelectableWrapper } from './selectable-wrapper';
 import { SceneLoadingSkeleton } from './scene-loading-skeleton';
 
-export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
+export function WorkspaceCanvas() {
   const elements = useSceneStore((s) => s.elements);
   const sceneLoading = useSceneStore((s) => s.sceneLoading);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -17,16 +17,23 @@ export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
     <div
       ref={containerRef}
       className="h-full w-full transition-[width] duration-200 ease-linear"
+      style={{ backgroundColor: '#1a1a2e' }}
     >
       <Canvas
         camera={{ position: [5, 5, 5], fov: 50 }}
         shadows
-        gl={{ antialias: true, alpha: false }}
+        dpr={[1, 2]}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: 'high-performance',
+        }}
+        flat
         style={{ width: '100%', height: '100%' }}
         onPointerMissed={() => useSceneStore.getState().setSelected(null)}
       >
         <SceneEnvironment />
-        {(sceneLoading || loading) && <SceneLoadingSkeleton />}
+        {sceneLoading && <SceneLoadingSkeleton />}
         {elements.map((element) => (
           <SelectableWrapper key={element.id} element={element}>
             <SceneElementRenderer element={element} />

@@ -33,6 +33,7 @@ import {
   update as updateWorkspace,
   remove as removeWorkspace,
 } from './workspace';
+import { sendChat } from './workspace/chat';
 
 export const router = {
   uploadthing: {
@@ -73,5 +74,8 @@ export const router = {
     get: getWorkspace,
     update: updateWorkspace,
     delete: removeWorkspace,
+    chat: {
+      send: sendChat,
+    },
   },
 };

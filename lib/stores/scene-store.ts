@@ -174,6 +174,22 @@ function countElements(elements: SceneElement[]): number {
   return count;
 }
 
+/** Create a fingerprint for dedup: type + position (rounded to avoid float drift). */
+function elementFingerprint(el: SceneElement): string {
+  const pos = el.position ?? [0, 0, 0];
+  const rp = pos.map((v) => Math.round(v * 100) / 100);
+  const base = `${el.type}|${rp.join(',')}`;
+  if (el.type === 'preset')
+    return `${base}|${(el as { presetId?: string }).presetId ?? ''}`;
+  if (el.type === 'mesh')
+    return `${base}|${(el as { geometry?: string }).geometry ?? ''}`;
+  if (el.type === 'vector') {
+    const to = (el as { to?: number[] }).to ?? [0, 0, 0];
+    return `${base}|${to.map((v) => Math.round(v * 100) / 100).join(',')}`;
+  }
+  return base;
+}
+
 function removeById(elements: SceneElement[], id: string): SceneElement[] {
   return elements
     .filter((el) => el.id !== id)
@@ -236,8 +252,20 @@ export const useSceneStore = create<SceneState>()(
 
       addElements: (elements) => {
         if (elements.length === 0) return true;
-        const count = get().getElementCount();
-        const allowed = elements.slice(0, ELEMENT_HARD_LIMIT - count);
+        const existing = get().elements;
+        const count = countElements(existing);
+        // Deduplicate: within the incoming batch + against existing elements
+        const seenFPs = new Set(existing.map(elementFingerprint));
+        const unique: SceneElement[] = [];
+        for (const el of elements) {
+          const fp = elementFingerprint(el);
+          if (!seenFPs.has(fp)) {
+            seenFPs.add(fp);
+            unique.push(el);
+          }
+        }
+        if (unique.length === 0) return true;
+        const allowed = unique.slice(0, ELEMENT_HARD_LIMIT - count);
         if (allowed.length === 0) {
           console.warn(
             `Scene element hard limit (${ELEMENT_HARD_LIMIT}) reached. Cannot add more elements.`

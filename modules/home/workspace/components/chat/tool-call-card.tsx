@@ -31,10 +31,12 @@ interface ToolCallCardProps {
 
 const TOOL_ICON: Record<string, LucideIcon> = {
   addElement: Plus,
+  addElements: Plus,
   editElement: Pencil,
   removeElement: Trash2,
   setSceneSettings: Settings,
   setStatus: MessageSquare,
+  lookupPhysics: Search,
   getPhysicsConstants: Search,
   searchPhysicsKnowledge: BookOpen,
   searchThreeJsDocs: Search,
@@ -70,7 +72,22 @@ export const ToolCallCard = memo(
       }
     }
 
-    const detailData = output ?? args;
+    const parsed =
+      typeof output === 'string'
+        ? (() => {
+            try {
+              return JSON.parse(output) as Record<string, unknown>;
+            } catch {
+              return undefined;
+            }
+          })()
+        : output;
+    const rawData = parsed ?? args;
+    const detailData = rawData
+      ? Object.fromEntries(
+          Object.entries(rawData).filter(([k]) => k !== 'action')
+        )
+      : undefined;
     const hasDetails = detailData && Object.keys(detailData).length > 0;
 
     return (
@@ -80,7 +97,7 @@ export const ToolCallCard = memo(
           <Icon className="text-muted-foreground size-3.5 shrink-0" />
           <span className="text-muted-foreground min-w-0 flex-1 truncate font-medium">
             {isActive ? (
-              <TextShimmer duration={1.5} className="text-xs">
+              <TextShimmer duration={1} className="text-xs">
                 {label}
               </TextShimmer>
             ) : (
@@ -115,6 +132,11 @@ export const ToolCallCard = memo(
   },
 
   function areEqual(prev: ToolCallCardProps, next: ToolCallCardProps) {
-    return prev.toolName === next.toolName && prev.status === next.status;
+    return (
+      prev.toolName === next.toolName &&
+      prev.status === next.status &&
+      prev.output === next.output &&
+      prev.args === next.args
+    );
   }
 );

@@ -1,12 +1,12 @@
 'use client';
 
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo } from 'react';
 import { type UIMessage } from 'ai';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { useDebouncedCallback } from '@/hooks/use-debounced-callback';
 import { ToolCallCard } from './tool-call-card';
 import { ChatMarkdownPreview } from './chat-markdown-preview';
 import TextShimmer from '@/components/ui/text-shimmer';
+
+const THOUGHT_DURATION_RE = /^Thought for [\d.]+s$/;
 
 interface ChatMessageProps {
   message: UIMessage;
@@ -17,11 +17,28 @@ export const ChatMessage = memo(
   function ChatMessage({ message, isStreaming }: ChatMessageProps) {
     const isUser = message.role === 'user';
 
-    // Check if the assistant message has any visible text content yet
+    // "Thought for Xs" marker emitted by extractReasoningMiddleware
+    const thoughtDurationText =
+      message.parts
+        .filter(
+          (p): p is { type: 'text'; text: string } =>
+            p.type === 'text' &&
+            THOUGHT_DURATION_RE.test((p as { text: string }).text?.trim() ?? '')
+        )
+        .at(0)
+        ?.text?.trim() ?? null;
+
     const hasTextContent = message.parts.some(
-      (p) => p.type === 'text' && p.text
+      (p) =>
+        p.type === 'text' &&
+        (p as { text: string }).text &&
+        !THOUGHT_DURATION_RE.test((p as { text: string }).text?.trim() ?? '')
     );
-    const isThinking = isStreaming && !isUser && !hasTextContent;
+
+    const isThinking =
+      isStreaming && !isUser && !hasTextContent && !thoughtDurationText;
+
+    const thoughtDuration = !isUser && thoughtDurationText !== null;
 
     if (isUser) {
       return (
@@ -46,11 +63,18 @@ export const ChatMessage = memo(
       <div className="flex flex-col gap-1">
         {isThinking && (
           <div className="text-muted-foreground py-1 text-sm">
-            <TextShimmer duration={1.5}>Thinking...</TextShimmer>
+            <TextShimmer duration={1}>Processing...</TextShimmer>
           </div>
         )}
+        {thoughtDuration && (
+          <div className="text-muted-foreground py-1 text-xs">
+            {thoughtDurationText}
+          </div>
+        )}
+
         {message.parts.map((part, i) => {
           if (part.type === 'text' && part.text) {
+            if (THOUGHT_DURATION_RE.test(part.text.trim())) return null;
             const isLastPart = i === message.parts.length - 1;
             if (isStreaming && isLastPart) {
               return (
@@ -66,13 +90,7 @@ export const ChatMessage = memo(
             return <ChatMarkdownPreview key={i} content={part.text} />;
           }
           if (part.type === 'reasoning') {
-            return (
-              <ReasoningBlock
-                key={i}
-                content={part.text}
-                isActive={isStreaming && i === message.parts.length - 1}
-              />
-            );
+            return null;
           }
           if ('toolCallId' in part && 'state' in part) {
             const toolName =
@@ -90,10 +108,13 @@ export const ChatMessage = memo(
                 ? (part.input as Record<string, unknown>)
                 : undefined;
 
+            const cardKey =
+              'toolCallId' in part ? (part.toolCallId as string) : `tool-${i}`;
+
             if (part.state === 'output-available') {
               return (
                 <ToolCallCard
-                  key={i}
+                  key={cardKey}
                   toolName={toolName}
                   status="complete"
                   args={input}
@@ -108,7 +129,7 @@ export const ChatMessage = memo(
             ) {
               return (
                 <ToolCallCard
-                  key={i}
+                  key={cardKey}
                   toolName={toolName}
                   status={
                     part.state === 'input-streaming' ? 'streaming' : 'pending'
@@ -134,88 +155,3 @@ export const ChatMessage = memo(
     return true;
   }
 );
-
-const ReasoningBlock = memo(function ReasoningBlock({
-  content,
-  isActive,
-}: {
-  content: string;
-  isActive?: boolean;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [displayContent, setDisplayContent] = useState(content);
-
-  const debouncedSetContent = useDebouncedCallback(
-    (text: string) => setDisplayContent(text),
-    300
-  );
-
-  useEffect(() => {
-    if (isActive) {
-      debouncedSetContent(content);
-    } else {
-      setDisplayContent(content);
-    }
-  }, [content, isActive, debouncedSetContent]);
-
-  const lines = useMemo(() => displayContent.split('\n'), [displayContent]);
-
-  const virtualizer = useVirtualizer({
-    count: lines.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => 16,
-    overscan: 10,
-  });
-
-  // Auto-scroll to bottom during active reasoning
-  useEffect(() => {
-    if (isActive && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [displayContent, isActive]);
-
-  return (
-    <details className="text-muted-foreground w-full text-xs" open={isActive}>
-      <summary className="cursor-pointer py-1 font-medium select-none">
-        {isActive ? (
-          <TextShimmer duration={1.5} className="text-xs">
-            Thinking...
-          </TextShimmer>
-        ) : (
-          'Thought process'
-        )}
-      </summary>
-      <div
-        ref={scrollRef}
-        className="border-muted mt-1 max-h-64 overflow-y-auto border-l-2 pl-3"
-      >
-        <div
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
-        >
-          {virtualizer.getVirtualItems().map((virtualItem) => (
-            <div
-              key={virtualItem.index}
-              ref={virtualizer.measureElement}
-              data-index={virtualItem.index}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}
-            >
-              {lines[virtualItem.index] || '\u00A0'}
-            </div>
-          ))}
-        </div>
-      </div>
-    </details>
-  );
-});

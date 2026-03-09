@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import EditorFallback from '@/components/editor/markdown/editor-fallback';
 import type { FormEditorMethods } from '@/components/editor/markdown/form-editor';
 import { FormBase, FormControlFn } from './form-base';
-import { useDebouncedCallback } from '@/hooks/use-debounced-callback';
+import { useDebounced } from '@/hooks/use-debounced';
 import { cn } from '@/lib/utils';
 
 const FormEditorComponent = dynamic(
@@ -35,7 +35,7 @@ function Editor({
   children,
   className,
 }: EditorProps) {
-  const fieldChange = useDebouncedCallback(field.onChange, 300);
+  const fieldChange = useDebounced(field.onChange, 300);
 
   return (
     <>

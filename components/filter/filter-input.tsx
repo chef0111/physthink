@@ -8,7 +8,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { SearchIcon } from 'lucide-react';
-import { useDebouncedCallback } from '@/hooks/use-debounced-callback';
+import { useDebounced } from '@/hooks/use-debounced';
 import { useFilterTransition } from '@/context/filter-provider';
 import { cn } from '@/lib/utils';
 
@@ -37,7 +37,7 @@ export const FilterInput = ({
     setInputValue(query);
   }, [query]);
 
-  const debouncedSetParams = useDebouncedCallback((value: string) => {
+  const debouncedSetParams = useDebounced((value: string) => {
     startTransition(() => {
       setParams({ query: value || null, page: 1 });
     });

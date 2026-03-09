@@ -1,4 +1,4 @@
-import { CalendarIcon, ChevronDown } from 'lucide-react';
+import { Box, CalendarIcon, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -43,6 +43,15 @@ export const WelcomeBannerFallback = () => {
           <CompactCalendar className="w-full justify-center sm:w-fit lg:hidden" />
         </div>
       </div>
+      <Card className="mt-4 flex w-full flex-col gap-2 space-y-2 p-4 sm:w-fit lg:w-full">
+        <h2 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
+          Activity
+        </h2>
+        <Button className="w-full justify-start gap-2">
+          <Box className="size-4" />
+          Create 3D Illustration
+        </Button>
+      </Card>
     </div>
   );
 };

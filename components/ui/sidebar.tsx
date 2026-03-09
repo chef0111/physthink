@@ -170,6 +170,7 @@ function Sidebar({
   side = 'left',
   variant = 'sidebar',
   collapsible = 'offcanvas',
+  sidebarColor = 'bg-sidebar',
   mobileWidth = 'sm',
   transition = true,
   className,
@@ -180,6 +181,7 @@ function Sidebar({
   side?: 'left' | 'right';
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
+  sidebarColor?: string;
   mobileWidth?: 'sm' | 'md' | 'lg';
   transition?: boolean;
 }) {
@@ -214,7 +216,10 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width-mobile) p-0 [&>button]:hidden"
+          className={cn(
+            'text-sidebar-foreground w-(--sidebar-width-mobile) p-0 [&>button]:hidden',
+            sidebarColor
+          )}
           style={
             {
               '--sidebar-width-mobile': SIDEBAR_WIDTH_MOBILE,
@@ -286,7 +291,10 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1"
+          className={cn(
+            'group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1',
+            sidebarColor
+          )}
         >
           {children}
         </div>

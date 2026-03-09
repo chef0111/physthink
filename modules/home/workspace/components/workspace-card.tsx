@@ -1,7 +1,9 @@
 'use client';
 
 import { WorkspaceSummaryDTO } from '@/app/server/workspace/dto';
+import { useDeleteWorkspace } from '@/queries/workspace';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -10,8 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Box, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,8 +23,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Loader } from '@/components/ui/loader';
+import { Box, Trash2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-import { useDeleteWorkspace } from '@/queries/workspace';
 
 interface WorkspaceCardProps {
   workspace: WorkspaceSummaryDTO;
@@ -57,7 +58,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
               disabled={isPending}
               onClick={(e) => e.stopPropagation()}
             >
-              <Trash2 className="size-4" />
+              {isPending ? <Loader /> : <Trash2 />}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent onClick={(e) => e.stopPropagation()}>

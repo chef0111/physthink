@@ -15,7 +15,7 @@ export function ToolStatus({ status, isActive = true }: ToolStatusProps) {
       {isActive ? (
         <>
           <Loader size={14} />
-          <TextShimmer duration={1.5} className="text-xs">
+          <TextShimmer duration={1} className="text-xs">
             {status}
           </TextShimmer>
         </>

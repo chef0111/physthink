@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { orpc } from '@/lib/orpc';
 import { useUpdateWorkspace } from '@/queries/workspace';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import {
 import { FolderX } from 'lucide-react';
 import Link from 'next/link';
 import { useSceneStore } from '@/lib/stores/scene-store';
-import { useDebouncedCallback } from '@/hooks/use-debounced-callback';
+import { useDebounced } from '@/hooks/use-debounced';
 import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { WorkspaceCanvas } from './canvas';
 import { WorkspaceToolbar } from './toolbar';
@@ -42,16 +42,14 @@ export function WorkspaceEditor() {
     'idle'
   );
   const hydratedRef = useRef<string | null>(null);
+  const saveRef = useRef<(sceneData: unknown) => void>(null);
   useUndoRedo();
 
-  const { data: workspace, isLoading } = useQuery(
-    orpc.workspace.get.queryOptions({ input: { id: params.id } })
-  );
-
-  if (hydratedRef.current !== null && hydratedRef.current !== params.id) {
-    hydratedRef.current = null;
-    useSceneStore.getState().loadScene(null);
-  }
+  const queryClient = useQueryClient();
+  const queryOptions = orpc.workspace.get.queryOptions({
+    input: { id: params.id },
+  });
+  const { data: workspace, isLoading } = useQuery(queryOptions);
 
   const updateMutation = useUpdateWorkspace({
     onMutate: () => setSaveStatus('saving'),
@@ -62,7 +60,12 @@ export function WorkspaceEditor() {
     onError: () => setSaveStatus('idle'),
   });
 
-  // Hydrate scene store from DB on first load
+  // Clear store immediately when workspace ID changes
+  useEffect(() => {
+    hydratedRef.current = null;
+    useSceneStore.getState().loadScene(null);
+  }, [params.id]);
+
   useEffect(() => {
     if (workspace && hydratedRef.current !== params.id) {
       hydratedRef.current = params.id;
@@ -70,17 +73,31 @@ export function WorkspaceEditor() {
     }
   }, [workspace, params.id]);
 
-  // Auto-save scene changes with debounce
-  const debouncedSave = useDebouncedCallback((sceneData: unknown) => {
-    const json = JSON.stringify(sceneData);
-    if (json.length > MAX_SCENE_DATA_SIZE) {
-      console.warn(
-        `Scene data exceeds ${formatBytes(MAX_SCENE_DATA_SIZE)} limit, skipping auto-save`
-      );
-      return;
-    }
-    updateMutation.mutate({ id: params.id, sceneData });
-  }, 1500);
+  const saveSceneData = useCallback(
+    (sceneData: unknown) => {
+      const json = JSON.stringify(sceneData);
+      if (json.length > MAX_SCENE_DATA_SIZE) {
+        console.warn(
+          `Scene data exceeds ${formatBytes(MAX_SCENE_DATA_SIZE)} limit, skipping auto-save`
+        );
+        return;
+      }
+      updateMutation.mutate({ id: params.id, sceneData });
+      queryClient.setQueryData(queryOptions.queryKey, (old) => {
+        if (old) {
+          return { ...old, sceneData };
+        }
+        return old;
+      });
+    },
+    [params.id, updateMutation, queryClient, queryOptions.queryKey]
+  );
+
+  useEffect(() => {
+    saveRef.current = saveSceneData;
+  });
+
+  const debouncedSave = useDebounced(saveSceneData, 1500);
 
   useEffect(() => {
     const unsubscribe = useSceneStore.subscribe(
@@ -98,8 +115,19 @@ export function WorkspaceEditor() {
           a.elements === b.elements && a.sceneSettings === b.sceneSettings,
       }
     );
-    return unsubscribe;
-  }, [debouncedSave]);
+
+    return () => {
+      unsubscribe();
+      debouncedSave.cancel();
+      if (hydratedRef.current === params.id) {
+        const state = useSceneStore.getState();
+        saveRef.current?.({
+          elements: state.elements,
+          sceneSettings: state.sceneSettings,
+        });
+      }
+    };
+  }, [debouncedSave, params.id]);
 
   useEffect(() => {
     if (workspace?.title) {
@@ -155,7 +183,7 @@ export function WorkspaceEditor() {
 
         <SidebarInset>
           <div className="@container/main flex flex-1">
-            <WorkspaceCanvas loading={isLoading} />
+            <WorkspaceCanvas />
           </div>
         </SidebarInset>
 
@@ -164,7 +192,8 @@ export function WorkspaceEditor() {
         <Sidebar
           side="right"
           collapsible="offcanvas"
-          className="bg-background text-sidebar-foreground top-12 pb-12"
+          className="text-sidebar-foreground top-12 pb-12"
+          sidebarColor="bg-background"
           transition={false}
         >
           <SidebarHeader className="border-b p-4">
