@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Line } from '@react-three/drei';
 import * as THREE from 'three';
-import type { ConnectorElement } from '@/lib/stores/scene-store';
+import type { ConnectorElement } from '@/stores/scene-store';
 
 function generateSpringPoints(
   start: THREE.Vector3,

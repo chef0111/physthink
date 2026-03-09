@@ -47,7 +47,8 @@ export const list = authorized
   .input(QueryParamsSchema)
   .output(WorkspaceListSchema)
   .handler(async ({ input, context }) => {
-    return listWorkspacesDAL(context.user.id, input);
+    const workspaces = await listWorkspacesDAL(context.user.id, input);
+    return workspaces;
   });
 
 export const get = authorized

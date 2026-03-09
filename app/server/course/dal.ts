@@ -118,15 +118,16 @@ export class CourseDAL {
       ];
     }
 
-    const courses = await prisma.course.findMany({
-      where,
-      orderBy: this.getSortCriteria(sort as CourseSort),
-      select: { ...this.courseSelect, status: true },
-      skip: offset,
-      take: limit,
-    });
-
-    const totalCourses = await prisma.course.count({ where });
+    const [courses, totalCourses] = await Promise.all([
+      prisma.course.findMany({
+        where,
+        orderBy: this.getSortCriteria(sort as CourseSort),
+        select: { ...this.courseSelect, status: true },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.course.count({ where }),
+    ]);
 
     return { courses, totalCourses };
   }

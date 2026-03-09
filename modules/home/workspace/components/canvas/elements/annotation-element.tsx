@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Text, Line } from '@react-three/drei';
 import * as THREE from 'three';
-import type { AnnotationElement } from '@/lib/stores/scene-store';
+import type { AnnotationElement } from '@/stores/scene-store';
 
 export function AnnotationElementRenderer({
   element,

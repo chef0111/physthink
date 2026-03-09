@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import type { SceneElement } from '@/lib/stores/scene-store';
+import type { SceneElement } from '@/stores/scene-store';
 import { MeshElementRenderer } from './elements/mesh-element';
 import { VectorElementRenderer } from './elements/vector-element';
 import { ConnectorElementRenderer } from './elements/connector-element';

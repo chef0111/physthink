@@ -9,8 +9,8 @@ import {
 } from 'react';
 import { TransformControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { useSceneStore } from '@/lib/stores/scene-store';
-import type { SceneElement, Vec3 } from '@/lib/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
+import type { SceneElement, Vec3 } from '@/stores/scene-store';
 import type { Object3D } from 'three';
 
 export const SelectableWrapper = memo(function SelectableWrapper({

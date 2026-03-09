@@ -3,8 +3,26 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { getPagination } from '../utils';
 import type { CreateWorkspaceDTO, UpdateWorkspaceDTO } from './dto';
+import { Prisma } from '@/generated/prisma/client';
+
+type WorkspaceSort = 'newest' | 'oldest' | 'recent';
 
 class WorkspaceDAL {
+  private static getSortCriteria(
+    sort?: WorkspaceSort
+  ): Prisma.WorkspaceOrderByWithRelationInput {
+    switch (sort) {
+      case 'newest':
+        return { createdAt: 'desc' };
+      case 'oldest':
+        return { createdAt: 'asc' };
+      case 'recent':
+        return { updatedAt: 'desc' };
+      default:
+        return { updatedAt: 'desc' };
+    }
+  }
+
   static async create(data: CreateWorkspaceDTO, userId: string) {
     return prisma.workspace.create({
       data: {
@@ -21,10 +39,10 @@ class WorkspaceDAL {
   }
 
   static async findMany(userId: string, params: QueryParams) {
-    const { page, pageSize, query } = params;
+    const { page, pageSize, query, sort } = params;
     const { offset, limit } = getPagination({ page, pageSize });
 
-    const where = {
+    const where: Prisma.WorkspaceWhereInput = {
       userId,
       ...(query
         ? { title: { contains: query, mode: 'insensitive' as const } }
@@ -40,7 +58,7 @@ class WorkspaceDAL {
           createdAt: true,
           updatedAt: true,
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: this.getSortCriteria(sort as WorkspaceSort),
         skip: offset,
         take: limit,
       }),

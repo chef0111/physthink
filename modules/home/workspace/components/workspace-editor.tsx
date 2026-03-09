@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import { FolderX } from 'lucide-react';
 import Link from 'next/link';
-import { useSceneStore } from '@/lib/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
 import { useDebounced } from '@/hooks/use-debounced';
 import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { WorkspaceCanvas } from './canvas';
@@ -48,6 +48,7 @@ export function WorkspaceEditor() {
   const queryClient = useQueryClient();
   const queryOptions = orpc.workspace.get.queryOptions({
     input: { id: params.id },
+    placeholderData: (prevData) => prevData,
   });
   const { data: workspace, isLoading } = useQuery(queryOptions);
 

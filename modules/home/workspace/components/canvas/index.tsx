@@ -2,11 +2,11 @@
 
 import { useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useSceneStore } from '@/lib/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
 import { SceneElementRenderer } from './scene-element';
 import { SceneEnvironment } from './scene-environment';
 import { SelectableWrapper } from './selectable-wrapper';
-import { SceneLoadingSkeleton } from './scene-loading-skeleton';
+import { SceneLoadingSkeleton } from '../../layout/loading';
 
 export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
   const elements = useSceneStore((s) => s.elements);
@@ -33,7 +33,7 @@ export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
         onPointerMissed={() => useSceneStore.getState().setSelected(null)}
       >
         <SceneEnvironment />
-        {sceneLoading && <SceneLoadingSkeleton />}
+        {sceneLoading && loading && <SceneLoadingSkeleton />}
         {elements.map((element) => (
           <SelectableWrapper key={element.id} element={element}>
             <SceneElementRenderer element={element} />
