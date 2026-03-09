@@ -183,7 +183,7 @@ export function WorkspaceEditor() {
 
         <SidebarInset>
           <div className="@container/main flex flex-1">
-            <WorkspaceCanvas />
+            <WorkspaceCanvas loading={isLoading} />
           </div>
         </SidebarInset>
 

@@ -8,7 +8,7 @@ import { SceneEnvironment } from './scene-environment';
 import { SelectableWrapper } from './selectable-wrapper';
 import { SceneLoadingSkeleton } from './scene-loading-skeleton';
 
-export function WorkspaceCanvas() {
+export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
   const elements = useSceneStore((s) => s.elements);
   const sceneLoading = useSceneStore((s) => s.sceneLoading);
   const containerRef = useRef<HTMLDivElement>(null);
