@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import * as Drei from '@react-three/drei';
 import * as Fiber from '@react-three/fiber';
 import * as React from 'react';
-import type { CustomElement } from '@/lib/stores/scene-store';
+import type { CustomElement } from '@/stores/scene-store';
 
 // Allowlisted modules for custom code execution
 const ALLOWED_IMPORTS: Record<string, unknown> = {

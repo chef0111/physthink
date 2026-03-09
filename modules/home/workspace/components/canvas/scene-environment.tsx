@@ -2,7 +2,7 @@
 
 import { Grid, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import { OrbitControls } from '@react-three/drei';
-import { useSceneStore } from '@/lib/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
 
 export function SceneEnvironment() {
   const { gridVisible, axesVisible, backgroundColor } = useSceneStore(

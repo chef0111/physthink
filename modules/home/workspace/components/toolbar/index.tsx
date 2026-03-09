@@ -14,13 +14,13 @@ import {
 } from 'lucide-react';
 import { nanoid } from 'nanoid/non-secure';
 import { cn } from '@/lib/utils';
-import { useSceneStore } from '@/lib/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
 import type {
   ActiveTool,
   MeshElement,
   SceneElement,
   Vec3,
-} from '@/lib/stores/scene-store';
+} from '@/stores/scene-store';
 import {
   Tooltip,
   TooltipContent,

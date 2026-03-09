@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useSceneStore } from '@/lib/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
 
 export function useUndoRedo() {
   useEffect(() => {

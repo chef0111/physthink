@@ -6,7 +6,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { eventIteratorToUnproxiedDataStream } from '@orpc/client';
 import { client } from '@/lib/orpc';
 import { useShallow } from 'zustand/react/shallow';
-import { useSceneStore, type SceneElement } from '@/lib/stores/scene-store';
+import { useSceneStore, type SceneElement } from '@/stores/scene-store';
 import { ChatMessage } from './chat-message';
 import { PromptInput } from './prompt-input';
 import { nanoid } from 'nanoid';

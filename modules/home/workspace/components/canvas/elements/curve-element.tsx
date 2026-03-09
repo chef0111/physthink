@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Line } from '@react-three/drei';
 import * as THREE from 'three';
-import type { CurveElement } from '@/lib/stores/scene-store';
+import type { CurveElement } from '@/stores/scene-store';
 
 export function CurveElementRenderer({ element }: { element: CurveElement }) {
   const {

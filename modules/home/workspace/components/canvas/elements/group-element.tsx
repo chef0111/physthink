@@ -1,6 +1,6 @@
 'use client';
 
-import type { GroupElement } from '@/lib/stores/scene-store';
+import type { GroupElement } from '@/stores/scene-store';
 import { SceneElementRenderer } from '../scene-element';
 import { SelectableWrapper } from '../selectable-wrapper';
 

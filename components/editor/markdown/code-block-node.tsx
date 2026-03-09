@@ -1,7 +1,5 @@
 import {
   DecoratorNode,
-  DOMConversionMap,
-  DOMExportOutput,
   LexicalNode,
   NodeKey,
   SerializedLexicalNode,
@@ -17,11 +15,6 @@ import {
   CodeBlockFiles,
   CodeBlockHeader,
   CodeBlockItem,
-  CodeBlockSelect,
-  CodeBlockSelectContent,
-  CodeBlockSelectItem,
-  CodeBlockSelectTrigger,
-  CodeBlockSelectValue,
 } from '@/components/code-block';
 
 export type SerializedCodeBlockNode = Spread<

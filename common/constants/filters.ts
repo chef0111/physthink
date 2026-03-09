@@ -25,3 +25,9 @@ export const EnrolledCourseFilterOptions = [
   { label: 'Intermediate', value: 'intermediate' },
   { label: 'Advanced', value: 'advanced' },
 ];
+
+export const WorkspaceSortOptions = [
+  { label: 'Newest', value: 'newest' },
+  { label: 'Oldest', value: 'oldest' },
+  { label: 'Recent', value: 'recent' },
+];

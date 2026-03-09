@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MeshElement } from '@/lib/stores/scene-store';
+import type { MeshElement } from '@/stores/scene-store';
 
 const geometryMap = {
   box: (args?: number[]) => (

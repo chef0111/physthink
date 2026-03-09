@@ -1,6 +1,6 @@
 'use client';
 
-import type { PresetElement } from '@/lib/stores/scene-store';
+import type { PresetElement } from '@/stores/scene-store';
 import { getPreset } from '@/lib/presets/preset-registry';
 import { Text } from '@react-three/drei';
 

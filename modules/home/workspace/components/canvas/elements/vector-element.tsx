@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Line, Cone, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import type { VectorElement } from '@/lib/stores/scene-store';
+import type { VectorElement } from '@/stores/scene-store';
 
 export function VectorElementRenderer({ element }: { element: VectorElement }) {
   const {

@@ -46,7 +46,7 @@ export function useDeleteWorkspace() {
       onSuccess: async () => {
         toast.success('Workspace deleted');
         await queryClient.invalidateQueries(
-          orpc.workspace.list.queryOptions({ input: { page: 1, pageSize: 50 } })
+          orpc.workspace.list.queryOptions({ input: { pageSize: 12 } })
         );
         router.refresh();
       },
