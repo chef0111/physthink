@@ -46,7 +46,7 @@ export function MeshElementRenderer({ element }: { element: MeshElement }) {
   if (element.visible === false) return null;
 
   return (
-    <mesh>
+    <mesh castShadow receiveShadow>
       {geometryNode}
       <meshStandardMaterial
         color={material?.color ?? '#6c8ebf'}

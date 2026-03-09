@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState, useOptimistic } from 'react';
+import { useId, useState, useOptimistic } from 'react';
 import {
   Active,
   DndContext,

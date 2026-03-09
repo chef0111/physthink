@@ -27,13 +27,15 @@ export const SelectableWrapper = memo(function SelectableWrapper({
 
   const isSelected = selectedId === element.id;
 
+  const scale: Vec3 = element.type === 'annotation' ? [1, 1, 1] : element.scale;
+
   return (
     <>
       <group
         ref={groupRef}
         position={element.position}
         rotation={element.rotation}
-        scale={element.scale}
+        scale={scale}
         onClick={(e) => {
           e.stopPropagation();
           setSelected(element.id);

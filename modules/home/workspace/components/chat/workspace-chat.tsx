@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useChat, type UIMessage } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { eventIteratorToUnproxiedDataStream } from '@orpc/client';
+import { client } from '@/lib/orpc';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore, type SceneElement } from '@/lib/stores/scene-store';
 import { ChatMessage } from './chat-message';
 import { PromptInput } from './prompt-input';
 import { nanoid } from 'nanoid';
+import TextShimmer from '@/components/ui/text-shimmer';
 
 interface WorkspaceChatProps {
   workspaceId: string;
@@ -49,6 +51,7 @@ export function WorkspaceChat({
       )
     )
   );
+  const batchAddAppliedForMsg = useRef<string | null>(null);
   const [input, setInput] = useState('');
 
   useEffect(() => {
@@ -78,17 +81,44 @@ export function WorkspaceChat({
   );
 
   const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: '/api/workspace/chat',
-        body: () => ({
-          workspaceId,
-          sceneData: {
-            elements: useSceneStore.getState().elements,
-            sceneSettings: useSceneStore.getState().sceneSettings,
+    () => ({
+      async sendMessages({
+        messages: msgs,
+        abortSignal,
+      }: {
+        messages: UIMessage[];
+        abortSignal: AbortSignal | undefined;
+        [key: string]: unknown;
+      }) {
+        const sceneState = useSceneStore.getState();
+        const result = await client.workspace.chat.send(
+          {
+            workspaceId,
+            messages: msgs.map((m) => ({
+              id: m.id,
+              role: m.role,
+              parts: m.parts,
+            })),
+            sceneData: {
+              elements: sceneState.elements.map((el) => ({
+                id: el.id,
+                type: el.type,
+                ...(el.label ? { label: el.label } : {}),
+              })),
+              sceneSettings: sceneState.sceneSettings as unknown as Record<
+                string,
+                unknown
+              >,
+            },
           },
-        }),
-      }),
+          { signal: abortSignal }
+        );
+        return eventIteratorToUnproxiedDataStream(result);
+      },
+      reconnectToStream() {
+        throw new Error('Reconnect not supported');
+      },
+    }),
     [workspaceId]
   );
 
@@ -119,9 +149,19 @@ export function WorkspaceChat({
         const action = output?.action;
 
         if (action === 'addElement') {
+          // Skip if addElements was already applied for this assistant message
+          if (batchAddAppliedForMsg.current === lastMsg.id) continue;
           const element = output.element as Omit<SceneElement, 'id'>;
           const id = nanoid();
           newElements.push({ ...element, id } as SceneElement);
+        } else if (action === 'addElements') {
+          // Only apply the first addElements per assistant message (cross-step dedup)
+          if (batchAddAppliedForMsg.current === lastMsg.id) continue;
+          batchAddAppliedForMsg.current = lastMsg.id;
+          const elements = output.elements as Array<Omit<SceneElement, 'id'>>;
+          for (const el of elements) {
+            newElements.push({ ...el, id: nanoid() } as SceneElement);
+          }
         } else if (action === 'editElement') {
           updateElement(
             output.id as string,
@@ -244,7 +284,9 @@ export function WorkspaceChat({
           </div>
         )}
         {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-          <div className="text-muted-foreground py-1 text-xs">Thinking...</div>
+          <div className="text-muted-foreground py-1 text-sm">
+            <TextShimmer duration={1}>Thinking...</TextShimmer>
+          </div>
         )}
       </div>
       <div className="border-t p-3">
