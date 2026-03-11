@@ -1,7 +1,27 @@
-import { Calendar } from '@/components/ui/calendar';
+import {
+  FilterInputFallback,
+  FilterSelectFallback,
+  SortSelectFallback,
+} from '@/components/filter/fallback';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+
+export const CourseFilterFallback = () => {
+  return (
+    <>
+      <FilterInputFallback placeholder="Search course..." />
+      <SortSelectFallback
+        className="min-h-10 w-full sm:w-auto"
+        containerClassName="w-full sm:w-auto"
+      />
+      <FilterSelectFallback
+        className="min-h-10 w-full sm:w-auto"
+        containerClassName="w-full sm:w-auto"
+      />
+    </>
+  );
+};
 
 export const CourseListSkeleton = () => {
   return (

@@ -10,6 +10,9 @@ import { cn } from '@/lib/utils';
 
 export function Toolbar() {
   const { open: sidebarOpen } = useSidebar();
+  const className = sidebarOpen
+    ? 'w-full sm:w-auto md:w-full lg:w-auto'
+    : 'sm:w-auto';
 
   return (
     <div
@@ -22,26 +25,14 @@ export function Toolbar() {
       <SortSelect
         options={CourseSortOptions}
         width="min-w-30"
-        className={cn(
-          'min-h-10 max-sm:w-full',
-          sidebarOpen ? 'w-full sm:w-auto md:w-full lg:w-auto' : 'sm:w-auto'
-        )}
-        containerClassName={cn(
-          'max-sm:w-full',
-          sidebarOpen ? 'w-full sm:w-auto md:w-full lg:w-auto' : 'sm:w-auto'
-        )}
+        className={cn('min-h-10 max-sm:w-full', className)}
+        containerClassName={cn('max-sm:w-full', className)}
       />
       <FilterSelect
         filters={CourseFilterOptions}
         width="min-w-32"
-        className={cn(
-          'h-10! max-sm:w-full',
-          sidebarOpen ? 'w-full sm:w-auto md:w-full lg:w-auto' : 'sm:w-auto'
-        )}
-        containerClassName={cn(
-          'max-sm:w-full',
-          sidebarOpen ? 'w-full sm:w-auto md:w-full lg:w-auto' : 'sm:w-auto'
-        )}
+        className={cn('h-10! max-sm:w-full', className)}
+        containerClassName={cn('max-sm:w-full', className)}
       />
     </div>
   );

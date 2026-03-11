@@ -48,7 +48,6 @@ export function WorkspaceEditor() {
   const queryClient = useQueryClient();
   const queryOptions = orpc.workspace.get.queryOptions({
     input: { id: params.id },
-    placeholderData: (prevData) => prevData,
   });
   const { data: workspace, isLoading } = useQuery(queryOptions);
 
