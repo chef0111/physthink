@@ -8,7 +8,10 @@ import {
   FilterSelect,
   SortSelect,
 } from '@/components/filter';
-import { CourseListSkeleton } from '@/modules/home/courses/layout/loading';
+import {
+  CourseFilterFallback,
+  CourseListSkeleton,
+} from '@/modules/home/courses/layout/loading';
 import { Suspense } from 'react';
 import { CourseList } from './courses';
 import { FilterProvider } from '@/context/filter-provider';
@@ -26,19 +29,21 @@ export default function Courses({ searchParams }: RouteParams) {
         </div>
 
         <div className="flex h-10 flex-col items-center gap-3 sm:flex-row">
-          <FilterInput placeholder="Search course..." />
-          <SortSelect
-            options={CourseSortOptions}
-            width="min-w-30"
-            className="min-h-10 w-full sm:w-auto"
-            containerClassName="w-full sm:w-auto"
-          />
-          <FilterSelect
-            filters={PublicCourseFilterOptions}
-            width="min-w-32"
-            className="min-h-10 w-full sm:w-auto"
-            containerClassName="w-full sm:w-auto"
-          />
+          <Suspense fallback={<CourseFilterFallback />}>
+            <FilterInput placeholder="Search course..." />
+            <SortSelect
+              options={CourseSortOptions}
+              width="min-w-30"
+              className="min-h-10 w-full sm:w-auto"
+              containerClassName="w-full sm:w-auto"
+            />
+            <FilterSelect
+              filters={PublicCourseFilterOptions}
+              width="min-w-32"
+              className="min-h-10 w-full sm:w-auto"
+              containerClassName="w-full sm:w-auto"
+            />
+          </Suspense>
         </div>
 
         <div className="pb-10">

@@ -9,6 +9,34 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { GridLayout } from './grid-layout';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
+import {
+  FilterInputFallback,
+  FilterSelectFallback,
+  SortSelectFallback,
+} from '@/components/filter/fallback';
+import { useSidebar } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
+
+export const CourseFilterFallback = () => {
+  const { open: sidebarOpen } = useSidebar();
+  const className = sidebarOpen
+    ? 'w-full sm:w-auto md:w-full lg:w-auto'
+    : 'sm:w-auto';
+
+  return (
+    <>
+      <FilterInputFallback placeholder="Search course..." />
+      <SortSelectFallback
+        className={cn('min-h-10 max-sm:w-full', className)}
+        containerClassName={cn('max-sm:w-full', className)}
+      />
+      <FilterSelectFallback
+        className={cn('h-10! max-sm:w-full', className)}
+        containerClassName={cn('max-sm:w-full', className)}
+      />
+    </>
+  );
+};
 
 export const CourseListSkeleton = () => {
   return (

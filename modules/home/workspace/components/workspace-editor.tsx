@@ -13,7 +13,7 @@ import {
   SidebarContent,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { FolderX } from 'lucide-react';
+import { ArrowUp, FolderX } from 'lucide-react';
 import Link from 'next/link';
 import { useSceneStore } from '@/stores/scene-store';
 import { useDebounced } from '@/hooks/use-debounced';
@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/empty';
 import { formatBytes } from '@/lib/utils';
 import { Loader } from '@/components/ui/loader';
+import { Textarea } from '@/components/ui/textarea';
 
 const MAX_SCENE_DATA_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -48,7 +49,6 @@ export function WorkspaceEditor() {
   const queryClient = useQueryClient();
   const queryOptions = orpc.workspace.get.queryOptions({
     input: { id: params.id },
-    placeholderData: (prevData) => prevData,
   });
   const { data: workspace, isLoading } = useQuery(queryOptions);
 
@@ -180,6 +180,7 @@ export function WorkspaceEditor() {
           onTitleChange={setTitle}
           onTitleBlur={handleTitleBlur}
           saveStatus={saveStatus}
+          isLoading={isLoading}
         />
 
         <SidebarInset>
@@ -210,8 +211,28 @@ export function WorkspaceEditor() {
                 initialMessages={dbMessagesToAiMessages(workspace.messages)}
               />
             ) : (
-              <div className="text-muted-foreground flex h-full items-center justify-center gap-2 text-sm">
-                <Loader /> Loading chat...
+              <div className="flex h-full w-full flex-col">
+                <div className="text-muted-foreground flex h-full items-center justify-center gap-2 text-sm">
+                  <Loader /> Loading chat...
+                </div>
+
+                <div className="border-t p-3">
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Describe the 3D illustration you want..."
+                      rows={3}
+                      disabled={isLoading}
+                      className="resize-none pr-12"
+                    />
+                    <Button
+                      size="icon"
+                      className="absolute right-2 bottom-2 size-7"
+                      disabled={isLoading}
+                    >
+                      <ArrowUp className="size-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </SidebarContent>

@@ -1,6 +1,9 @@
 import { Suspense } from 'react';
 import { Header } from '@/modules/home/header';
-import { WorkspaceListSkeleton } from '@/modules/home/workspace/layout/loading';
+import {
+  WorkspaceFilterFallback,
+  WorkspaceListSkeleton,
+} from '@/modules/home/workspace/layout/loading';
 import { WorkspaceList } from '@/app/dashboard/workspace/workspace';
 import { CreateWorkspaceButton } from '@/modules/home/workspace/components/create-workspace-button';
 import { FilterContent, FilterInput, SortSelect } from '@/components/filter';
@@ -27,13 +30,15 @@ export default function WorkspaceListPage({ searchParams }: RouteParams) {
             </div>
 
             <div className="flex h-10 flex-col items-center gap-3 sm:flex-row">
-              <FilterInput placeholder="Search course..." />
-              <SortSelect
-                options={WorkspaceSortOptions}
-                width="min-w-30"
-                className="min-h-10 w-full sm:w-auto"
-                containerClassName="w-full sm:w-auto"
-              />
+              <Suspense fallback={<WorkspaceFilterFallback />}>
+                <FilterInput placeholder="Search workspace..." />
+                <SortSelect
+                  options={WorkspaceSortOptions}
+                  width="min-w-30"
+                  className="min-h-10 w-full sm:w-auto"
+                  containerClassName="w-full sm:w-auto"
+                />
+              </Suspense>
             </div>
           </div>
           <Suspense fallback={<WorkspaceListSkeleton />}>

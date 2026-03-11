@@ -1,4 +1,4 @@
-import { Brand } from '@/components/ui/brand';
+import { Brand } from './brand';
 
 interface LoadingProps {
   title?: string;

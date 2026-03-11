@@ -11,6 +11,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  FilterInputFallback,
+  SortSelectFallback,
+} from '@/components/filter/fallback';
 
 /**
  * Pulsing wireframe cube that appears in the canvas while
@@ -60,5 +64,17 @@ export function WorkspaceListSkeleton() {
         </Card>
       ))}
     </div>
+  );
+}
+
+export function WorkspaceFilterFallback() {
+  return (
+    <>
+      <FilterInputFallback placeholder="Search workspace..." />
+      <SortSelectFallback
+        className="min-h-10 w-full sm:w-auto"
+        containerClassName="w-full sm:w-auto"
+      />
+    </>
   );
 }
