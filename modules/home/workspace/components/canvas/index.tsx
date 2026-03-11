@@ -1,12 +1,13 @@
 'use client';
 
-import { useRef } from 'react';
+import { Activity, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useSceneStore } from '@/stores/scene-store';
 import { SceneElementRenderer } from './scene-element';
 import { SceneEnvironment } from './scene-environment';
 import { SelectableWrapper } from './selectable-wrapper';
 import { SceneLoadingSkeleton } from '../../layout/loading';
+import { div } from 'three/src/nodes/math/OperatorNode.js';
 
 export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
   const elements = useSceneStore((s) => s.elements);
@@ -16,7 +17,7 @@ export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full transition-[width] duration-200 ease-linear"
+      className="h-full w-full"
       style={{ backgroundColor: '#1a1a2e' }}
     >
       <Canvas
@@ -33,12 +34,14 @@ export function WorkspaceCanvas({ loading }: { loading?: boolean }) {
         onPointerMissed={() => useSceneStore.getState().setSelected(null)}
       >
         <SceneEnvironment />
-        {sceneLoading && loading && <SceneLoadingSkeleton />}
-        {elements.map((element) => (
-          <SelectableWrapper key={element.id} element={element}>
-            <SceneElementRenderer element={element} />
-          </SelectableWrapper>
-        ))}
+        {(sceneLoading || loading) && <SceneLoadingSkeleton />}
+        <Activity mode={sceneLoading || loading ? 'hidden' : 'visible'}>
+          {elements.map((element) => (
+            <SelectableWrapper key={element.id} element={element}>
+              <SceneElementRenderer element={element} />
+            </SelectableWrapper>
+          ))}
+        </Activity>
       </Canvas>
     </div>
   );
