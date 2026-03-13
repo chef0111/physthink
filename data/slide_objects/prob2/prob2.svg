@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="620" viewBox="0 0 980 620">
+  <defs>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .wedge-fill { fill: #d9e8fb; }
+      .wedge-edge { stroke: #355c7d; stroke-width: 3; fill: none; }
+      .sphere { fill: #f4f1e6; stroke: #777; stroke-width: 2.5; }
+      .surface { stroke: #666; stroke-width: 5; }
+      .wall { stroke: #9a9a9a; stroke-width: 10; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+      .scribble { stroke: #8c8c8c; stroke-width: 2; fill: none; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Sphere Sliding on a Frictionless Wedge</text>
+
+  <line x1="40" y1="500" x2="920" y2="500" class="surface" />
+  <text x="780" y="478" class="label">horizontal surface</text>
+
+  <line x1="120" y1="165" x2="120" y2="500" class="wall" />
+  <text x="92" y="240" class="label" transform="rotate(-90 92 240)">wall</text>
+
+  <polygon points="120,245 120,500 505,500" class="wedge-fill" />
+  <line x1="120" y1="245" x2="505" y2="500" class="wedge-edge" />
+  <line x1="120" y1="500" x2="505" y2="500" class="wedge-edge" />
+  <line x1="120" y1="245" x2="120" y2="500" class="wedge-edge" />
+  <text x="180" y="390" class="label">wedge</text>
+
+  <circle cx="255" cy="300" r="34" class="sphere" />
+  <text x="228" y="307" class="label">sphere</text>
+  <text x="248" y="255" class="math">m</text>
+
+  <line x1="150" y1="280" x2="165" y2="295" class="scribble"/>
+  <line x1="164" y1="272" x2="179" y2="287" class="scribble"/>
+  <line x1="178" y1="264" x2="193" y2="279" class="scribble"/>
+
+  <line x1="255" y1="338" x2="255" y2="408" class="gline" />
+  <polygon points="255,428 230,408 280,408" class="ghead" />
+  <text x="271" y="382" class="math">g</text>
+
+  <text x="396" y="460" class="math">θ</text>
+
+  <path d="M500 180
+           C 535 180, 535 220, 500 220
+           C 470 220, 470 265, 505 265"
+        class="scribble"/>
+  <text x="520" y="173" class="label">no friction</text>
+
+  <text x="60" y="545" class="small">no friction between sphere and wedge</text>
+  <text x="60" y="570" class="small">no friction between wedge and horizontal surface, and between wedge and wall</text>
+</svg>

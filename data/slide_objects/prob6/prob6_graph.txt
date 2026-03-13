@@ -1,0 +1,34 @@
+TOPIC: label=two_balls_connected_by_string_on_frictionless_incline
+OBJECT: id=upper_ball | label=ball | kind=sphere
+OBJECT: id=lower_ball | label=ball | kind=sphere
+OBJECT: id=incline | label=incline | kind=inclined_surface
+OBJECT: id=wall | label=wall | kind=surface
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=string | label=string | kind=connector
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=slide_down | verb=slide_down | label=lower ball sliding down incline surface | target=lower_ball | direction=down_incline
+EVENT: id=move_together | verb=move_together | label=two balls moving together on incline | participants=upper_ball,lower_ball | condition=connected by string
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=theta | symbol=theta | unit=angle
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=atotal | symbol=atotal | unit=m/s^2
+QUANTITY: id=T | symbol=T | unit=N
+RELATION: source=upper_ball | rel=rests_on | target=incline
+RELATION: source=lower_ball | rel=rests_on | target=incline
+RELATION: source=incline | rel=rests_on | target=horizontal_surface
+RELATION: source=incline | rel=rests_next_to | target=wall
+RELATION: source=upper_ball | rel=connected_by | target=string,lower_ball
+RELATION: source=upper_ball | rel=contact_is_frictionless_with | target=incline
+RELATION: source=lower_ball | rel=contact_is_frictionless_with | target=incline
+RELATION: source=incline | rel=contact_is_frictionless_with | target=horizontal_surface
+RELATION: source=incline | rel=contact_is_frictionless_with | target=wall
+RELATION: source=m1 | rel=applies_for | target=upper_ball
+RELATION: source=m2 | rel=applies_for | target=lower_ball
+RELATION: source=theta | rel=applies_for | target=incline
+RELATION: source=g | rel=applies_for | target=upper_ball,lower_ball,incline
+RELATION: source=gravity | rel=acts_on | target=upper_ball,lower_ball,incline
+RELATION: source=T | rel=applies_for | target=string
+RELATION: source=atotal | rel=applies_for | target=upper_ball,lower_ball
+QUESTION_TARGET: label=magnitude of the acceleration of the two balls | target_symbol=atotal
+QUESTION_TARGET: label=tension in the string | target_symbol=T

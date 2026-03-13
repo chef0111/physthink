@@ -1,0 +1,20 @@
+TOPIC: label=acceleration_and_forces_for_two_stacked_blocks
+OBJECT: id=small_block | label=small block | kind=block
+OBJECT: id=larger_block | label=larger block | kind=block
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=larger_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=small_block,larger_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=5 | unit=kg
+QUANTITY: id=F | symbol=F | value=21 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=small_block | rel=rests_on | target=larger_block
+RELATION: source=larger_block | rel=rests_on | target=horizontal_surface
+RELATION: source=larger_block | rel=contact_is_frictionless_with | target=horizontal_surface
+RELATION: source=m1 | rel=applies_for | target=small_block
+RELATION: source=m2 | rel=applies_for | target=larger_block
+RELATION: source=F | rel=applies_for | target=larger_block
+RELATION: source=g | rel=applies_for | target=small_block,larger_block
+RELATION: source=gravity | rel=acts_on | target=small_block,larger_block
+ASSUMPTION: text=Assume there is enough friction between the two blocks so that they move together without slipping.

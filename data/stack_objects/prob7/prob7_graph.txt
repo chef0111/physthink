@@ -1,0 +1,23 @@
+TOPIC: label=minimum_lower_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=3.2 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.45 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=26 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m2 | rel=minimum_value_for | target=move_together_condition
+QUESTION_TARGET: label=minimum lower block mass for which blocks do not slip | target_symbol=m2

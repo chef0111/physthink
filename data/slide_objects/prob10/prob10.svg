@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="680" viewBox="0 0 1180 680">
+  <defs>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .hillFill { fill: #d9e8fb; }
+      .hillEdge { stroke: #355c7d; stroke-width: 3; fill: none; }
+      .surface { stroke: #666; stroke-width: 5; }
+      .sled { fill: #f4f1e6; stroke: #777; stroke-width: 2.5; }
+      .runner { stroke: #777; stroke-width: 3; fill: none; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+      .target { fill: #8a5a00; }
+      .start { fill: #222; }
+      .mark { stroke: #8a5a00; stroke-width: 4; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Sled Sliding Down a Rough Hill</text>
+
+  <line x1="40" y1="590" x2="1130" y2="590" class="surface" />
+  <text x="940" y="560" class="label">horizontal surface</text>
+
+  <!-- hill: high on left, low on right -->
+  <polygon points="180,210 180,590 840,590" class="hillFill" />
+  <line x1="180" y1="210" x2="840" y2="590" class="hillEdge" />
+  <line x1="180" y1="590" x2="840" y2="590" class="hillEdge" />
+  <text x="520" y="500" class="label">hill</text>
+
+  <!-- sled moved slightly northeast to sit cleaner on incline -->
+  <g transform="translate(495,375) rotate(29.93)">
+    <rect x="-46" y="-16" width="92" height="30" rx="8" class="sled" />
+    <path d="M-42 18 Q-22 30 -2 18" class="runner" />
+    <path d="M2 18 Q22 30 42 18" class="runner" />
+    <text x="-14" y="-28" class="label">sled</text>
+  </g>
+  <text x="535" y="315" class="math">m</text>
+
+  <!-- start point near top -->
+  <circle cx="340" cy="302" r="5" class="start" />
+  <text x="285" y="298" class="small">start</text>
+
+  <!-- target position x farther down the incline -->
+  <circle cx="670" cy="492" r="6" class="target" />
+  <line x1="670" y1="492" x2="710" y2="532" class="mark" />
+  <text x="720" y="548" class="small">target position</text>
+  <text x="694" y="522" class="math">x</text>
+
+  <!-- gravity -->
+  <line x1="495" y1="375" x2="495" y2="455" class="gline" />
+  <polygon points="495,475 470,455 520,455" class="ghead" />
+  <text x="512" y="425" class="math">g</text>
+
+  <!-- theta -->
+  <text x="760" y="555" class="math">θ</text>
+
+  <text x="60" y="625" class="small">sled starts from rest and slides down the incline toward position x</text>
+  <text x="60" y="648" class="small">μ_k acts opposite the motion along the incline</text>
+</svg>

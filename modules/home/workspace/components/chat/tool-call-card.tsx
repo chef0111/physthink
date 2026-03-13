@@ -15,6 +15,7 @@ import {
   BookOpen,
   Globe,
   Code,
+  Database,
   ChevronRight,
   type LucideIcon,
 } from 'lucide-react';
@@ -41,6 +42,9 @@ const TOOL_ICON: Record<string, LucideIcon> = {
   searchPhysicsKnowledge: BookOpen,
   searchThreeJsDocs: Search,
   getInteractionPattern: BookOpen,
+  searchProblemExamples: Database,
+  getProblemExampleByKey: Database,
+  runProblemRagPipeline: Database,
   fetchWebContent: Globe,
   validateCode: Code,
 };

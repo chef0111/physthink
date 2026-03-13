@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <!-- table -->
+  <line x1="80" y1="400" x2="820" y2="400" class="surface" />
+  <text x="760" y="385" class="label">table</text>
+
+  <!-- lower block -->
+  <rect x="260" y="280" width="340" height="120" rx="8" class="lower" />
+  <text x="372" y="345" class="label">lower block</text>
+  <text x="386" y="372" class="math">m₂ = 4.8 kg</text>
+
+  <!-- upper block -->
+  <rect x="340" y="180" width="180" height="100" rx="8" class="upper" />
+  <text x="387" y="232" class="label">upper block</text>
+  <text x="398" y="258" class="math">m₁ = 2.2 kg</text>
+
+  <!-- applied force -->
+  <line x1="190" y1="230" x2="320" y2="230" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="150" y="220" class="math">F</text>
+
+  <!-- optional contact property -->
+  <text x="80" y="455" class="small">μₛ = 0.5 between upper block and lower block</text>
+  <text x="80" y="480" class="small">table is frictionless</text>
+</svg>

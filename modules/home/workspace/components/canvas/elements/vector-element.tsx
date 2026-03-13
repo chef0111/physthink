@@ -76,7 +76,7 @@ export function VectorElementRenderer({ element }: { element: VectorElement }) {
       {element.label && (
         <Text
           position={midpoint}
-          fontSize={0.2}
+          fontSize={0.12}
           color={color}
           anchorX="center"
           anchorY="bottom"

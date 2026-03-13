@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="620" viewBox="0 0 980 620">
+  <defs>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .wedge-fill { fill: #d9e8fb; }
+      .wedge-edge { stroke: #355c7d; stroke-width: 3; fill: none; }
+      .crate { fill: #ead7b7; stroke: #8a6a3d; stroke-width: 2.5; }
+      .surface { stroke: #666; stroke-width: 5; }
+      .wall { stroke: #9a9a9a; stroke-width: 10; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+  <text x="40" y="50" class="title">Crate Sliding on a Frictionless Wedge</text>
+  <line x1="40" y1="500" x2="920" y2="500" class="surface" />
+  <text x="780" y="478" class="label">horizontal surface</text>
+  <line x1="120" y1="165" x2="120" y2="500" class="wall" />
+  <text x="92" y="240" class="label" transform="rotate(-90 92 240)">wall</text>
+  <polygon points="120,245 120,500 505,500" class="wedge-fill" />
+  <line x1="120" y1="245" x2="505" y2="500" class="wedge-edge" />
+  <line x1="120" y1="500" x2="505" y2="500" class="wedge-edge" />
+  <line x1="120" y1="245" x2="120" y2="500" class="wedge-edge" />
+  <text x="180" y="390" class="label">wedge</text>
+  <g transform="translate(268,314) rotate(33.5)">
+    <rect x="-58" y="-30" width="116" height="60" rx="2" class="crate" />
+    <text x="-20" y="8" class="label">crate</text>
+  </g>
+  <text x="260" y="288" class="math">m</text>
+  <line x1="268" y1="350" x2="268" y2="420" class="gline" />
+  <polygon points="268,440 243,420 293,420" class="ghead" />
+  <text x="284" y="392" class="math">g</text>
+  <text x="396" y="460" class="math">θ</text>
+</svg>

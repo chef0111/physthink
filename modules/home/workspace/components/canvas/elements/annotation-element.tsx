@@ -5,6 +5,37 @@ import { Text, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import type { AnnotationElement } from '@/stores/scene-store';
 
+const MIN_FONT_SIZE = 0.06;
+const MAX_FONT_SIZE = 0.16;
+const DEFAULT_LABEL_FONT_SIZE = 0.1;
+const DEFAULT_ANGLE_FONT_SIZE = 0.1;
+const DEFAULT_DIMENSION_FONT_SIZE = 0.1;
+const DEFAULT_AXIS_FONT_SIZE = 0.09;
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function safeFontSize(value: number | undefined, fallback: number) {
+  const resolved = Number.isFinite(value) ? (value as number) : fallback;
+  return clampNumber(resolved, MIN_FONT_SIZE, MAX_FONT_SIZE);
+}
+
+function getScaleFactor(scale: AnnotationElement['scale']): number {
+  if (!scale || scale.length !== 3) return 1;
+  const maxAxis = Math.max(
+    Math.abs(scale[0]),
+    Math.abs(scale[1]),
+    Math.abs(scale[2]),
+    1
+  );
+  return Number.isFinite(maxAxis) ? maxAxis : 1;
+}
+
+function getScaledFontSize(element: AnnotationElement, fallback: number): number {
+  return safeFontSize(element.fontSize, fallback) / getScaleFactor(element.scale);
+}
+
 export function AnnotationElementRenderer({
   element,
 }: {
@@ -34,7 +65,11 @@ function LabelAnnotation({ element }: { element: AnnotationElement }) {
   return (
     <group>
       <Text
+<<<<<<< Updated upstream
         fontSize={fontSize}
+=======
+        fontSize={getScaledFontSize(element, DEFAULT_LABEL_FONT_SIZE)}
+>>>>>>> Stashed changes
         color={element.color ?? '#ffffff'}
         anchorX="center"
         anchorY="middle"
@@ -80,7 +115,11 @@ function AngleMarkerAnnotation({ element }: { element: AnnotationElement }) {
             arcPoints[Math.floor(arcPoints.length / 2)][1] * 1.5,
             arcPoints[Math.floor(arcPoints.length / 2)][2] * 1.5,
           ]}
+<<<<<<< Updated upstream
           fontSize={Math.min(element.fontSize ?? 0.18, 0.3)}
+=======
+          fontSize={getScaledFontSize(element, DEFAULT_ANGLE_FONT_SIZE)}
+>>>>>>> Stashed changes
           color={element.color ?? '#ffcc00'}
         >
           {element.text}
@@ -113,7 +152,11 @@ function DimensionAnnotation({ element }: { element: AnnotationElement }) {
             (start[1] + end[1]) / 2 + 0.15,
             (start[2] + end[2]) / 2,
           ]}
+<<<<<<< Updated upstream
           fontSize={Math.min(element.fontSize ?? 0.15, 0.3)}
+=======
+          fontSize={getScaledFontSize(element, DEFAULT_DIMENSION_FONT_SIZE)}
+>>>>>>> Stashed changes
           color={color}
         >
           {element.text}
@@ -151,13 +194,25 @@ function CoordinateAxesAnnotation({ element }: { element: AnnotationElement }) {
         color="#3982f7"
         lineWidth={2}
       />
-      <Text position={[axisLength + 0.1, 0, 0]} fontSize={0.12} color="#f73939">
+      <Text
+        position={[axisLength + 0.1, 0, 0]}
+        fontSize={getScaledFontSize(element, DEFAULT_AXIS_FONT_SIZE)}
+        color="#f73939"
+      >
         x
       </Text>
-      <Text position={[0, axisLength + 0.1, 0]} fontSize={0.12} color="#2bf739">
+      <Text
+        position={[0, axisLength + 0.1, 0]}
+        fontSize={getScaledFontSize(element, DEFAULT_AXIS_FONT_SIZE)}
+        color="#2bf739"
+      >
         y
       </Text>
-      <Text position={[0, 0, axisLength + 0.1]} fontSize={0.12} color="#3982f7">
+      <Text
+        position={[0, 0, axisLength + 0.1]}
+        fontSize={getScaledFontSize(element, DEFAULT_AXIS_FONT_SIZE)}
+        color="#3982f7"
+      >
         z
       </Text>
     </group>
