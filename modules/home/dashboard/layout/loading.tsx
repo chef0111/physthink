@@ -1,8 +1,6 @@
-import { Box, CalendarIcon, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { ChevronDown } from 'lucide-react';
+import { CalendarSkeleton } from '@/components/ui/calendar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CompactCalendar } from '@/modules/home/dashboard/components/compact-calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Sidebar,
@@ -15,44 +13,42 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  FilterSelectFallback,
+  SortSelectFallback,
+} from '@/components/filter/fallback';
 
 export const WelcomeBannerFallback = () => {
   return (
     <div className="flex flex-col items-start max-lg:w-full sm:flex-row sm:items-center lg:flex-col lg:items-start">
-      <div className="my-auto h-fit space-y-2 max-lg:w-full">
-        <h1 className="text-2xl leading-none font-bold tracking-tight">
-          WELCOME BACK!
-        </h1>
-        <Skeleton className="mb-8 h-5 w-2/3 max-sm:mb-4" />
+      <div className="my-auto flex h-fit flex-col gap-3 max-lg:w-full">
+        <Skeleton className="h-5.5 w-48" />
+        <Skeleton className="mb-8 h-4.5 w-2/3 max-sm:mb-4" />
       </div>
-      <div className="mx-auto flex w-full flex-col space-y-3 sm:w-fit">
-        <h2 className="text-muted-foreground text-sm font-medium tracking-wider uppercase max-lg:hidden">
-          Calendar
-        </h2>
-        <Calendar
-          mode="single"
-          className="ring-border/20 mb-0 rounded-lg border ring-3 max-lg:hidden"
-        />
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="pointer-events-none size-17 rounded-lg bg-transparent! max-md:hidden lg:hidden"
-          >
-            <CalendarIcon className="text-muted-foreground size-10" />
-          </Button>
-          <CompactCalendar className="w-full justify-center sm:w-fit lg:hidden" />
-        </div>
+      <div className="mx-auto flex w-full flex-col gap-4 sm:w-fit">
+        <Skeleton className="h-4 w-20 max-lg:hidden" />
+        <CalendarSkeleton className="ring-border/20 mb-0 rounded-lg border ring-3 max-lg:hidden" />
       </div>
       <Card className="mt-4 flex w-full flex-col gap-2 space-y-2 p-4 sm:w-fit lg:w-full">
-        <h2 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
-          Activity
-        </h2>
-        <Button className="w-full justify-start gap-2">
-          <Box className="size-4" />
-          Create 3D Illustration
-        </Button>
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-9 w-full" />
       </Card>
     </div>
+  );
+};
+
+export const CourseFilterFallback = () => {
+  return (
+    <>
+      <SortSelectFallback
+        className="max-sm:w-full"
+        containerClassName="max-sm:w-full"
+      />
+      <FilterSelectFallback
+        className="max-sm:w-full"
+        containerClassName="max-sm:w-full"
+      />
+    </>
   );
 };
 

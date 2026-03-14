@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     authInterrupts: true,
     optimizeCss: true,
     staleTimes: {
-      // dynamic: 300,
+      dynamic: 300,
       static: 3600,
     },
   },

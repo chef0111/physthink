@@ -14,7 +14,10 @@ import {
 } from '@/modules/home/courses/layout/loading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { WelcomeBannerFallback } from '@/modules/home/dashboard/layout/loading';
+import {
+  CourseFilterFallback,
+  WelcomeBannerFallback,
+} from '@/modules/home/dashboard/layout/loading';
 import { Settings2 } from 'lucide-react';
 
 export default function Dashboard({ searchParams }: RouteParams) {
@@ -41,16 +44,18 @@ export default function Dashboard({ searchParams }: RouteParams) {
                   Enrolled Course
                 </h2>
                 <div className="flex items-center gap-2 max-sm:w-full max-sm:flex-col">
-                  <SortSelect
-                    options={CourseSortOptions}
-                    className="max-sm:w-full"
-                    containerClassName="max-sm:w-full"
-                  />
-                  <FilterSelect
-                    filters={EnrolledCourseFilterOptions}
-                    className="max-sm:w-full"
-                    containerClassName="max-sm:w-full"
-                  />
+                  <Suspense fallback={<CourseFilterFallback />}>
+                    <SortSelect
+                      options={CourseSortOptions}
+                      className="max-sm:w-full"
+                      containerClassName="max-sm:w-full"
+                    />
+                    <FilterSelect
+                      filters={EnrolledCourseFilterOptions}
+                      className="max-sm:w-full"
+                      containerClassName="max-sm:w-full"
+                    />
+                  </Suspense>
                 </div>
               </div>
               <Suspense

@@ -14,14 +14,10 @@ import {
   FilterSelectFallback,
   SortSelectFallback,
 } from '@/components/filter/fallback';
-import { useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
 export const CourseFilterFallback = () => {
-  const { open: sidebarOpen } = useSidebar();
-  const className = sidebarOpen
-    ? 'w-full sm:w-auto md:w-full lg:w-auto'
-    : 'sm:w-auto';
+  const className = 'w-full sm:w-auto md:w-full lg:w-auto';
 
   return (
     <>
