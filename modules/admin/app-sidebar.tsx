@@ -1,8 +1,8 @@
 'use client';
 
-import * as React from 'react';
+import { Suspense } from 'react';
 
-import { NavMain } from './nav-main';
+import { NavMain, NavMainFallback } from './nav-main';
 import { NavSecondary } from './nav-secondary';
 import { NavUser } from '@/components/user/user-nav';
 import {
@@ -39,7 +39,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={adminSidebarData.navMain} />
+        <Suspense
+          fallback={<NavMainFallback items={adminSidebarData.navMain} />}
+        >
+          <NavMain items={adminSidebarData.navMain} />
+        </Suspense>
         <NavSecondary
           items={adminSidebarData.navSecondary}
           className="absolute bottom-16 pr-6 transition-all duration-200 group-data-[collapsible=icon]:bottom-12"

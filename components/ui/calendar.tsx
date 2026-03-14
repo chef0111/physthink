@@ -10,6 +10,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -226,4 +227,43 @@ function CalendarDayButton({
   );
 }
 
-export { Calendar, CalendarDayButton };
+function CalendarSkeleton({ className }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="calendar-skeleton"
+      className={cn(
+        'bg-background group/calendar w-fit px-3.5 py-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(8)]',
+        className
+      )}
+    >
+      <div className="flex flex-col gap-4">
+        <div className="relative flex h-(--cell-size) items-center justify-between">
+          <Skeleton className="size-6 rounded-md" />
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="size-6 rounded-md" />
+        </div>
+
+        <div className="flex">
+          {Array.from({ length: 7 }).map((_, index) => (
+            <Skeleton key={`weekday-${index}`} className="mx-1 h-4 flex-1" />
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 5 }).map((_, weekIndex) => (
+            <div key={`week-${weekIndex}`} className="flex w-full gap-1">
+              {Array.from({ length: 7 }).map((_, dayIndex) => (
+                <Skeleton
+                  key={`day-${weekIndex}-${dayIndex}`}
+                  className="aspect-square min-w-7 flex-1 rounded-(--cell-radius)"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export { Calendar, CalendarDayButton, CalendarSkeleton };

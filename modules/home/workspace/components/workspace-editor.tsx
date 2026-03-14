@@ -1,6 +1,5 @@
 'use client';
 
-import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { orpc } from '@/lib/orpc';
@@ -36,8 +35,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 const MAX_SCENE_DATA_SIZE = 2 * 1024 * 1024; // 2MB
 
-export function WorkspaceEditor() {
-  const params = useParams<{ id: string }>();
+export function WorkspaceEditor({ id }: { id: string }) {
   const [title, setTitle] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>(
     'idle'
@@ -48,7 +46,7 @@ export function WorkspaceEditor() {
 
   const queryClient = useQueryClient();
   const queryOptions = orpc.workspace.get.queryOptions({
-    input: { id: params.id },
+    input: { id },
   });
   const { data: workspace, isLoading } = useQuery(queryOptions);
 
@@ -65,14 +63,14 @@ export function WorkspaceEditor() {
   useEffect(() => {
     hydratedRef.current = null;
     useSceneStore.getState().loadScene(null);
-  }, [params.id]);
+  }, [id]);
 
   useEffect(() => {
-    if (workspace && hydratedRef.current !== params.id) {
-      hydratedRef.current = params.id;
+    if (workspace && hydratedRef.current !== id) {
+      hydratedRef.current = id;
       useSceneStore.getState().loadScene(workspace.sceneData);
     }
-  }, [workspace, params.id]);
+  }, [workspace, id]);
 
   const saveSceneData = useCallback(
     (sceneData: unknown) => {
@@ -83,7 +81,7 @@ export function WorkspaceEditor() {
         );
         return;
       }
-      updateMutation.mutate({ id: params.id, sceneData });
+      updateMutation.mutate({ id: id, sceneData });
       queryClient.setQueryData(queryOptions.queryKey, (old) => {
         if (old) {
           return { ...old, sceneData };
@@ -91,7 +89,7 @@ export function WorkspaceEditor() {
         return old;
       });
     },
-    [params.id, updateMutation, queryClient, queryOptions.queryKey]
+    [id, updateMutation, queryClient, queryOptions.queryKey]
   );
 
   useEffect(() => {
@@ -120,7 +118,7 @@ export function WorkspaceEditor() {
     return () => {
       unsubscribe();
       debouncedSave.cancel();
-      if (hydratedRef.current === params.id) {
+      if (hydratedRef.current === id) {
         const state = useSceneStore.getState();
         saveRef.current?.({
           elements: state.elements,
@@ -128,7 +126,7 @@ export function WorkspaceEditor() {
         });
       }
     };
-  }, [debouncedSave, params.id]);
+  }, [debouncedSave, id]);
 
   useEffect(() => {
     if (workspace?.title) {
@@ -138,9 +136,9 @@ export function WorkspaceEditor() {
 
   const handleTitleBlur = useCallback(() => {
     if (title && title !== workspace?.title) {
-      updateMutation.mutate({ id: params.id, title });
+      updateMutation.mutate({ id: id, title });
     }
-  }, [title, workspace?.title, params.id, updateMutation]);
+  }, [title, workspace?.title, id, updateMutation]);
 
   if (!workspace && !isLoading) {
     return (
@@ -207,7 +205,7 @@ export function WorkspaceEditor() {
           <SidebarContent className="flex-1 overflow-y-auto p-0">
             {workspace ? (
               <WorkspaceChat
-                workspaceId={params.id}
+                workspaceId={id}
                 initialMessages={dbMessagesToAiMessages(workspace.messages)}
               />
             ) : (

@@ -12,7 +12,7 @@ import { CompactCalendar } from '@/modules/home/dashboard/components/compact-cal
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, Box } from 'lucide-react';
 import Link from 'next/link';
-import { Card } from '@/components/ui/card';
+import { Card, CardTitle } from '@/components/ui/card';
 
 export const WelcomeBanner = async () => {
   const session = await requireSession();
@@ -47,10 +47,10 @@ export const WelcomeBanner = async () => {
         </div>
       </div>
       <Card className="mt-4 flex w-full flex-col gap-2 space-y-2 p-4 sm:w-fit lg:w-full">
-        <h2 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
+        <CardTitle className="text-sm font-medium tracking-wider uppercase">
           Activity
-        </h2>
-        <Button className="w-full justify-start gap-2" asChild>
+        </CardTitle>
+        <Button asChild>
           <Link href="/dashboard/workspace">
             <Box className="size-4" />
             Create 3D Illustration
