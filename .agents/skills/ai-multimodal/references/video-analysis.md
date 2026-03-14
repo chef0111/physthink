@@ -21,15 +21,18 @@ Comprehensive guide for video understanding, temporal analysis, and YouTube proc
 ## Model Selection
 
 ### Gemini 2.5 Series
+
 - **gemini-2.5-pro**: Best quality, 1M-2M context
 - **gemini-2.5-flash**: Balanced, 1M-2M context
 - **gemini-2.5-flash-preview-09-2025**: Preview features, 1M context
 
 ### Gemini 2.0 Series
+
 - **gemini-2.0-flash**: Fast processing
 - **gemini-2.0-flash-lite**: Lightweight option
 
 ### Context Windows
+
 - **2M token models**: ~2 hours (default) or ~6 hours (low-res)
 - **1M token models**: ~1 hour (default) or ~3 hours (low-res)
 
@@ -381,16 +384,19 @@ response = client.models.generate_content(
 Video tokens depend on resolution and FPS:
 
 **Default resolution** (~300 tokens/second):
+
 - 1 minute = 18,000 tokens
 - 10 minutes = 180,000 tokens
 - 1 hour = 1,080,000 tokens
 
 **Low resolution** (~100 tokens/second):
+
 - 1 minute = 6,000 tokens
 - 10 minutes = 60,000 tokens
 - 1 hour = 360,000 tokens
 
 **Context windows**:
+
 - 2M tokens ≈ 2 hours (default) or 6 hours (low-res)
 - 1M tokens ≈ 1 hour (default) or 3 hours (low-res)
 
@@ -409,12 +415,14 @@ Video tokens depend on resolution and FPS:
 ### Optimization Strategies
 
 **Reduce token usage**:
+
 - Process specific segments using start/end offsets
 - Use lower FPS for static content
 - Use low-resolution mode for long videos
 - Split very long videos into chunks
 
 **Improve accuracy**:
+
 - Provide context in prompts
 - Use higher FPS for fast-moving content
 - Use Pro model for complex analysis
@@ -423,12 +431,14 @@ Video tokens depend on resolution and FPS:
 ### Prompt Engineering
 
 **Effective prompts**:
+
 - "Summarize key points with timestamps in MM:SS format"
 - "Identify all scene changes and describe each scene"
 - "Extract action items mentioned with timestamps"
 - "Compare these two videos on: X, Y, Z criteria"
 
 **Structured output**:
+
 ```python
 from pydantic import BaseModel
 from typing import List
@@ -480,11 +490,13 @@ def upload_and_process_video(file_path, max_wait=300):
 ## Cost Optimization
 
 **Token costs** (Gemini 2.5 Flash at $1/1M):
+
 - 1 minute video (default): 18,000 tokens = $0.018
 - 10 minute video: 180,000 tokens = $0.18
 - 1 hour video: 1,080,000 tokens = $1.08
 
 **Strategies**:
+
 - Use video clipping for specific segments
 - Lower FPS for static content
 - Use low-resolution mode for long videos

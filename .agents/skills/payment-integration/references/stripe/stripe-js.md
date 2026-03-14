@@ -11,6 +11,7 @@ Include on **every page** (enables fraud detection):
 ```
 
 Or via npm:
+
 ```bash
 npm install @stripe/stripe-js
 ```
@@ -24,9 +25,9 @@ const stripe = await loadStripe('pk_test_...');
 
 ```javascript
 const stripe = Stripe('pk_test_...', {
-  apiVersion: '2024-12-18.acacia',  // Optional
-  locale: 'auto',                    // Optional
-  stripeAccount: 'acct_xxx',        // For Connect
+  apiVersion: '2024-12-18.acacia', // Optional
+  locale: 'auto', // Optional
+  stripeAccount: 'acct_xxx', // For Connect
 });
 ```
 
@@ -78,13 +79,13 @@ checkout.mount('#checkout');
 
 ## Element Types
 
-| Element | Use Case |
-|---------|----------|
-| `payment` | Full payment form (recommended) |
-| `card` | Card-only input |
-| `address` | Shipping/billing address |
-| `linkAuthentication` | Link login/signup |
-| `expressCheckout` | Apple Pay, Google Pay buttons |
+| Element              | Use Case                        |
+| -------------------- | ------------------------------- |
+| `payment`            | Full payment form (recommended) |
+| `card`               | Card-only input                 |
+| `address`            | Shipping/billing address        |
+| `linkAuthentication` | Link login/signup               |
+| `expressCheckout`    | Apple Pay, Google Pay buttons   |
 
 ## Appearance API
 

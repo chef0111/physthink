@@ -38,6 +38,7 @@ await page.locator('[data-testid="submit-btn"]').click();
 ## Common Patterns
 
 ### Wait for API
+
 ```typescript
 const responsePromise = page.waitForResponse('**/api/users');
 await page.click('button:text("Load")');
@@ -45,8 +46,9 @@ await responsePromise;
 ```
 
 ### Mock API
+
 ```typescript
-await page.route('**/api/users', route =>
+await page.route('**/api/users', (route) =>
   route.fulfill({ status: 200, body: JSON.stringify([]) })
 );
 ```

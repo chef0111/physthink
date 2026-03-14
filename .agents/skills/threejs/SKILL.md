@@ -12,6 +12,7 @@ Build high-performance 3D web applications using Three.js - a cross-browser WebG
 ## When to Use This Skill
 
 Use when working with:
+
 - 3D scenes, models, animations, or visualizations
 - WebGL/WebGPU rendering and graphics programming
 - Interactive 3D experiences (games, configurators, data viz)
@@ -24,10 +25,12 @@ Use when working with:
 ## Progressive Learning Path
 
 ### Level 1: Getting Started
+
 - Load `references/00-fundamentals.md` - Fundamentals
 - Load `references/01-getting-started.md` - Scene setup, basic geometries, materials, lights, rendering loop
 
 ### Level 2: Common Tasks
+
 - **Asset Loading**: `references/02-loaders.md` - GLTF, FBX, OBJ, texture loaders
 - **Textures**: `references/03-textures.md` - Types, mapping, wrapping, filtering
 - **Cameras**: `references/04-cameras.md` - Perspective, orthographic, controls
@@ -38,16 +41,19 @@ Use when working with:
 - **Materials**: `references/11-materials.md` - PBR, basic, phong, lambert, physical, toon, normal, depth, raw, shader materials, material properties
 
 ### Level 3: Interactive & Effects
+
 - **Interaction**: `references/08-interaction.md` - Raycasting, picking, transforms
 - **Post-Processing**: `references/09-postprocessing.md` - Passes, bloom, SSAO, SSR
 - **Controls (Addons)**: `references/10-controls.md` - Orbit, transform, first-person
 
 ### Level 4: Advanced Rendering
+
 - **Materials Advanced**: `references/11-materials-advanced.md` - PBR, custom shaders
 - **Performance**: `references/12-performance.md` - Instancing, LOD, batching, culling
 - **Node Materials (TSL)**: `references/13-node-materials.md` - Shader graphs, compute
 
 ### Level 5: Specialized
+
 - **Physics**: `references/14-physics-vr.md` - Ammo, Rapier, Jolt, VR/XR
 - **Advanced Loaders**: `references/15-specialized-loaders.md` - SVG, VRML, domain-specific
 - **WebGPU**: `references/16-webgpu.md` - Modern backend, compute shaders
@@ -58,7 +64,12 @@ Use when working with:
 ```javascript
 // 1. Scene, Camera, Renderer
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);

@@ -54,7 +54,9 @@ class SePayWebhookVerifier {
       }
 
       // In production, verify token with OAuth2 provider
-      console.log('✓ OAuth2 token present (full verification needed in production)');
+      console.log(
+        '✓ OAuth2 token present (full verification needed in production)'
+      );
       return true;
     }
 
@@ -79,7 +81,7 @@ class SePayWebhookVerifier {
       'accountNumber',
       'transferType',
       'transferAmount',
-      'referenceCode'
+      'referenceCode',
     ];
 
     for (const field of required) {
@@ -94,7 +96,10 @@ class SePayWebhookVerifier {
     }
 
     // Validate amount
-    if (typeof payload.transferAmount !== 'number' || payload.transferAmount <= 0) {
+    if (
+      typeof payload.transferAmount !== 'number' ||
+      payload.transferAmount <= 0
+    ) {
       throw new Error('Invalid transferAmount');
     }
 
@@ -124,19 +129,19 @@ class SePayWebhookVerifier {
         transferAmount: payload.transferAmount,
         accumulated: payload.accumulated || 0,
         subAccount: payload.subAccount || null,
-        referenceCode: payload.referenceCode
+        referenceCode: payload.referenceCode,
       };
 
       return {
         success: true,
         transaction,
         isIncoming: transaction.transferType === 'in',
-        isOutgoing: transaction.transferType === 'out'
+        isOutgoing: transaction.transferType === 'out',
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -149,7 +154,9 @@ if (require.main === module) {
   if (args.length === 0) {
     console.log('Usage: node sepay-webhook-verify.js <webhook-payload-json>');
     console.log('\nEnvironment Variables:');
-    console.log('  SEPAY_WEBHOOK_AUTH_TYPE - Authentication type (api_key, oauth2, none)');
+    console.log(
+      '  SEPAY_WEBHOOK_AUTH_TYPE - Authentication type (api_key, oauth2, none)'
+    );
     console.log('  SEPAY_WEBHOOK_API_KEY - API key for verification');
     process.exit(1);
   }
@@ -175,7 +182,9 @@ if (require.main === module) {
       console.log(`  ID: ${result.transaction.id}`);
       console.log(`  Gateway: ${result.transaction.gateway}`);
       console.log(`  Type: ${result.transaction.transferType}`);
-      console.log(`  Amount: ${result.transaction.transferAmount.toLocaleString('vi-VN')} VND`);
+      console.log(
+        `  Amount: ${result.transaction.transferAmount.toLocaleString('vi-VN')} VND`
+      );
       console.log(`  Reference: ${result.transaction.referenceCode}`);
       console.log(`  Content: ${result.transaction.content || 'N/A'}`);
       console.log(`\n  Incoming: ${result.isIncoming ? 'Yes' : 'No'}`);

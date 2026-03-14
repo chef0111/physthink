@@ -17,6 +17,7 @@ domains or tasks—they transform Claude from a general-purpose agent into a spe
 equipped with procedural knowledge that no model can fully possess.
 
 **IMPORTANT:**
+
 - Skills are not documentation, they are practical instructions for Claude Code to use the tools, packages, plugins or APIs to achieve the tasks.
 - Each skill teaches Claude how to perform a specific development task, not what a tool does.
 - Claude Code can activate multiple skills automatically to achieve the user's request.
@@ -65,6 +66,7 @@ Every skill consists of a required SKILL.md file and optional bundled resources:
   - Always write tests for these scripts.
 
 **IMPORTANT:**
+
 - Always keep in mind that `SKILL.md` and reference files should be token consumption efficient, so that **progressive disclosure** can be leveraged at best.
 - `SKILL.md` should be **less than 150 lines**
 - Referenced markdown files should be also **less than 150 lines**, remember that you can always split them into multiple files (**progressive disclosure** principle).
@@ -93,6 +95,7 @@ Executable code (Python/Bash/etc.) for tasks that require deterministic reliabil
 - **Note**: Scripts may still need to be read by Claude for patching or environment-specific adjustments
 
 **IMPORTANT:**
+
 - Write tests for scripts.
 - Run tests and make sure it works, if tests fail, fix them and run tests again, repeat until tests pass.
 - Run scripts manually with some usecases to make sure it works.
@@ -110,6 +113,7 @@ Documentation and reference material intended to be loaded as needed into contex
 - **Avoid duplication**: Information should live in either `SKILL.md` or `references` files, not both. Prefer `references` files for detailed information unless it's truly core to the skill—this keeps `SKILL.md` lean while making information discoverable without hogging the context window. Keep only essential procedural instructions and workflow guidance in `SKILL.md`; move detailed reference material, schemas, and examples to `references` files.
 
 **IMPORTANT:**
+
 - Referenced markdown files should be also **less than 150 lines**, remember that you can always split them into multiple files (**progressive disclosure** principle).
 - Referenced markdown files are practical instructions for Claude Code to use the tools, packages, plugins or APIs to achieve the tasks.
 - Each skill teaches Claude how to perform a specific development task, not what a tool does.
@@ -129,9 +133,9 @@ Skills use a three-level loading system to manage context efficiently:
 
 1. **Metadata (name + description)** - Always in context (**less than 200 characters**)
 2. **SKILL.md body** - When skill triggers (<5k words)
-3. **Bundled resources** - As needed by Claude (Unlimited*)
+3. **Bundled resources** - As needed by Claude (Unlimited\*)
 
-*Unlimited because scripts can be executed without reading into context window.
+\*Unlimited because scripts can be executed without reading into context window.
 
 ## Skill Creation Process
 
@@ -165,6 +169,7 @@ Activate `/docs-seeker` skill to search for documentation if needed.
 If you receive a lot of URLs or files, use multiple `WebFetch` tools and `Explore` subagents to explore them in parallel, then report back to main agent.
 
 Activate `/research` skill to research for:
+
 - Best practices & industry standards
 - Existing CLI tools (executable via `npx`, `bunx` or `pipx`) and their usage patterns
 - Workflows & success case studies
@@ -276,6 +281,7 @@ If validation fails, the script will report the errors and exit without creating
 After testing the skill, users may request improvements. Often this happens right after using the skill, with fresh context of how the skill performed.
 
 **Iteration workflow:**
+
 1. Use the skill on real tasks
 2. Notice struggles or inefficiencies
 3. Notice token usage and performance
@@ -295,6 +301,7 @@ Detailed validation criteria for evaluating skills:
 ## Plugin Marketplaces
 
 For distributing skills as plugins via marketplaces, see:
+
 - **Overview**: `references/plugin-marketplace-overview.md`
 - **Schema**: `references/plugin-marketplace-schema.md`
 - **Sources**: `references/plugin-marketplace-sources.md`
@@ -302,6 +309,7 @@ For distributing skills as plugins via marketplaces, see:
 - **Troubleshooting**: `references/plugin-marketplace-troubleshooting.md`
 
 ## References
+
 - [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills.md)
 - [Agent Skills Spec](../agent_skills_spec.md)
 - [Agent Skills Overview](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview.md)

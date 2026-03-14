@@ -8,12 +8,12 @@
 
 ## Tool Support
 
-| Tool | Support | Method |
-|------|---------|--------|
-| Playwright | Native | `>>` piercing selector |
-| Cypress | Good | `.shadow()` command |
-| Selenium | Limited | JS execution |
-| Axe | v5.7+ | API support |
+| Tool       | Support | Method                 |
+| ---------- | ------- | ---------------------- |
+| Playwright | Native  | `>>` piercing selector |
+| Cypress    | Good    | `.shadow()` command    |
+| Selenium   | Limited | JS execution           |
+| Axe        | v5.7+   | API support            |
 
 ## Playwright Shadow Piercing
 
@@ -35,7 +35,10 @@ cy.get('my-component').shadow().find('.internal-button').click();
 
 ```javascript
 const shadowHost = driver.findElement(By.css('my-component'));
-const shadowRoot = driver.executeScript('return arguments[0].shadowRoot', shadowHost);
+const shadowRoot = driver.executeScript(
+  'return arguments[0].shadowRoot',
+  shadowHost
+);
 const button = shadowRoot.findElement(By.css('button'));
 ```
 

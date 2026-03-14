@@ -163,7 +163,7 @@ import { WebGPURenderTarget } from 'three/addons/renderers/webgpu/WebGPURenderTa
 
 const renderTarget = new WebGPURenderTarget(width, height, {
   count: 3, // number of render targets
-  format: THREE.RGBAFormat
+  format: THREE.RGBAFormat,
 });
 
 // Access individual textures
@@ -285,6 +285,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3u) {
 ## Browser Support
 
 As of 2025:
+
 - ✅ Chrome 113+
 - ✅ Edge 113+
 - ✅ Safari 18+ (macOS/iOS)

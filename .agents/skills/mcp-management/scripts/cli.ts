@@ -62,7 +62,9 @@ async function listTools(manager: MCPClientManager) {
     console.log(`📦 ${tool.serverName} / ${tool.name}`);
     console.log(`   ${tool.description}`);
     if (tool.inputSchema?.properties) {
-      console.log(`   Parameters: ${Object.keys(tool.inputSchema.properties).join(', ')}`);
+      console.log(
+        `   Parameters: ${Object.keys(tool.inputSchema.properties).join(', ')}`
+      );
     }
     console.log('');
   }
@@ -88,7 +90,9 @@ async function listPrompts(manager: MCPClientManager) {
     console.log(`💬 ${prompt.serverName} / ${prompt.name}`);
     console.log(`   ${prompt.description}`);
     if (prompt.arguments && prompt.arguments.length > 0) {
-      console.log(`   Arguments: ${prompt.arguments.map((a: any) => a.name).join(', ')}`);
+      console.log(
+        `   Arguments: ${prompt.arguments.map((a: any) => a.name).join(', ')}`
+      );
     }
     console.log('');
   }

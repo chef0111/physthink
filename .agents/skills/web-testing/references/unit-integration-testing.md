@@ -2,11 +2,11 @@
 
 ## Framework Selection
 
-| Framework | Speed | Best For |
-|-----------|-------|----------|
-| Vitest | Fastest | Modern projects |
-| Jest | Fast | React/CRA |
-| Mocha | Raw speed | Node.js/APIs |
+| Framework | Speed     | Best For        |
+| --------- | --------- | --------------- |
+| Vitest    | Fastest   | Modern projects |
+| Jest      | Fast      | React/CRA       |
+| Mocha     | Raw speed | Node.js/APIs    |
 
 ## Test Structure (AAA)
 
@@ -33,8 +33,7 @@ describe('UserService', () => {
   });
 
   it('throws on invalid email', () => {
-    expect(() => service.create({ email: 'invalid' }))
-      .toThrow('Invalid email');
+    expect(() => service.create({ email: 'invalid' })).toThrow('Invalid email');
   });
 });
 ```
@@ -75,11 +74,11 @@ it('test1');
 
 ## Coverage Targets
 
-| Area | Target |
-|------|--------|
-| Critical paths | 100% |
-| Core features | 80-90% |
-| Overall | 75-85% |
+| Area           | Target |
+| -------------- | ------ |
+| Critical paths | 100%   |
+| Core features  | 80-90% |
+| Overall        | 75-85% |
 
 ## Commands
 

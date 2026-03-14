@@ -83,7 +83,7 @@ async function handlePastDue(subscriptionId: string) {
   // Email customer with portal link
   await sendEmail(sub.customer.email, {
     subject: 'Update your payment method',
-    link: portal.urls.general.overview
+    link: portal.urls.general.overview,
   });
 }
 ```
@@ -93,7 +93,7 @@ async function handlePastDue(subscriptionId: string) {
 ```typescript
 // Use sandbox environment
 const paddle = new Paddle(process.env.PADDLE_API_KEY, {
-  environment: 'sandbox'
+  environment: 'sandbox',
 });
 
 // Sandbox card: 4242 4242 4242 4242
@@ -106,7 +106,7 @@ const paddle = new Paddle(process.env.PADDLE_API_KEY, {
 // Preview localized prices before checkout
 const preview = await paddle.PricePreview({
   items: [{ priceId: 'pri_xxx', quantity: 1 }],
-  address: { countryCode: customerCountry }
+  address: { countryCode: customerCountry },
 });
 
 // Display localized price
@@ -116,6 +116,7 @@ const formattedPrice = preview.data.details.totals.total;
 ## Paddle Retain (Churn Prevention)
 
 Features enabled in dashboard:
+
 - **Payment recovery**: Automated dunning emails
 - **Cancellation surveys**: Collect feedback + offer discounts
 - **Term optimization**: Auto-upgrade annual suggestions

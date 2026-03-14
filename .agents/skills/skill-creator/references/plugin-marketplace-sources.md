@@ -41,11 +41,11 @@ Pin to specific branch, tag, or commit:
 }
 ```
 
-| Field  | Type   | Description                                          |
-|--------|--------|------------------------------------------------------|
-| `repo` | string | Required. GitHub repo in `owner/repo` format         |
-| `ref`  | string | Optional. Git branch or tag                          |
-| `sha`  | string | Optional. Full 40-char git commit SHA                |
+| Field  | Type   | Description                                  |
+| ------ | ------ | -------------------------------------------- |
+| `repo` | string | Required. GitHub repo in `owner/repo` format |
+| `ref`  | string | Optional. Git branch or tag                  |
+| `sha`  | string | Optional. Full 40-char git commit SHA        |
 
 ### Git Repositories (GitLab, Bitbucket, etc.)
 
@@ -60,7 +60,7 @@ Pin to specific branch, tag, or commit:
 ```
 
 | Field | Type   | Description                                 |
-|-------|--------|---------------------------------------------|
+| ----- | ------ | ------------------------------------------- |
 | `url` | string | Required. Full git URL (must end with .git) |
 | `ref` | string | Optional. Git branch or tag                 |
 | `sha` | string | Optional. Full 40-char git commit SHA       |
@@ -76,19 +76,20 @@ Pin to specific branch, tag, or commit:
   },
   "description": "Enterprise workflow automation tools",
   "version": "2.1.0",
-  "commands": [
-    "./commands/core/",
-    "./commands/enterprise/"
-  ],
+  "commands": ["./commands/core/", "./commands/enterprise/"],
   "agents": ["./agents/security-reviewer.md"],
   "hooks": {
-    "PostToolUse": [{
-      "matcher": "Write|Edit",
-      "hooks": [{
-        "type": "command",
-        "command": "${CLAUDE_PLUGIN_ROOT}/scripts/validate.sh"
-      }]
-    }]
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/validate.sh"
+          }
+        ]
+      }
+    ]
   },
   "mcpServers": {
     "enterprise-db": {

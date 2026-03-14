@@ -7,11 +7,13 @@ Modern authentication patterns including OAuth 2.1, JWT, RBAC, and MFA (2025 sta
 ### Key Changes from OAuth 2.0
 
 **Mandatory:**
+
 - PKCE (Proof Key for Code Exchange) for all clients
 - Exact redirect URI matching
 - State parameter for CSRF protection
 
 **Deprecated:**
+
 - Implicit grant flow (security risk)
 - Resource owner password credentials grant
 - Bearer token in query strings
@@ -181,12 +183,14 @@ const verified = speakeasy.totp.verify({
 ### FIDO2/WebAuthn (Passwordless - 2025 Standard)
 
 **Benefits:**
+
 - Phishing-resistant
 - No shared secrets
 - Hardware-backed security
 - Better UX (biometrics, security keys)
 
 **Implementation:**
+
 ```typescript
 // Registration
 const publicKeyCredentialCreationOptions = {
@@ -207,7 +211,10 @@ const publicKeyCredentialCreationOptions = {
 };
 
 // Use @simplewebauthn/server library
-import { verifyRegistrationResponse, verifyAuthenticationResponse } from '@simplewebauthn/server';
+import {
+  verifyRegistrationResponse,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server';
 ```
 
 ## Session Management
@@ -251,6 +258,7 @@ app.use(
 ### Argon2id (2025 Standard - Replaces bcrypt)
 
 **Why Argon2id:**
+
 - Winner of Password Hashing Competition (2015)
 - Memory-hard (resistant to GPU/ASIC attacks)
 - Configurable CPU and memory cost
@@ -298,22 +306,25 @@ const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex');
 await db.apiKeys.create({ userId, hashedKey, scopes: ['read'] });
 
 // Validate API key
-const providedHash = crypto.createHash('sha256').update(providedKey).digest('hex');
+const providedHash = crypto
+  .createHash('sha256')
+  .update(providedKey)
+  .digest('hex');
 const keyRecord = await db.apiKeys.findOne({ hashedKey: providedHash });
 ```
 
 ## Authentication Decision Matrix
 
-| Use Case | Recommended Approach |
-|----------|---------------------|
-| Web application | OAuth 2.1 + JWT |
-| Mobile app | OAuth 2.1 + PKCE |
-| SPA (Single Page App) | OAuth 2.1 Authorization Code + PKCE |
-| Server-to-server | Client credentials grant + mTLS |
-| Third-party API access | API keys with scopes |
-| High-security | WebAuthn/FIDO2 + MFA |
-| Internal admin | JWT + RBAC + MFA |
-| Microservices | Service mesh (mTLS) + JWT |
+| Use Case               | Recommended Approach                |
+| ---------------------- | ----------------------------------- |
+| Web application        | OAuth 2.1 + JWT                     |
+| Mobile app             | OAuth 2.1 + PKCE                    |
+| SPA (Single Page App)  | OAuth 2.1 Authorization Code + PKCE |
+| Server-to-server       | Client credentials grant + mTLS     |
+| Third-party API access | API keys with scopes                |
+| High-security          | WebAuthn/FIDO2 + MFA                |
+| Internal admin         | JWT + RBAC + MFA                    |
+| Microservices          | Service mesh (mTLS) + JWT           |
 
 ## Security Checklist
 

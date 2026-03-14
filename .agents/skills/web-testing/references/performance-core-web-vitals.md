@@ -2,11 +2,11 @@
 
 ## Core Web Vitals (Google Ranking Factor)
 
-| Metric | Target | Description |
-|--------|--------|-------------|
-| LCP | < 2.5s | Largest Contentful Paint |
-| CLS | < 0.1 | Cumulative Layout Shift |
-| INP | < 200ms | Interaction to Next Paint |
+| Metric | Target  | Description               |
+| ------ | ------- | ------------------------- |
+| LCP    | < 2.5s  | Largest Contentful Paint  |
+| CLS    | < 0.1   | Cumulative Layout Shift   |
+| INP    | < 200ms | Interaction to Next Paint |
 
 ## Lighthouse CI Setup
 
@@ -55,14 +55,17 @@ npx webpack-bundle-analyzer dist/stats.json
 ## Optimization Checklist
 
 ### LCP
+
 - [ ] Lazy load below-fold images
 - [ ] Preload critical resources
 - [ ] Use CDN
 
 ### CLS
+
 - [ ] Reserve space for images (width/height)
 - [ ] Font loading strategy (font-display: swap)
 
 ### INP
+
 - [ ] Break long JavaScript tasks
 - [ ] Code splitting

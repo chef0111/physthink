@@ -12,8 +12,8 @@ const response = await fetch('https://api.example.com/data', {
   body: JSON.stringify({ key: 'value' }),
   cf: {
     cacheTtl: 3600,
-    cacheEverything: true
-  }
+    cacheEverything: true,
+  },
 });
 
 const data = await response.json();
@@ -47,16 +47,16 @@ export default {
       .on('title', {
         element(element) {
           element.setInnerContent('New Title');
-        }
+        },
       })
       .on('a[href]', {
         element(element) {
           const href = element.getAttribute('href');
           element.setAttribute('href', href.replace('http://', 'https://'));
-        }
+        },
       })
       .transform(response);
-  }
+  },
 };
 ```
 
@@ -81,9 +81,9 @@ export default {
 
     return new Response(null, {
       status: 101,
-      webSocket: client
+      webSocket: client,
     });
-  }
+  },
 };
 ```
 
@@ -98,7 +98,7 @@ writer.write(new TextEncoder().encode('chunk 2'));
 writer.close();
 
 return new Response(readable, {
-  headers: { 'Content-Type': 'text/plain' }
+  headers: { 'Content-Type': 'text/plain' },
 });
 ```
 
@@ -109,7 +109,7 @@ return new Response(readable, {
 const data = new TextEncoder().encode('message');
 const hashBuffer = await crypto.subtle.digest('SHA-256', data);
 const hashArray = Array.from(new Uint8Array(hashBuffer));
-const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
 // HMAC signature
 const key = await crypto.subtle.importKey(
@@ -244,12 +244,14 @@ console.warn('Warning message');
 console.debug('Debug message');
 
 // Structured logging
-console.log(JSON.stringify({
-  level: 'info',
-  message: 'Request processed',
-  url: request.url,
-  timestamp: new Date().toISOString()
-}));
+console.log(
+  JSON.stringify({
+    level: 'info',
+    message: 'Request processed',
+    url: request.url,
+    timestamp: new Date().toISOString(),
+  })
+);
 ```
 
 ## Performance API
@@ -264,8 +266,12 @@ console.log(`Processed in ${duration}ms`);
 ## Bindings Reference
 
 ### KV Operations
+
 ```typescript
-await env.KV.put(key, value, { expirationTtl: 3600, metadata: { userId: '123' } });
+await env.KV.put(key, value, {
+  expirationTtl: 3600,
+  metadata: { userId: '123' },
+});
 const value = await env.KV.get(key, 'json');
 const { value, metadata } = await env.KV.getWithMetadata(key);
 await env.KV.delete(key);
@@ -273,14 +279,18 @@ const list = await env.KV.list({ prefix: 'user:' });
 ```
 
 ### D1 Operations
+
 ```typescript
-const result = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
+const result = await env.DB.prepare('SELECT * FROM users WHERE id = ?')
+  .bind(userId)
+  .first();
 const { results } = await env.DB.prepare('SELECT * FROM users').all();
 await env.DB.prepare('INSERT INTO users (name) VALUES (?)').bind(name).run();
 await env.DB.batch([stmt1, stmt2, stmt3]);
 ```
 
 ### R2 Operations
+
 ```typescript
 await env.R2.put(key, value, { httpMetadata: { contentType: 'image/jpeg' } });
 const object = await env.R2.get(key);
@@ -290,15 +300,17 @@ const multipart = await env.R2.createMultipartUpload(key);
 ```
 
 ### Queue Operations
+
 ```typescript
 await env.QUEUE.send({ type: 'email', to: 'user@example.com' });
 await env.QUEUE.sendBatch([{ body: msg1 }, { body: msg2 }]);
 ```
 
 ### Workers AI
+
 ```typescript
 const response = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
-  messages: [{ role: 'user', content: 'What is edge computing?' }]
+  messages: [{ role: 'user', content: 'What is edge computing?' }],
 });
 ```
 

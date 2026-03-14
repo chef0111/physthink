@@ -5,6 +5,7 @@ Production-proven patterns from real SaaS implementations covering SDK initializ
 ## Environment Configuration
 
 ### Required Environment Variables
+
 ```bash
 # Core API
 POLAR_API_KEY=polar_at_xxx           # Access token from Polar Dashboard
@@ -21,6 +22,7 @@ POLAR_ENV=production                  # 'production' or 'sandbox'
 ```
 
 ### Lazy Initialization Pattern
+
 ```typescript
 // lib/polar.ts - Defer validation until first access
 import { Polar } from '@polar-sh/sdk';
@@ -64,6 +66,7 @@ export function getPolar() {
 ## Checkout Flow Implementation
 
 ### Standard Checkout API
+
 ```typescript
 // app/api/checkout/polar/route.ts
 import { NextResponse } from 'next/server';
@@ -75,15 +78,18 @@ const checkoutSchema = z.object({
   name: z.string().optional(),
   productType: z.enum(['engineer_kit', 'marketing_kit', 'combo']),
   githubUsername: z.string().min(1),
-  referralCode: z.string().regex(/^[A-Z0-9]{8}$/).optional(),
+  referralCode: z
+    .string()
+    .regex(/^[A-Z0-9]{8}$/)
+    .optional(),
   couponCode: z.string().optional(),
 });
 
 // Pricing in cents
 const PRODUCT_PRICES = {
-  engineer_kit: 9900,   // $99
-  marketing_kit: 9900,  // $99
-  combo: 14900,         // $149
+  engineer_kit: 9900, // $99
+  marketing_kit: 9900, // $99
+  combo: 14900, // $149
 } as const;
 
 export async function POST(request: Request) {
@@ -153,25 +159,31 @@ export async function POST(request: Request) {
     }
 
     // 5. Create order record BEFORE Polar checkout
-    const order = await db.insert(orders).values({
-      id: crypto.randomUUID(),
-      email: normalizedEmail,
-      productType: data.productType,
-      amount: finalAmount,
-      originalAmount,
-      currency: 'USD',
-      status: 'pending',
-      paymentProvider: 'polar',
-      referredBy: discountMetadata.referrerId,
-      discountAmount: originalAmount - finalAmount,
-      metadata: JSON.stringify({
-        ...discountMetadata,
-        githubUsername: data.githubUsername,
-      }),
-    }).returning();
+    const order = await db
+      .insert(orders)
+      .values({
+        id: crypto.randomUUID(),
+        email: normalizedEmail,
+        productType: data.productType,
+        amount: finalAmount,
+        originalAmount,
+        currency: 'USD',
+        status: 'pending',
+        paymentProvider: 'polar',
+        referredBy: discountMetadata.referrerId,
+        discountAmount: originalAmount - finalAmount,
+        metadata: JSON.stringify({
+          ...discountMetadata,
+          githubUsername: data.githubUsername,
+        }),
+      })
+      .returning();
 
     // 6. Create dynamic Polar discount (if referral applied)
-    if (discountMetadata.referrerId && discountMetadata.referralDiscountAmount > 0) {
+    if (
+      discountMetadata.referrerId &&
+      discountMetadata.referralDiscountAmount > 0
+    ) {
       try {
         const discount = await polar.discounts.create({
           type: 'fixed',
@@ -212,7 +224,6 @@ export async function POST(request: Request) {
       checkoutUrl: checkout.url,
       orderId: order[0].id,
     });
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
@@ -227,6 +238,7 @@ export async function POST(request: Request) {
 ```
 
 ### Discount Application Order (Critical)
+
 ```
 1. Original price (e.g., $99)
 2. Apply coupon discount FIRST → post-coupon price (e.g., $79)
@@ -238,6 +250,7 @@ Never apply referral to original price if coupon was used!
 ## Webhook Handling
 
 ### Signature Verification
+
 ```typescript
 // app/api/webhooks/polar/route.ts
 import { validateEvent } from '@polar-sh/sdk/webhooks';
@@ -261,7 +274,8 @@ export async function POST(request: Request) {
   const eventId = parsedPayload.id || `${parsedPayload.type}-${Date.now()}`;
 
   // Check for duplicate processing
-  const existingEvent = await db.select()
+  const existingEvent = await db
+    .select()
     .from(webhookEvents)
     .where(eq(webhookEvents.eventId, eventId))
     .limit(1);
@@ -285,13 +299,14 @@ export async function POST(request: Request) {
     await handleWebhookEvent(webhookEvent);
 
     // Mark as processed
-    await db.update(webhookEvents)
+    await db
+      .update(webhookEvents)
       .set({ processed: true, processedAt: new Date() })
       .where(eq(webhookEvents.eventId, eventId));
-
   } catch (error) {
     // Log error but don't fail the webhook
-    await db.update(webhookEvents)
+    await db
+      .update(webhookEvents)
       .set({
         processed: true,
         processedAt: new Date(),
@@ -305,6 +320,7 @@ export async function POST(request: Request) {
 ```
 
 ### Event Handlers
+
 ```typescript
 async function handleWebhookEvent(event: WebhookEvent) {
   switch (event.type) {
@@ -337,7 +353,8 @@ async function handleOrderCreated(order: PolarOrder) {
     return;
   }
 
-  const dbOrder = await db.select()
+  const dbOrder = await db
+    .select()
     .from(orders)
     .where(eq(orders.id, orderId))
     .limit(1);
@@ -348,7 +365,8 @@ async function handleOrderCreated(order: PolarOrder) {
   }
 
   // 1. Update order status
-  await db.update(orders)
+  await db
+    .update(orders)
     .set({
       status: 'completed',
       paymentId: order.id,
@@ -397,6 +415,7 @@ async function handleOrderCreated(order: PolarOrder) {
 ```
 
 ### Status Mapping
+
 ```typescript
 function mapPolarStatusToAppStatus(polarStatus: string): string | null {
   switch (polarStatus) {
@@ -417,13 +436,14 @@ function mapPolarStatusToAppStatus(polarStatus: string): string | null {
 ## Fee Calculation
 
 ### Platform Fee Structure (Dec 2025)
+
 ```typescript
 // lib/polar-fees.ts
 interface PolarFeeConfig {
-  basePercentage: number;     // 4%
-  baseFlatCents: number;      // $0.40 per transaction
-  internationalSurcharge: number;  // +1.5% for non-US cards
-  subscriptionSurcharge: number;   // +0.5% (not for one-time)
+  basePercentage: number; // 4%
+  baseFlatCents: number; // $0.40 per transaction
+  internationalSurcharge: number; // +1.5% for non-US cards
+  subscriptionSurcharge: number; // +0.5% (not for one-time)
 }
 
 const POLAR_FEES: PolarFeeConfig = {
@@ -446,10 +466,18 @@ export function calculatePolarFees(
 } {
   // Handle zero/negative
   if (amountCents <= 0) {
-    return { baseFee: 0, internationalFee: 0, subscriptionFee: 0, totalFee: 0, netRevenue: 0 };
+    return {
+      baseFee: 0,
+      internationalFee: 0,
+      subscriptionFee: 0,
+      totalFee: 0,
+      netRevenue: 0,
+    };
   }
 
-  const baseFee = Math.round(amountCents * POLAR_FEES.basePercentage + POLAR_FEES.baseFlatCents);
+  const baseFee = Math.round(
+    amountCents * POLAR_FEES.basePercentage + POLAR_FEES.baseFlatCents
+  );
   const internationalFee = isInternational
     ? Math.round(amountCents * POLAR_FEES.internationalSurcharge)
     : 0;
@@ -484,6 +512,7 @@ export function calculateAggregatePolarFees(transactionAmounts: number[]): {
 ## Discount Management
 
 ### Discount Validation with Timeout
+
 ```typescript
 // lib/polar-discounts.ts
 const VALIDATION_TIMEOUT_MS = 15000;
@@ -503,7 +532,10 @@ export async function validateDiscount(
   try {
     // Race against timeout
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Validation timeout')), VALIDATION_TIMEOUT_MS);
+      setTimeout(
+        () => reject(new Error('Validation timeout')),
+        VALIDATION_TIMEOUT_MS
+      );
     });
 
     const searchPromise = polar.discounts.list({
@@ -515,8 +547,8 @@ export async function validateDiscount(
     const result = await Promise.race([searchPromise, timeoutPromise]);
 
     // Find exact match
-    const discount = result.items.find(d =>
-      d.code?.toUpperCase() === sanitizedCode
+    const discount = result.items.find(
+      (d) => d.code?.toUpperCase() === sanitizedCode
     );
 
     if (!discount) {
@@ -531,15 +563,17 @@ export async function validateDiscount(
     if (discount.endsAt && now > new Date(discount.endsAt)) {
       return { valid: false, reason: 'Code has expired' };
     }
-    if (discount.maxRedemptions && discount.redemptionsCount >= discount.maxRedemptions) {
+    if (
+      discount.maxRedemptions &&
+      discount.redemptionsCount >= discount.maxRedemptions
+    ) {
       return { valid: false, reason: 'Code redemption limit reached' };
     }
-    if (!discount.products?.some(p => p.id === productId)) {
+    if (!discount.products?.some((p) => p.id === productId)) {
       return { valid: false, reason: 'Code not valid for this product' };
     }
 
     return { valid: true, discount };
-
   } catch (error) {
     console.error('Discount validation error:', error);
     return { valid: false, reason: 'Validation failed - please try again' };
@@ -548,10 +582,14 @@ export async function validateDiscount(
 ```
 
 ### VND Conversion for Discounts
+
 ```typescript
 const VND_TO_USD_RATE = 25000; // 1 USD = 25,000 VND
 
-export function convertDiscountToVND(discount: PolarDiscount, amountVND: number): number {
+export function convertDiscountToVND(
+  discount: PolarDiscount,
+  amountVND: number
+): number {
   if (discount.type === 'percentage') {
     // Basis points: 1000 = 10%, 10000 = 100%
     const percentage = discount.basisPoints / 10000;
@@ -565,6 +603,7 @@ export function convertDiscountToVND(discount: PolarDiscount, amountVND: number)
 ```
 
 ### Syncing SePay Redemptions to Polar
+
 ```typescript
 // lib/polar-discount-sync.ts
 // When SePay payment completes, decrement Polar discount redemptions
@@ -574,7 +613,11 @@ export async function syncPolarDiscountRedemption(
   discountId: string,
   discountCode: string
 ): Promise<{ success: boolean; action: string }> {
-  const order = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  const order = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
   if (!order[0]) {
     return { success: false, action: 'order_not_found' };
   }
@@ -590,7 +633,10 @@ export async function syncPolarDiscountRedemption(
   try {
     const discount = await polar.discounts.get({ id: discountId });
 
-    if (discount.maxRedemptions === null || discount.maxRedemptions === undefined) {
+    if (
+      discount.maxRedemptions === null ||
+      discount.maxRedemptions === undefined
+    ) {
       return { success: true, action: 'skipped_unlimited' };
     }
 
@@ -607,8 +653,10 @@ export async function syncPolarDiscountRedemption(
       await markOrderSynced(orderId, 'decremented');
     }
 
-    return { success: true, action: currentMax <= 1 ? 'deleted' : 'decremented' };
-
+    return {
+      success: true,
+      action: currentMax <= 1 ? 'deleted' : 'decremented',
+    };
   } catch (error: any) {
     if (error.statusCode === 404) {
       // Already deleted - treat as success
@@ -620,14 +668,19 @@ export async function syncPolarDiscountRedemption(
 }
 
 async function markOrderSynced(orderId: string, action: string) {
-  const order = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  const order = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
   const metadata = order[0].metadata ? JSON.parse(order[0].metadata) : {};
 
   metadata.polarDiscountSynced = true;
   metadata.polarDiscountSyncAction = action;
   metadata.polarDiscountSyncedAt = new Date().toISOString();
 
-  await db.update(orders)
+  await db
+    .update(orders)
     .set({ metadata: JSON.stringify(metadata) })
     .where(eq(orders.id, orderId));
 }
@@ -652,7 +705,10 @@ export async function getPolarApiRevenue(): Promise<{
   const now = Date.now();
 
   // Return cache if valid
-  if (revenueCache.data && now - revenueCache.timestamp < REVENUE_CACHE_TTL_MS) {
+  if (
+    revenueCache.data &&
+    now - revenueCache.timestamp < REVENUE_CACHE_TTL_MS
+  ) {
     return { ...revenueCache.data, fromCache: true };
   }
 
@@ -685,7 +741,6 @@ export async function getPolarApiRevenue(): Promise<{
 
     revenueCache = { data: { totalRevenueCents, orderCount }, timestamp: now };
     return { totalRevenueCents, orderCount, fromCache: false };
-
   } catch (error) {
     // Return stale cache on error
     if (revenueCache.data) {
@@ -700,19 +755,28 @@ export async function getPolarApiRevenue(): Promise<{
 ## Error Handling Patterns
 
 ### Fail-Open for Non-Critical Operations
+
 ```typescript
 // Discount creation fails → proceed with full price
 try {
-  const discount = await createReferralDiscount(productId, amount, referralCode);
+  const discount = await createReferralDiscount(
+    productId,
+    amount,
+    referralCode
+  );
   polarDiscountId = discount.id;
 } catch (error) {
-  console.error('⚠️ Discount creation failed - proceeding with full price:', error);
+  console.error(
+    '⚠️ Discount creation failed - proceeding with full price:',
+    error
+  );
   // Flag for manual refund investigation
   await flagOrderForReview(orderId, 'discount_creation_failed');
 }
 ```
 
 ### Graceful Degradation in Webhooks
+
 ```typescript
 // Non-critical operations don't block order completion
 const operations = [
@@ -733,6 +797,7 @@ for (const op of operations) {
 ```
 
 ### Rate Limit Handling with Exponential Backoff
+
 ```typescript
 async function callWithRetry<T>(
   fn: () => Promise<T>,
@@ -763,6 +828,7 @@ async function callWithRetry<T>(
 ## Database Schema
 
 ### Orders Table
+
 ```typescript
 // db/schema/orders.ts
 export const orders = pgTable('orders', {
@@ -786,6 +852,7 @@ export const orders = pgTable('orders', {
 ```
 
 ### Webhook Events Table (Idempotency)
+
 ```typescript
 export const webhookEvents = pgTable('webhook_events', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -803,6 +870,7 @@ export const webhookEvents = pgTable('webhook_events', {
 ## Metadata Best Practices
 
 ### Comprehensive Audit Trail
+
 ```typescript
 // Store everything needed for debugging and reconciliation
 metadata: JSON.stringify({
@@ -831,12 +899,13 @@ metadata: JSON.stringify({
   isTeamPurchase: false,
   teamId: null,
   quantity: 1,
-})
+});
 ```
 
 ## Testing
 
 ### Unit Tests for Fee Calculation
+
 ```typescript
 // __tests__/lib/polar-fees.test.ts
 describe('calculatePolarFees', () => {
@@ -849,10 +918,10 @@ describe('calculatePolarFees', () => {
   it('calculates international one-time correctly', () => {
     // $100 transaction
     const result = calculatePolarFees(10000, true, false);
-    expect(result.baseFee).toBe(440);        // 4% + $0.40
+    expect(result.baseFee).toBe(440); // 4% + $0.40
     expect(result.internationalFee).toBe(150); // 1.5%
     expect(result.totalFee).toBe(590);
-    expect(result.netRevenue).toBe(9410);    // $94.10
+    expect(result.netRevenue).toBe(9410); // $94.10
   });
 
   it('preserves per-transaction flat fees in aggregate', () => {
