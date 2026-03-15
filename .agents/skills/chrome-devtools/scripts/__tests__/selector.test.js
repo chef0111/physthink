@@ -82,7 +82,8 @@ describe('parseSelector', () => {
 
     it('should block <script tag injection', () => {
       assert.throws(
-        () => parseSelector('//div[contains(text(),"<script>alert(1)</script>")]'),
+        () =>
+          parseSelector('//div[contains(text(),"<script>alert(1)</script>")]'),
         /XPath injection detected.*<script/i
       );
     });
@@ -193,12 +194,16 @@ describe('parseSelector', () => {
     });
 
     it('should handle complex form selector', () => {
-      const result = parseSelector('//form[@id="login-form"]//input[@type="email"]');
+      const result = parseSelector(
+        '//form[@id="login-form"]//input[@type="email"]'
+      );
       assert.strictEqual(result.type, 'xpath');
     });
 
     it('should handle descendant selector', () => {
-      const result = parseSelector('//div[@class="modal"]//button[@class="close"]');
+      const result = parseSelector(
+        '//div[@class="modal"]//button[@class="close"]'
+      );
       assert.strictEqual(result.type, 'xpath');
     });
 

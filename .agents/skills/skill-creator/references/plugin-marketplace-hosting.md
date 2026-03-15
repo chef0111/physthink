@@ -23,6 +23,7 @@ GitLab, Bitbucket, self-hosted servers all work:
 Claude Code uses existing git credential helpers. If `git clone` works in terminal, it works in Claude Code.
 
 Common credential helpers:
+
 - `gh auth login` for GitHub
 - macOS Keychain
 - `git-credential-store`
@@ -32,7 +33,7 @@ Common credential helpers:
 Set authentication token in environment:
 
 | Provider  | Environment Variables        | Notes                        |
-|-----------|------------------------------|------------------------------|
+| --------- | ---------------------------- | ---------------------------- |
 | GitHub    | `GITHUB_TOKEN` or `GH_TOKEN` | Personal or GitHub App token |
 | GitLab    | `GITLAB_TOKEN` or `GL_TOKEN` | Personal or project token    |
 | Bitbucket | `BITBUCKET_TOKEN`            | App password or repo token   |
@@ -66,11 +67,11 @@ Add to `.claude/settings.json`:
 
 Admins use `strictKnownMarketplaces` in managed settings:
 
-| Value               | Behavior                                    |
-|---------------------|---------------------------------------------|
-| Undefined (default) | No restrictions, users can add any          |
-| Empty array `[]`    | Complete lockdown, no new marketplaces      |
-| List of sources     | Users can only add from allowlist           |
+| Value               | Behavior                               |
+| ------------------- | -------------------------------------- |
+| Undefined (default) | No restrictions, users can add any     |
+| Empty array `[]`    | Complete lockdown, no new marketplaces |
+| List of sources     | Users can only add from allowlist      |
 
 ### Allow Specific Marketplaces Only
 

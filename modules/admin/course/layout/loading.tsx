@@ -15,6 +15,7 @@ import {
   SortSelectFallback,
 } from '@/components/filter/fallback';
 import { cn } from '@/lib/utils';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 export const CourseFilterFallback = () => {
   const className = 'w-full sm:w-auto md:w-full lg:w-auto';
@@ -47,9 +48,9 @@ export const CourseListSkeleton = () => {
 export const CourseSkeleton = () => {
   return (
     <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
-      <div className="relative mx-3 aspect-video">
+      <AspectRatio ratio={16 / 9} className="relative mx-3">
         <Skeleton className="h-full w-full rounded-md" />
-      </div>
+      </AspectRatio>
       <CardContent className="mt-1 flex flex-col gap-0! px-4 pb-0">
         <div>
           <Skeleton className="h-4.5 w-3/4 max-w-64" />

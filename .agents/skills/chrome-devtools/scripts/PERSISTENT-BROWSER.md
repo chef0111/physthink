@@ -59,6 +59,7 @@ node close-persistent.js
 ## Use Cases
 
 ### Authenticated Sessions
+
 ```bash
 # Launch browser
 node launch-persistent.js --headless=false --url=https://app.example.com/login
@@ -72,6 +73,7 @@ node evaluate.js --script "document.querySelector('.user-name').textContent"
 ```
 
 ### Multi-Step Workflows
+
 ```bash
 # Launch browser
 node launch-persistent.js --headless=false
@@ -86,6 +88,7 @@ node click.js --selector ".submit-button"
 ```
 
 ### Accessibility Audits on Live Pages
+
 ```bash
 # Launch and navigate manually to complex authenticated state
 node launch-persistent.js --headless=false

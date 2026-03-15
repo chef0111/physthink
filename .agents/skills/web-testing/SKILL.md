@@ -22,11 +22,11 @@ npx lighthouse https://example.com     # Performance
 
 ## Testing Pyramid (70-20-10)
 
-| Layer | Ratio | Framework | Speed |
-|-------|-------|-----------|-------|
-| Unit | 70% | Vitest/Jest | <50ms |
-| Integration | 20% | Vitest + fixtures | 100-500ms |
-| E2E | 10% | Playwright | 5-30s |
+| Layer       | Ratio | Framework         | Speed     |
+| ----------- | ----- | ----------------- | --------- |
+| Unit        | 70%   | Vitest/Jest       | <50ms     |
+| Integration | 20%   | Vitest + fixtures | 100-500ms |
+| E2E         | 10%   | Playwright        | 5-30s     |
 
 ## When to Use
 
@@ -40,38 +40,46 @@ npx lighthouse https://example.com     # Performance
 ## Reference Documentation
 
 ### Core Testing
+
 - `./references/unit-integration-testing.md` - Unit/integration patterns
 - `./references/e2e-testing-playwright.md` - Playwright E2E workflows
 - `./references/component-testing.md` - React/Vue/Angular component testing
 - `./references/testing-pyramid-strategy.md` - Test ratios, priority matrix
 
 ### Cross-Browser & Mobile
+
 - `./references/cross-browser-checklist.md` - Browser/device matrix
 - `./references/mobile-gesture-testing.md` - Touch, swipe, orientation
 - `./references/shadow-dom-testing.md` - Web components testing
 
 ### Interactive & Forms
+
 - `./references/interactive-testing-patterns.md` - Forms, keyboard, drag-drop
 - `./references/functional-testing-checklist.md` - Feature testing
 
 ### Performance & Quality
+
 - `./references/performance-core-web-vitals.md` - LCP/CLS/INP, Lighthouse CI
 - `./references/visual-regression.md` - Screenshot comparison
 - `./references/test-flakiness-mitigation.md` - Stability strategies
 
 ### Accessibility
+
 - `./references/accessibility-testing.md` - WCAG checklist, axe-core
 
 ### Security
+
 - `./references/security-testing-overview.md` - OWASP Top 10, tools
 - `./references/security-checklists.md` - Auth, API, headers
 - `./references/vulnerability-payloads.md` - SQL/XSS/CSRF payloads
 
 ### API & Load
+
 - `./references/api-testing.md` - API test patterns
 - `./references/load-testing-k6.md` - k6 load test patterns
 
 ### Checklists
+
 - `./references/pre-release-checklist.md` - Complete release checklist
 
 ## CI/CD Integration
@@ -80,8 +88,8 @@ npx lighthouse https://example.com     # Performance
 jobs:
   test:
     steps:
-      - run: npm run test:unit      # Gate 1: Fast fail
-      - run: npm run test:e2e       # Gate 2: After unit pass
-      - run: npm run test:a11y      # Accessibility
-      - run: npx lhci autorun       # Performance
+      - run: npm run test:unit # Gate 1: Fast fail
+      - run: npm run test:e2e # Gate 2: After unit pass
+      - run: npm run test:a11y # Accessibility
+      - run: npx lhci autorun # Performance
 ```

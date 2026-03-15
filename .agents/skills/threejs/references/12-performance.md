@@ -47,7 +47,10 @@ mesh.instanceColor = new THREE.InstancedBufferAttribute(
 );
 
 for (let i = 0; i < 10000; i++) {
-  mesh.setColorAt(i, new THREE.Color(Math.random(), Math.random(), Math.random()));
+  mesh.setColorAt(
+    i,
+    new THREE.Color(Math.random(), Math.random(), Math.random())
+  );
 }
 ```
 
@@ -116,13 +119,16 @@ const mergedGeometry = mergeGeometries(geometries);
 const mesh = new THREE.Mesh(mergedGeometry, material);
 
 // Dispose old geometries
-geometries.forEach(g => g.dispose());
+geometries.forEach((g) => g.dispose());
 
 // Simplify geometry
 import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
 
 const modifier = new SimplifyModifier();
-const simplified = modifier.modify(geometry, Math.floor(geometry.attributes.position.count * 0.5));
+const simplified = modifier.modify(
+  geometry,
+  Math.floor(geometry.attributes.position.count * 0.5)
+);
 ```
 
 ## Texture Optimization
@@ -163,12 +169,12 @@ const mesh3 = new THREE.Mesh(geometry3, sharedMaterial);
 
 ```javascript
 // Reduce shadow map resolution
-light.shadow.mapSize.width = 1024;  // instead of 2048
+light.shadow.mapSize.width = 1024; // instead of 2048
 light.shadow.mapSize.height = 1024;
 
 // Limit shadow camera frustum
 light.shadow.camera.near = 0.5;
-light.shadow.camera.far = 50;  // only cast shadows within this range
+light.shadow.camera.far = 50; // only cast shadows within this range
 light.shadow.camera.left = -10;
 light.shadow.camera.right = 10;
 
@@ -185,7 +191,7 @@ renderer.shadowMap.type = THREE.PCFShadowMap; // instead of PCFSoftShadowMap
 ```javascript
 // Lower resolution for post-processing
 const renderTarget = new THREE.WebGLRenderTarget(
-  window.innerWidth * 0.5,  // half resolution
+  window.innerWidth * 0.5, // half resolution
   window.innerHeight * 0.5
 );
 

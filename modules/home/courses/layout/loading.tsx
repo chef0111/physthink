@@ -3,6 +3,7 @@ import {
   FilterSelectFallback,
   SortSelectFallback,
 } from '@/components/filter/fallback';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,9 +37,9 @@ export const CourseListSkeleton = () => {
 export const CourseSkeleton = () => {
   return (
     <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
-      <div className="relative mx-3 aspect-video">
+      <AspectRatio ratio={16 / 9} className="relative mx-3">
         <Skeleton className="h-full w-full rounded-md" />
-      </div>
+      </AspectRatio>
       <CardContent className="mt-1 flex flex-col gap-0! px-4 pb-0">
         <div>
           <Skeleton className="h-4.5 w-3/4 max-w-64" />
@@ -67,9 +68,9 @@ export const CourseSkeleton = () => {
 export const CourseCardSkeleton = () => {
   return (
     <Card className="group relative flex flex-col gap-2 border pt-3 pb-0">
-      <div className="relative mx-3 aspect-video">
+      <AspectRatio ratio={16 / 9} className="relative mx-3">
         <Skeleton className="h-full w-full rounded-md" />
-      </div>
+      </AspectRatio>
       <CardContent className="mt-1 flex flex-col gap-0! px-4 pb-4">
         <div>
           <Skeleton className="h-4.5 w-3/4 max-w-64" />
@@ -95,9 +96,12 @@ export const CoursePreviewSkeleton = () => {
   return (
     <>
       <div className="order-1 pb-10 lg:col-span-2">
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-lg">
-          <Skeleton className="h-full w-full" />
-        </div>
+        <AspectRatio
+          ratio={16 / 9}
+          className="relative rounded-xl border shadow-lg"
+        >
+          <Skeleton className="h-full w-full rounded-xl border" />
+        </AspectRatio>
 
         <div className="mt-8 space-y-5">
           <div className="space-y-3">

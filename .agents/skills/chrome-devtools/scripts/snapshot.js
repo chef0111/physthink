@@ -3,7 +3,14 @@
  * Get DOM snapshot with selectors
  * Usage: node snapshot.js [--url https://example.com] [--output snapshot.json]
  */
-import { getBrowser, getPage, closeBrowser, parseArgs, outputJSON, outputError } from './lib/browser.js';
+import {
+  getBrowser,
+  getPage,
+  closeBrowser,
+  parseArgs,
+  outputJSON,
+  outputError,
+} from './lib/browser.js';
 import fs from 'fs/promises';
 
 async function snapshot() {
@@ -11,7 +18,7 @@ async function snapshot() {
 
   try {
     const browser = await getBrowser({
-      headless: args.headless !== 'false'
+      headless: args.headless !== 'false',
     });
 
     const page = await getPage(browser);
@@ -19,7 +26,7 @@ async function snapshot() {
     // Navigate if URL provided
     if (args.url) {
       await page.goto(args.url, {
-        waitUntil: args['wait-until'] || 'networkidle2'
+        waitUntil: args['wait-until'] || 'networkidle2',
       });
     }
 
@@ -34,7 +41,7 @@ async function snapshot() {
         '[onclick]',
         '[role="button"]',
         '[role="link"]',
-        '[contenteditable]'
+        '[contenteditable]',
       ];
 
       const elements = [];
@@ -72,8 +79,8 @@ async function snapshot() {
             x: rect.x,
             y: rect.y,
             width: rect.width,
-            height: rect.height
-          }
+            height: rect.height,
+          },
         });
       });
 
@@ -89,7 +96,14 @@ async function snapshot() {
         for (let i = 0; i < siblings.length; i++) {
           const sibling = siblings[i];
           if (sibling === element) {
-            return getXPath(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + (ix + 1) + ']';
+            return (
+              getXPath(element.parentNode) +
+              '/' +
+              element.tagName.toLowerCase() +
+              '[' +
+              (ix + 1) +
+              ']'
+            );
           }
           if (sibling.nodeType === 1 && sibling.tagName === element.tagName) {
             ix++;
@@ -106,7 +120,7 @@ async function snapshot() {
       url: page.url(),
       title: await page.title(),
       elementCount: elements.length,
-      elements: elements
+      elements: elements,
     };
 
     if (args.output) {
@@ -114,7 +128,7 @@ async function snapshot() {
       outputJSON({
         success: true,
         output: args.output,
-        elementCount: elements.length
+        elementCount: elements.length,
       });
     } else {
       outputJSON(result);

@@ -102,11 +102,21 @@ transformControls.addEventListener('dragging-changed', (event) => {
 // Keyboard shortcuts
 window.addEventListener('keydown', (event) => {
   switch (event.key) {
-    case 'g': transformControls.setMode('translate'); break;
-    case 'r': transformControls.setMode('rotate'); break;
-    case 's': transformControls.setMode('scale'); break;
-    case 'x': transformControls.showX = !transformControls.showX; break;
-    case 'Escape': transformControls.detach(); break;
+    case 'g':
+      transformControls.setMode('translate');
+      break;
+    case 'r':
+      transformControls.setMode('rotate');
+      break;
+    case 's':
+      transformControls.setMode('scale');
+      break;
+    case 'x':
+      transformControls.showX = !transformControls.showX;
+      break;
+    case 'Escape':
+      transformControls.detach();
+      break;
   }
 });
 ```

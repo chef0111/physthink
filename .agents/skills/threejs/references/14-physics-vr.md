@@ -230,11 +230,13 @@ renderer.setAnimationLoop(() => {
 
 ```javascript
 // Request room-scale experience
-navigator.xr.requestSession('immersive-vr', {
-  requiredFeatures: ['local-floor']
-}).then((session) => {
-  // Session setup
-});
+navigator.xr
+  .requestSession('immersive-vr', {
+    requiredFeatures: ['local-floor'],
+  })
+  .then((session) => {
+    // Session setup
+  });
 
 // Get play area bounds
 session.requestReferenceSpace('bounded-floor').then((space) => {
@@ -271,7 +273,7 @@ import { XRButton } from 'three/addons/webxr/XRButton.js';
 document.body.appendChild(
   XRButton.createButton(renderer, {
     requiredFeatures: ['hand-tracking', 'layers'],
-    optionalFeatures: ['local-floor', 'bounded-floor']
+    optionalFeatures: ['local-floor', 'bounded-floor'],
   })
 );
 

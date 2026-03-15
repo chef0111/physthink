@@ -19,7 +19,18 @@ export function HeroSection() {
           )}
         />
       </div>
-      <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-5">
+      <div className="absolute inset-0 top-16 mx-auto max-h-110 w-full max-w-6xl overflow-hidden">
+        <div
+          className={cn(
+            'absolute inset-0 -z-30',
+            'fade-in animate-in fill-mode-backwards bg-size-[16px_16px] transition-all delay-300 duration-500 ease-out',
+            'bg-[radial-gradient(#d4d4d4_1px,transparent_1px)]',
+            'dark:bg-[radial-gradient(#404040_1px,transparent_1px)]'
+          )}
+        />
+        <div className="bg-background pointer-events-none absolute inset-0 -z-20 flex items-center justify-center mask-[radial-gradient(ellipse_at_center,transparent_1%,black)]" />
+      </div>
+      <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center gap-5">
         <Link
           className={cn(
             'group bg-card flex w-fit items-center gap-3 rounded-sm border p-1 shadow-xs',

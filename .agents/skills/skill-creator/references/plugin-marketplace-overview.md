@@ -5,6 +5,7 @@ Build and host plugin marketplaces to distribute Claude Code extensions across t
 ## What is a Plugin Marketplace
 
 A plugin marketplace is a catalog that lets you distribute plugins to others. Marketplaces provide:
+
 - Centralized discovery
 - Version tracking
 - Automatic updates

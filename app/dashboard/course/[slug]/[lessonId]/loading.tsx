@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 export default function LessonLoading() {
   return (
@@ -9,9 +10,12 @@ export default function LessonLoading() {
         <Skeleton className="mt-4 h-4 w-40" />
       </div>
 
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border shadow-lg">
+      <AspectRatio
+        ratio={16 / 9}
+        className="relative overflow-hidden rounded-xl border shadow-lg"
+      >
         <Skeleton className="h-full w-full border" />
-      </div>
+      </AspectRatio>
 
       <Card className="gap-4 p-4">
         <Skeleton className="h-7.5 w-1/3" />

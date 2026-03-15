@@ -5,18 +5,54 @@
 
 // Allowlist of safe XPath axes (standard DOM traversal)
 const ALLOWED_XPATH_AXES = [
-  'ancestor', 'ancestor-or-self', 'attribute', 'child', 'descendant',
-  'descendant-or-self', 'following', 'following-sibling', 'namespace',
-  'parent', 'preceding', 'preceding-sibling', 'self'
+  'ancestor',
+  'ancestor-or-self',
+  'attribute',
+  'child',
+  'descendant',
+  'descendant-or-self',
+  'following',
+  'following-sibling',
+  'namespace',
+  'parent',
+  'preceding',
+  'preceding-sibling',
+  'self',
 ];
 
 // Allowlist of safe XPath functions (node selection and string ops)
 const ALLOWED_XPATH_FUNCTIONS = [
-  'text', 'contains', 'starts-with', 'normalize-space', 'string-length',
-  'concat', 'substring', 'substring-before', 'substring-after', 'translate',
-  'not', 'true', 'false', 'boolean', 'string', 'number', 'sum', 'floor',
-  'ceiling', 'round', 'count', 'name', 'local-name', 'namespace-uri',
-  'last', 'position', 'id', 'lang', 'comment', 'processing-instruction', 'node'
+  'text',
+  'contains',
+  'starts-with',
+  'normalize-space',
+  'string-length',
+  'concat',
+  'substring',
+  'substring-before',
+  'substring-after',
+  'translate',
+  'not',
+  'true',
+  'false',
+  'boolean',
+  'string',
+  'number',
+  'sum',
+  'floor',
+  'ceiling',
+  'round',
+  'count',
+  'name',
+  'local-name',
+  'namespace-uri',
+  'last',
+  'position',
+  'id',
+  'lang',
+  'comment',
+  'processing-instruction',
+  'node',
 ];
 
 /**
@@ -58,13 +94,16 @@ function validateXPath(xpath) {
     throw new Error('XPath too complex: max 10 predicates allowed');
   }
 
-  const nestingDepth = Math.max(...xpath.split('').reduce((depths, char, i) => {
-    if (char === '[') depths.push((depths[depths.length - 1] || 0) + 1);
-    else if (char === ']') depths.push(Math.max(0, (depths[depths.length - 1] || 0) - 1));
-    else if (depths.length) depths.push(depths[depths.length - 1]);
-    else depths.push(0);
-    return depths;
-  }, []));
+  const nestingDepth = Math.max(
+    ...xpath.split('').reduce((depths, char, i) => {
+      if (char === '[') depths.push((depths[depths.length - 1] || 0) + 1);
+      else if (char === ']')
+        depths.push(Math.max(0, (depths[depths.length - 1] || 0) - 1));
+      else if (depths.length) depths.push(depths[depths.length - 1]);
+      else depths.push(0);
+      return depths;
+    }, [])
+  );
   if (nestingDepth > 5) {
     throw new Error('XPath too deeply nested: max 5 levels allowed');
   }
@@ -75,7 +114,9 @@ function validateXPath(xpath) {
   while ((match = functionPattern.exec(xpath)) !== null) {
     const funcName = match[1].toLowerCase();
     if (!ALLOWED_XPATH_FUNCTIONS.includes(funcName)) {
-      throw new Error(`XPath function not allowed: ${funcName}. Allowed: ${ALLOWED_XPATH_FUNCTIONS.join(', ')}`);
+      throw new Error(
+        `XPath function not allowed: ${funcName}. Allowed: ${ALLOWED_XPATH_FUNCTIONS.join(', ')}`
+      );
     }
   }
 
@@ -84,7 +125,9 @@ function validateXPath(xpath) {
   while ((match = axisPattern.exec(xpath)) !== null) {
     const axisName = match[1].toLowerCase();
     if (!ALLOWED_XPATH_AXES.includes(axisName)) {
-      throw new Error(`XPath axis not allowed: ${axisName}. Allowed: ${ALLOWED_XPATH_AXES.join(', ')}`);
+      throw new Error(
+        `XPath axis not allowed: ${axisName}. Allowed: ${ALLOWED_XPATH_AXES.join(', ')}`
+      );
     }
   }
 
@@ -111,13 +154,15 @@ function validateCSS(css) {
   // Complexity limits
   const selectorParts = css.split(/\s*,\s*/);
   if (selectorParts.length > 10) {
-    throw new Error('CSS selector too complex: max 10 comma-separated selectors');
+    throw new Error(
+      'CSS selector too complex: max 10 comma-separated selectors'
+    );
   }
 
   // Check nesting depth (combinators indicate depth)
-  const maxDepth = Math.max(...selectorParts.map(part =>
-    (part.match(/[\s>+~]/g) || []).length
-  ));
+  const maxDepth = Math.max(
+    ...selectorParts.map((part) => (part.match(/[\s>+~]/g) || []).length)
+  );
   if (maxDepth > 10) {
     throw new Error('CSS selector too deeply nested: max 10 levels');
   }
@@ -146,7 +191,7 @@ export async function waitForElement(page, parsed, options = {}) {
   const defaultOptions = {
     visible: true,
     timeout: 5000,
-    ...options
+    ...options,
   };
 
   if (parsed.type === 'xpath') {
@@ -200,7 +245,7 @@ export async function typeIntoElement(page, parsed, value, options = {}) {
   } else {
     // CSS selector
     if (options.clear) {
-      await page.$eval(parsed.selector, el => el.value = '');
+      await page.$eval(parsed.selector, (el) => (el.value = ''));
     }
 
     await page.type(parsed.selector, value, { delay: options.delay || 0 });
@@ -243,10 +288,13 @@ export async function getElement(page, parsed) {
  * @returns {Error} Enhanced error with troubleshooting tips
  */
 export function enhanceError(error, selector) {
-  if (error.message.includes('waiting for selector') ||
-      error.message.includes('waiting for XPath') ||
-      error.message.includes('No node found')) {
-    error.message += '\n\nTroubleshooting:\n' +
+  if (
+    error.message.includes('waiting for selector') ||
+    error.message.includes('waiting for XPath') ||
+    error.message.includes('No node found')
+  ) {
+    error.message +=
+      '\n\nTroubleshooting:\n' +
       '1. Use snapshot.js to find correct selector: node snapshot.js --url <url>\n' +
       '2. Try XPath selector: //button[text()="Click"] or //button[contains(text(),"Click")]\n' +
       '3. Check element is visible on page (not display:none or hidden)\n' +

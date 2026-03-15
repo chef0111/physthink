@@ -25,14 +25,23 @@ export async function getBrowser(options = {}) {
   }
 
   // Check for persistent browser endpoint
-  if (!options.browserUrl && !options.wsEndpoint && fs.existsSync(ENDPOINT_FILE)) {
+  if (
+    !options.browserUrl &&
+    !options.wsEndpoint &&
+    fs.existsSync(ENDPOINT_FILE)
+  ) {
     try {
       const wsEndpoint = fs.readFileSync(ENDPOINT_FILE, 'utf8').trim();
       log('Found persistent browser endpoint, connecting...');
-      browserInstance = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+      browserInstance = await puppeteer.connect({
+        browserWSEndpoint: wsEndpoint,
+      });
       return browserInstance;
     } catch (error) {
-      log('Failed to connect to persistent browser, launching new one:', error.message);
+      log(
+        'Failed to connect to persistent browser, launching new one:',
+        error.message
+      );
       // Clean up stale endpoint file
       if (fs.existsSync(ENDPOINT_FILE)) {
         fs.unlinkSync(ENDPOINT_FILE);
@@ -46,20 +55,20 @@ export async function getBrowser(options = {}) {
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      ...(options.args || [])
+      ...(options.args || []),
     ],
     defaultViewport: options.viewport || {
       width: 1920,
-      height: 1080
+      height: 1080,
     },
-    ...options
+    ...options,
   };
 
   if (options.browserUrl || options.wsEndpoint) {
     log('Connecting to existing browser');
     browserInstance = await puppeteer.connect({
       browserURL: options.browserUrl,
-      browserWSEndpoint: options.wsEndpoint
+      browserWSEndpoint: options.wsEndpoint,
     });
   } else {
     log('Launching new browser');
@@ -135,10 +144,16 @@ export function outputJSON(data) {
  * Output error
  */
 export function outputError(error) {
-  console.error(JSON.stringify({
-    success: false,
-    error: error.message,
-    stack: error.stack
-  }, null, 2));
+  console.error(
+    JSON.stringify(
+      {
+        success: false,
+        error: error.message,
+        stack: error.stack,
+      },
+      null,
+      2
+    )
+  );
   process.exit(1);
 }

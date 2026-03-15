@@ -104,6 +104,7 @@ MCP Servers (memory, filesystem, etc.)
 ```
 
 **Benefits**:
+
 - Main agent context stays clean
 - MCP discovery happens in isolated subagent context
 - Only relevant tool definitions loaded when needed
@@ -132,6 +133,7 @@ mcp-management/
 ### mcp-client.ts
 
 Core client manager class:
+
 - Load config from `.claude/.mcp.json`
 - Connect to multiple MCP servers
 - List/execute tools, prompts, resources
@@ -140,6 +142,7 @@ Core client manager class:
 ### cli.ts
 
 Command-line interface:
+
 - `list-tools` - Show all tools and save to assets/tools.json
 - `list-prompts` - Show all prompts
 - `list-resources` - Show all resources
@@ -164,11 +167,12 @@ Scripts check for variables in this order:
 {
   "mcpServers": {
     "server-name": {
-      "command": "executable",          // Required
-      "args": ["arg1", "arg2"],        // Required
-      "env": {                          // Optional
+      "command": "executable", // Required
+      "args": ["arg1", "arg2"], // Required
+      "env": {
+        // Optional
         "VAR": "value",
-        "API_KEY": "${ENV_VAR}"        // Reference env vars
+        "API_KEY": "${ENV_VAR}" // Reference env vars
       }
     }
   }
@@ -205,6 +209,7 @@ Ensure `.claude/.mcp.json` exists and is valid JSON.
 ### "Server connection failed"
 
 Check:
+
 - Server command is installed (`npx` packages installed?)
 - Server args are correct
 - Environment variables are set
@@ -212,6 +217,7 @@ Check:
 ### "Tool not found"
 
 List available tools first:
+
 ```bash
 cd .claude/skills/mcp-management/scripts
 npm run list-tools

@@ -7,6 +7,7 @@ import { ContentPreview } from '@/modules/home/courses/components/content-previe
 import { EnrollCard } from '@/modules/home/courses/components/enroll-card';
 import { ChartColumnBig, Clock, School } from 'lucide-react';
 import Image from 'next/image';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 export const Preview = async ({ params }: Pick<RouteParams, 'params'>) => {
   const { slug } = await params;
@@ -23,7 +24,10 @@ export const Preview = async ({ params }: Pick<RouteParams, 'params'>) => {
   return (
     <>
       <div className="order-1 lg:col-span-2">
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-lg">
+        <AspectRatio
+          ratio={16 / 9}
+          className="relative w-full overflow-hidden rounded-xl shadow-lg"
+        >
           <Image
             src={course.thumbnail}
             alt="Course thumbnail"
@@ -32,7 +36,7 @@ export const Preview = async ({ params }: Pick<RouteParams, 'params'>) => {
             priority
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/20" />
-        </div>
+        </AspectRatio>
 
         <div className="mt-8 space-y-4">
           <div className="space-y-1">

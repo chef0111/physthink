@@ -13,20 +13,20 @@
 
 ## Ratios by Context
 
-| Context | Unit | Integration | E2E |
-|---------|------|-------------|-----|
-| Classic | 70% | 20% | 10% |
-| Heavy frontend | 60% | 25% | 15% |
-| API-heavy | 75% | 15% | 10% |
-| Critical transactions | 60% | 20% | 20% |
+| Context               | Unit | Integration | E2E |
+| --------------------- | ---- | ----------- | --- |
+| Classic               | 70%  | 20%         | 10% |
+| Heavy frontend        | 60%  | 25%         | 15% |
+| API-heavy             | 75%  | 15%         | 10% |
+| Critical transactions | 60%  | 20%         | 20% |
 
 ## Cost-Benefit
 
-| Type | Cost | Speed | Bug Coverage |
-|------|------|-------|--------------|
-| Unit | Low | <50ms | 70% |
-| Integration | Medium | 100-500ms | 20% |
-| E2E | High | 5-30s | 10% |
+| Type        | Cost   | Speed     | Bug Coverage |
+| ----------- | ------ | --------- | ------------ |
+| Unit        | Low    | <50ms     | 70%          |
+| Integration | Medium | 100-500ms | 20%          |
+| E2E         | High   | 5-30s     | 10%          |
 
 ## Test Organization
 
@@ -40,12 +40,12 @@ tests/
 
 ## Priority Matrix
 
-| Priority | Category | Examples |
-|----------|----------|----------|
-| P0 | Core flows | Signup, login, checkout |
-| P1 | Major features | Search, CRUD, nav |
-| P2 | Secondary | Filters, sorting |
-| P3 | Edge cases | Empty states, limits |
+| Priority | Category       | Examples                |
+| -------- | -------------- | ----------------------- |
+| P0       | Core flows     | Signup, login, checkout |
+| P1       | Major features | Search, CRUD, nav       |
+| P2       | Secondary      | Filters, sorting        |
+| P3       | Edge cases     | Empty states, limits    |
 
 ## When to Use Each
 
@@ -56,15 +56,15 @@ tests/
 ## CI/CD Order
 
 ```yaml
-- run: npm run test:unit        # Gate 1: Fast fail
+- run: npm run test:unit # Gate 1: Fast fail
 - run: npm run test:integration # Gate 2
-- run: npm run test:e2e         # Gate 3: Pre-merge
+- run: npm run test:e2e # Gate 3: Pre-merge
 ```
 
 ## Coverage Targets
 
-| Area | Target |
-|------|--------|
-| Critical paths | 100% |
-| Core features | 80-90% |
-| Overall | 75-85% |
+| Area           | Target |
+| -------------- | ------ |
+| Critical paths | 100%   |
+| Core features  | 80-90% |
+| Overall        | 75-85% |

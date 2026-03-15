@@ -3,23 +3,27 @@
 ## WCAG 2.1 AA Checklist
 
 ### Perceivable
+
 - [ ] Images have meaningful alt text
 - [ ] Color not sole conveyance method
 - [ ] Contrast ratio 4.5:1 (text)
 - [ ] Text resizable to 200%
 
 ### Operable
+
 - [ ] All functions keyboard accessible
 - [ ] Visible focus indicators
 - [ ] Skip navigation links
 - [ ] No keyboard traps
 
 ### Understandable
+
 - [ ] Language attribute set
 - [ ] Labels for form inputs
 - [ ] Error messages clear
 
 ### Robust
+
 - [ ] Valid HTML
 - [ ] ARIA landmarks correct
 
@@ -80,5 +84,6 @@ npx pa11y https://example.com
 ```
 
 ## Resources
+
 - axe rules: https://dequeuniversity.com/rules/axe/
 - WCAG checklist: https://www.a11yproject.com/checklist/

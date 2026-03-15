@@ -1,6 +1,6 @@
 ---
 name: physthink-feature
-description: "Implement a new full-stack feature in the PhysThink codebase following established patterns. Use when: adding a new resource (data model, API procedures, UI page); adding CRUD operations; creating server-side data-fetching components; creating oRPC procedures; writing Zod DTOs; writing Prisma DAL classes; adding mutation hooks to queries/; creating client action buttons. Covers the complete chain: Prisma schema → DTO → DAL → server procedure → router → client queries → UI components → page."
+description: 'Implement a new full-stack feature in the PhysThink codebase following established patterns. Use when: adding a new resource (data model, API procedures, UI page); adding CRUD operations; creating server-side data-fetching components; creating oRPC procedures; writing Zod DTOs; writing Prisma DAL classes; adding mutation hooks to queries/; creating client action buttons. Covers the complete chain: Prisma schema → DTO → DAL → server procedure → router → client queries → UI components → page.'
 argument-hint: "Feature name or description, e.g. 'add assignment resource with create/delete' or 'add comment listing page'"
 ---
 
@@ -26,14 +26,15 @@ Prisma Schema
           └── create-<resource>-button.tsx  'use client', owns its create mutation
   └── app/dashboard/<resource>/page.tsx  Suspense orchestrator (server)
 ```
-Use bun to install dependencies
----
+
+## Use bun to install dependencies
 
 ## Step-by-Step Procedure
 
 ### 1. Prisma Schema (if new model needed)
 
 Add the model to `prisma/schema.prisma`:
+
 ```prisma
 model ResourceName {
   id        String   @id @default(cuid())
@@ -56,9 +57,14 @@ import 'server-only';
 import z from 'zod';
 
 // Input schemas
-export const CreateResourceSchema = z.object({ title: z.string().max(100).optional() });
+export const CreateResourceSchema = z.object({
+  title: z.string().max(100).optional(),
+});
 export const GetResourceSchema = z.object({ id: z.string() });
-export const UpdateResourceSchema = z.object({ id: z.string(), title: z.string().max(100).optional() });
+export const UpdateResourceSchema = z.object({
+  id: z.string(),
+  title: z.string().max(100).optional(),
+});
 export const DeleteResourceSchema = z.object({ id: z.string() });
 
 // Output schemas
@@ -81,6 +87,7 @@ export type ResourceListDTO = z.infer<typeof ResourceListSchema>;
 ```
 
 **Rules:**
+
 - Always start with `import 'server-only'`
 - Use a `*Schema` name for the Zod schema, `*DTO` for the inferred type
 - List and Summary schemas should be separate from Detail schemas
@@ -107,16 +114,30 @@ class ResourceDAL {
   static async findMany(userId: string, params: QueryParams) {
     const { page, pageSize, query } = params;
     const { offset, limit } = getPagination({ page, pageSize });
-    const where = { userId, ...(query ? { title: { contains: query, mode: 'insensitive' as const } } : {}) };
+    const where = {
+      userId,
+      ...(query
+        ? { title: { contains: query, mode: 'insensitive' as const } }
+        : {}),
+    };
     const [items, total] = await Promise.all([
-      prisma.resource.findMany({ where, select: { id: true, title: true, createdAt: true, updatedAt: true }, orderBy: { updatedAt: 'desc' }, skip: offset, take: limit }),
+      prisma.resource.findMany({
+        where,
+        select: { id: true, title: true, createdAt: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
       prisma.resource.count({ where }),
     ]);
     return { items, total };
   }
 
   static async findById(id: string, userId: string) {
-    return prisma.resource.findFirst({ where: { id, userId }, select: { id: true, title: true, createdAt: true, updatedAt: true } });
+    return prisma.resource.findFirst({
+      where: { id, userId },
+      select: { id: true, title: true, createdAt: true, updatedAt: true },
+    });
   }
 
   static async update(id: string, userId: string, data: UpdateResourceDTO) {
@@ -129,14 +150,25 @@ class ResourceDAL {
 }
 
 // Export as flat functions, not the class itself
-export const createResource = (...args: Parameters<typeof ResourceDAL.create>) => ResourceDAL.create(...args);
-export const listResources = (...args: Parameters<typeof ResourceDAL.findMany>) => ResourceDAL.findMany(...args);
-export const getResourceById = (...args: Parameters<typeof ResourceDAL.findById>) => ResourceDAL.findById(...args);
-export const updateResource = (...args: Parameters<typeof ResourceDAL.update>) => ResourceDAL.update(...args);
-export const deleteResource = (...args: Parameters<typeof ResourceDAL.delete>) => ResourceDAL.delete(...args);
+export const createResource = (
+  ...args: Parameters<typeof ResourceDAL.create>
+) => ResourceDAL.create(...args);
+export const listResources = (
+  ...args: Parameters<typeof ResourceDAL.findMany>
+) => ResourceDAL.findMany(...args);
+export const getResourceById = (
+  ...args: Parameters<typeof ResourceDAL.findById>
+) => ResourceDAL.findById(...args);
+export const updateResource = (
+  ...args: Parameters<typeof ResourceDAL.update>
+) => ResourceDAL.update(...args);
+export const deleteResource = (
+  ...args: Parameters<typeof ResourceDAL.delete>
+) => ResourceDAL.delete(...args);
 ```
 
 **Rules:**
+
 - `import 'server-only'` at top
 - Always filter by `userId` in every query — never fetch without the user scope
 - Use `findFirst({ where: { id, userId } })` for single-item reads (not `findUnique`)
@@ -153,7 +185,12 @@ import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 import { writeSecurityMiddleware } from '@/app/middleware/arcjet/write';
 import { QueryParamsSchema } from '@/lib/validations';
-import { CreateResourceSchema, DeleteResourceSchema, ResourceSummarySchema, ResourceListSchema } from './dto';
+import {
+  CreateResourceSchema,
+  DeleteResourceSchema,
+  ResourceSummarySchema,
+  ResourceListSchema,
+} from './dto';
 import { createResource, listResources, deleteResource } from './dal';
 
 export const create = authorized
@@ -191,6 +228,7 @@ export const remove = authorized
 ```
 
 **Rules:**
+
 - Always start from `authorized` (not `base`) — this enforces authentication
 - Chain `.use(standardSecurityMiddleware)` on every procedure
 - Use `.use(readSecurityMiddleware)` for GET, `.use(writeSecurityMiddleware)` for mutations
@@ -213,7 +251,7 @@ export const router = {
   resource: {
     create: createResource,
     list: listResources,
-    delete: removeResource,   // Use 'delete' as the router key (not 'remove')
+    delete: removeResource, // Use 'delete' as the router key (not 'remove')
   },
 };
 ```
@@ -242,7 +280,9 @@ export function useCreateResource() {
         router.push(`/dashboard/resource/${resource.id}`);
       },
       onError: (error) => {
-        toast.error('Failed to create resource', { description: error.message });
+        toast.error('Failed to create resource', {
+          description: error.message,
+        });
       },
     })
   );
@@ -260,7 +300,9 @@ export function useDeleteResource() {
         );
       },
       onError: (error) => {
-        toast.error('Failed to delete resource', { description: error.message });
+        toast.error('Failed to delete resource', {
+          description: error.message,
+        });
       },
     })
   );
@@ -268,6 +310,7 @@ export function useDeleteResource() {
 ```
 
 **Rules:**
+
 - Mark file with `'use client'` at top
 - Use `orpc.<resource>.<action>.mutationOptions(...)` pattern
 - `onSuccess` for create: redirect to detail page via `router.push`
@@ -287,7 +330,13 @@ import { resolveData, queryFetch } from '@/lib/query/helper';
 import { ResourceCard } from './resource-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 import { SomeIcon } from 'lucide-react';
 
 export async function ResourceList() {
@@ -300,7 +349,11 @@ export async function ResourceList() {
     'Failed to get resources'
   );
 
-  const { data: items, success, error } = resolveData(result, (data) => data.items, []);
+  const {
+    data: items,
+    success,
+    error,
+  } = resolveData(result, (data) => data.items, []);
 
   return (
     <DataRenderer
@@ -334,8 +387,12 @@ export function ResourceListSkeleton() {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }).map((_, i) => (
         <Card key={i}>
-          <CardHeader><Skeleton className="h-5 w-2/3 rounded" /></CardHeader>
-          <CardContent><Skeleton className="h-3 w-1/3 rounded" /></CardContent>
+          <CardHeader>
+            <Skeleton className="h-5 w-2/3 rounded" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-3 w-1/3 rounded" />
+          </CardContent>
         </Card>
       ))}
     </div>
@@ -344,6 +401,7 @@ export function ResourceListSkeleton() {
 ```
 
 **Rules:**
+
 - No `'use client'` — this is an async server component
 - Use `getQueryClient()` (from `lib/query/hydration`) — it's cache-wrapped via React's `cache()`
 - Wrap `queryClient.fetchQuery(...)` inside `queryFetch<DTO>(promise, fallbackMessage)`
@@ -360,8 +418,24 @@ export function ResourceListSkeleton() {
 
 import { ResourceSummaryDTO } from '@/app/server/resource/dto';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useDeleteResource } from '@/queries/resource';
@@ -384,7 +458,12 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       <CardFooter className="justify-end p-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="icon" disabled={isPending} onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="destructive"
+              size="icon"
+              disabled={isPending}
+              onClick={(e) => e.stopPropagation()}
+            >
               <Trash2 className="size-4" />
             </Button>
           </AlertDialogTrigger>
@@ -392,12 +471,16 @@ export function ResourceCard({ resource }: ResourceCardProps) {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete resource?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete &ldquo;{resource.title}&rdquo;. This action cannot be undone.
+                This will permanently delete &ldquo;{resource.title}&rdquo;.
+                This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={() => deleteResource({ id: resource.id })}>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => deleteResource({ id: resource.id })}
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -410,6 +493,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
 ```
 
 **Rules:**
+
 - Mark `'use client'` at top — card owns its mutation
 - Import DTO type from `@/app/server/<resource>/dto`
 - No `onDelete` prop — the card imports and calls its own hook
@@ -441,6 +525,7 @@ export function CreateResourceButton() {
 ```
 
 **Rules:**
+
 - Mark `'use client'` — this is a leaf client component
 - Show `<Loader />` icon while `isPending` (not text "Loading...")
 - Disable button while `isPending`
@@ -451,7 +536,10 @@ export function CreateResourceButton() {
 
 ```tsx
 import { Suspense } from 'react';
-import { ResourceList, ResourceListSkeleton } from '@/modules/<area>/<resource>/components/<resource>-list';
+import {
+  ResourceList,
+  ResourceListSkeleton,
+} from '@/modules/<area>/<resource>/components/<resource>-list';
 import { CreateResourceButton } from '@/modules/<area>/<resource>/components/create-<resource>-button';
 
 export default function ResourcePage() {
@@ -473,6 +561,7 @@ export default function ResourcePage() {
 ```
 
 **Rules:**
+
 - Page is a server component (no `'use client'`)
 - Wrap async list component in `<Suspense fallback={<ResourceListSkeleton />}>`
 - `CreateResourceButton` is a client component, can be placed directly in the server page
@@ -481,9 +570,10 @@ export default function ResourcePage() {
 ---
 
 ### 11. Use useShallow for zustand selectors — `lib/stores/scene-store.ts`
-   - Import `useShallow` from `zustand/react/shallow`
-   - Use in `useSceneStore` selector to prevent unnecessary re-renders when unrelated state changes
-   - _No dependencies_
+
+- Import `useShallow` from `zustand/react/shallow`
+- Use in `useSceneStore` selector to prevent unnecessary re-renders when unrelated state changes
+- _No dependencies_
 
 ```tsx
 const {
@@ -503,20 +593,20 @@ const {
 );
 ```
 
-___
+---
 
 ## Key Invariants
 
-| Concern | Rule |
-|---|---|
-| User scoping | Every DAL query includes `userId` — no exceptions |
-| Auth | Always use `authorized` base, not `base` directly |
-| Router key vs export name | Export `remove`, register as `delete` in router |
-| Server component | No `'use client'`, no `useQuery` — use `getQueryClient + fetchQuery + queryFetch` |
-| Mutations | Live in `queries/<resource>.ts` (client), imported by leaf client components |
-| Card mutation ownership | Card owns its delete mutation, no prop drilling |
-| Suspense fallback | Always export `*Skeleton` alongside the async list component |
-| Security middleware | Read → `readSecurityMiddleware`, write → `writeSecurityMiddleware`, always + `standardSecurityMiddleware` |
+| Concern                   | Rule                                                                                                      |
+| ------------------------- | --------------------------------------------------------------------------------------------------------- |
+| User scoping              | Every DAL query includes `userId` — no exceptions                                                         |
+| Auth                      | Always use `authorized` base, not `base` directly                                                         |
+| Router key vs export name | Export `remove`, register as `delete` in router                                                           |
+| Server component          | No `'use client'`, no `useQuery` — use `getQueryClient + fetchQuery + queryFetch`                         |
+| Mutations                 | Live in `queries/<resource>.ts` (client), imported by leaf client components                              |
+| Card mutation ownership   | Card owns its delete mutation, no prop drilling                                                           |
+| Suspense fallback         | Always export `*Skeleton` alongside the async list component                                              |
+| Security middleware       | Read → `readSecurityMiddleware`, write → `writeSecurityMiddleware`, always + `standardSecurityMiddleware` |
 
 ## File Placement Checklist
 
@@ -535,7 +625,7 @@ ___
 
 - **Don't use `findUnique`** for user-scoped queries — use `findFirst({ where: { id, userId } })` to prevent cross-user access
 - **Don't use `delete`** as a TypeScript export name — use `remove` and map to `delete` in router
-- **Don't use `useQuery` in server components** — use `queryClient.fetchQuery` + `queryFetch` instead  
+- **Don't use `useQuery` in server components** — use `queryClient.fetchQuery` + `queryFetch` instead
 - **Don't forget `'use client'`** on files that use hooks (queries, card, button)
 - **Don't add `position` to R3F element renderers** — positioning is handled by `SelectableWrapper`
 - **Don't manually wrap components in `React.memo` or add `useMemo`/`useCallback` for memoization** — this project has React Compiler enabled (`babel-plugin-react-compiler`), which auto-memoizes components and hooks. Manual memoization is redundant and adds noise. Only use `useMemo`/`useCallback` when there is a genuine semantic need (e.g., referential identity for a context value or an expensive computation), not for preventing re-renders.

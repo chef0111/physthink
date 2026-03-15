@@ -15,6 +15,7 @@ Comprehensive guide for image creation, editing, and composition using Gemini AP
 ## Model
 
 **gemini-2.5-flash-image** - Specialized for image generation
+
 - Input tokens: 65,536
 - Output tokens: 32,768
 - Knowledge cutoff: June 2025
@@ -49,13 +50,13 @@ for i, part in enumerate(response.candidates[0].content.parts):
 
 ## Aspect Ratios
 
-| Ratio | Resolution | Use Case | Token Cost |
-|-------|-----------|----------|------------|
-| 1:1 | 1024×1024 | Social media, avatars | 1290 |
-| 16:9 | 1344×768 | Landscapes, banners | 1290 |
-| 9:16 | 768×1344 | Mobile, portraits | 1290 |
-| 4:3 | 1152×896 | Traditional media | 1290 |
-| 3:4 | 896×1152 | Vertical posters | 1290 |
+| Ratio | Resolution | Use Case              | Token Cost |
+| ----- | ---------- | --------------------- | ---------- |
+| 1:1   | 1024×1024  | Social media, avatars | 1290       |
+| 16:9  | 1344×768   | Landscapes, banners   | 1290       |
+| 9:16  | 768×1344   | Mobile, portraits     | 1290       |
+| 4:3   | 1152×896   | Traditional media     | 1290       |
+| 3:4   | 896×1152   | Vertical posters      | 1290       |
 
 All ratios cost the same: 1,290 tokens per image.
 
@@ -180,6 +181,7 @@ response = client.models.generate_content(
 ### Effective Prompt Structure
 
 **Three key elements**:
+
 1. **Subject**: What to generate
 2. **Context**: Environmental setting
 3. **Style**: Artistic treatment
@@ -189,6 +191,7 @@ response = client.models.generate_content(
 ### Quality Modifiers
 
 **Technical terms**:
+
 - "4K", "8K", "high resolution"
 - "HDR", "high dynamic range"
 - "professional photography"
@@ -196,6 +199,7 @@ response = client.models.generate_content(
 - "ultra detailed"
 
 **Camera settings**:
+
 - "35mm lens", "50mm lens"
 - "shallow depth of field"
 - "wide angle shot"
@@ -205,6 +209,7 @@ response = client.models.generate_content(
 ### Style Keywords
 
 **Art styles**:
+
 - "oil painting", "watercolor", "sketch"
 - "digital art", "concept art"
 - "photorealistic", "hyperrealistic"
@@ -212,6 +217,7 @@ response = client.models.generate_content(
 - "cyberpunk", "steampunk", "fantasy"
 
 **Mood and atmosphere**:
+
 - "dramatic lighting", "soft lighting"
 - "moody", "bright and cheerful"
 - "mysterious", "whimsical"
@@ -220,20 +226,24 @@ response = client.models.generate_content(
 ### Subject Description
 
 **Be specific**:
+
 - ❌ "A cat"
 - ✅ "A fluffy orange tabby cat with green eyes"
 
 **Add context**:
+
 - ❌ "A building"
 - ✅ "A modern glass skyscraper reflecting sunset clouds"
 
 **Include details**:
+
 - ❌ "A person"
 - ✅ "A young woman in a red dress holding an umbrella"
 
 ### Composition and Framing
 
 **Camera angles**:
+
 - "bird's eye view", "aerial shot"
 - "low angle", "high angle"
 - "close-up", "wide shot"
@@ -241,6 +251,7 @@ response = client.models.generate_content(
 - "rule of thirds"
 
 **Perspective**:
+
 - "first person view"
 - "third person perspective"
 - "isometric view"
@@ -249,11 +260,13 @@ response = client.models.generate_content(
 ### Text in Images
 
 **Limitations**:
+
 - Maximum 25 characters total
 - Up to 3 distinct text phrases
 - Works best with simple text
 
 **Best practices**:
+
 ```python
 response = client.models.generate_content(
     model='gemini-2.5-flash-image',
@@ -262,6 +275,7 @@ response = client.models.generate_content(
 ```
 
 **Font control**:
+
 - "bold sans-serif title"
 - "handwritten script"
 - "vintage letterpress"
@@ -477,11 +491,13 @@ with open(filename, 'wb') as f:
 ### Cost Optimization
 
 **Token costs**:
+
 - 1 image: 1,290 tokens = $0.00129 (Flash Image at $1/1M)
 - 10 images: 12,900 tokens = $0.0129
 - 100 images: 129,000 tokens = $0.129
 
 **Strategies**:
+
 - Generate fewer iterations
 - Use text modality first to validate concept
 - Batch similar requests
@@ -532,6 +548,7 @@ if len(prompt) > 1000:
 **Cause**: The `aspect_ratio` parameter must be nested inside an `image_config` object, not passed directly to `GenerateContentConfig`.
 
 **Incorrect Usage**:
+
 ```python
 # ❌ This will fail
 config = types.GenerateContentConfig(
@@ -541,6 +558,7 @@ config = types.GenerateContentConfig(
 ```
 
 **Correct Usage**:
+
 ```python
 # ✅ Correct implementation
 config = types.GenerateContentConfig(
@@ -554,5 +572,6 @@ config = types.GenerateContentConfig(
 ### Response Modality Case Sensitivity
 
 The `response_modalities` parameter expects capital case values:
+
 - ✅ Correct: `['Image']`, `['Text']`, `['Image', 'Text']`
 - ❌ Wrong: `['image']`, `['text']`

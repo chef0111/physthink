@@ -16,6 +16,7 @@ Process audio, images, videos, documents, and generate images using Google Gemin
 ## Core Capabilities
 
 ### Audio Processing
+
 - Transcription with timestamps (up to 9.5 hours)
 - Audio summarization and analysis
 - Speech understanding and speaker identification
@@ -23,6 +24,7 @@ Process audio, images, videos, documents, and generate images using Google Gemin
 - Text-to-speech generation with controllable voice
 
 ### Image Understanding
+
 - Image captioning and description
 - Object detection with bounding boxes (2.0+)
 - Pixel-level segmentation (2.5+)
@@ -31,6 +33,7 @@ Process audio, images, videos, documents, and generate images using Google Gemin
 - OCR and text extraction
 
 ### Video Analysis
+
 - Scene detection and summarization
 - Video Q&A with temporal understanding
 - Transcription with visual descriptions
@@ -39,6 +42,7 @@ Process audio, images, videos, documents, and generate images using Google Gemin
 - Frame-level analysis
 
 ### Document Extraction
+
 - Native PDF vision processing (up to 1,000 pages)
 - Table and form extraction
 - Chart and diagram analysis
@@ -47,6 +51,7 @@ Process audio, images, videos, documents, and generate images using Google Gemin
 - Format conversion (PDF to HTML/JSON)
 
 ### Image Generation
+
 - Text-to-image generation
 - Image editing and modification
 - Multi-image composition (up to 3 images)
@@ -56,37 +61,41 @@ Process audio, images, videos, documents, and generate images using Google Gemin
 
 ## Capability Matrix
 
-| Task | Audio | Image | Video | Document | Generation |
-|------|:-----:|:-----:|:-----:|:--------:|:----------:|
-| Transcription | ✓ | - | ✓ | - | - |
-| Summarization | ✓ | ✓ | ✓ | ✓ | - |
-| Q&A | ✓ | ✓ | ✓ | ✓ | - |
-| Object Detection | - | ✓ | ✓ | - | - |
-| Text Extraction | - | ✓ | - | ✓ | - |
-| Structured Output | ✓ | ✓ | ✓ | ✓ | - |
-| Creation | TTS | - | - | - | ✓ |
-| Timestamps | ✓ | - | ✓ | - | - |
-| Segmentation | - | ✓ | - | - | - |
+| Task              | Audio | Image | Video | Document | Generation |
+| ----------------- | :---: | :---: | :---: | :------: | :--------: |
+| Transcription     |   ✓   |   -   |   ✓   |    -     |     -      |
+| Summarization     |   ✓   |   ✓   |   ✓   |    ✓     |     -      |
+| Q&A               |   ✓   |   ✓   |   ✓   |    ✓     |     -      |
+| Object Detection  |   -   |   ✓   |   ✓   |    -     |     -      |
+| Text Extraction   |   -   |   ✓   |   -   |    ✓     |     -      |
+| Structured Output |   ✓   |   ✓   |   ✓   |    ✓     |     -      |
+| Creation          |  TTS  |   -   |   -   |    -     |     ✓      |
+| Timestamps        |   ✓   |   -   |   ✓   |    -     |     -      |
+| Segmentation      |   -   |   ✓   |   -   |    -     |     -      |
 
 ## Model Selection Guide
 
 ### Gemini 2.5 Series (Recommended)
+
 - **gemini-2.5-pro**: Highest quality, all features, 1M-2M context
 - **gemini-2.5-flash**: Best balance, all features, 1M-2M context
 - **gemini-2.5-flash-lite**: Lightweight, segmentation support
 - **gemini-2.5-flash-image**: Image generation only
 
 ### Gemini 2.0 Series
+
 - **gemini-2.0-flash**: Fast processing, object detection
 - **gemini-2.0-flash-lite**: Lightweight option
 
 ### Feature Requirements
+
 - **Segmentation**: Requires 2.5+ models
 - **Object Detection**: Requires 2.0+ models
 - **Multi-video**: Requires 2.5+ models
 - **Image Generation**: Requires flash-image model
 
 ### Context Windows
+
 - **2M tokens**: ~6 hours video (low-res) or ~2 hours (default)
 - **1M tokens**: ~3 hours video (low-res) or ~1 hour (default)
 - **Audio**: 32 tokens/second (1 min = 1,920 tokens)
@@ -100,6 +109,7 @@ Process audio, images, videos, documents, and generate images using Google Gemin
 **API Key Setup**: Supports both Google AI Studio and Vertex AI.
 
 The skill checks for `GEMINI_API_KEY` in this order:
+
 1. Process environment: `export GEMINI_API_KEY="your-key"`
 2. Project root: `.env`
 3. `.claude/.env`
@@ -109,6 +119,7 @@ The skill checks for `GEMINI_API_KEY` in this order:
 **Get API key**: https://aistudio.google.com/apikey
 
 **For Vertex AI**:
+
 ```bash
 export GEMINI_USE_VERTEX=true
 export VERTEX_PROJECT_ID=your-gcp-project-id
@@ -116,6 +127,7 @@ export VERTEX_LOCATION=us-central1  # Optional
 ```
 
 **Install SDK**:
+
 ```bash
 pip install google-genai python-dotenv pillow
 ```
@@ -123,6 +135,7 @@ pip install google-genai python-dotenv pillow
 ### Common Patterns
 
 **Transcribe Audio**:
+
 ```bash
 python scripts/gemini_batch_process.py \
   --files audio.mp3 \
@@ -131,6 +144,7 @@ python scripts/gemini_batch_process.py \
 ```
 
 **Analyze Image**:
+
 ```bash
 python scripts/gemini_batch_process.py \
   --files image.jpg \
@@ -141,6 +155,7 @@ python scripts/gemini_batch_process.py \
 ```
 
 **Process Video**:
+
 ```bash
 python scripts/gemini_batch_process.py \
   --files video.mp4 \
@@ -151,6 +166,7 @@ python scripts/gemini_batch_process.py \
 ```
 
 **Extract from PDF**:
+
 ```bash
 python scripts/gemini_batch_process.py \
   --files document.pdf \
@@ -161,6 +177,7 @@ python scripts/gemini_batch_process.py \
 ```
 
 **Generate Image**:
+
 ```bash
 python scripts/gemini_batch_process.py \
   --task generate \
@@ -171,6 +188,7 @@ python scripts/gemini_batch_process.py \
 ```
 
 **Optimize Media**:
+
 ```bash
 # Prepare large video for processing
 python scripts/media_optimizer.py \
@@ -186,6 +204,7 @@ python scripts/media_optimizer.py \
 ```
 
 **Convert Documents to Markdown**:
+
 ```bash
 # Convert to PDF
 python scripts/document_converter.py \
@@ -202,26 +221,31 @@ python scripts/document_converter.py \
 ## Supported Formats
 
 ### Audio
+
 - WAV, MP3, AAC, FLAC, OGG Vorbis, AIFF
 - Max 9.5 hours per request
 - Auto-downsampled to 16 Kbps mono
 
 ### Images
+
 - PNG, JPEG, WEBP, HEIC, HEIF
 - Max 3,600 images per request
 - Resolution: ≤384px = 258 tokens, larger = tiled
 
 ### Video
+
 - MP4, MPEG, MOV, AVI, FLV, MPG, WebM, WMV, 3GPP
 - Max 6 hours (low-res) or 2 hours (default)
 - YouTube URLs supported (public only)
 
 ### Documents
+
 - PDF only for vision processing
 - Max 1,000 pages
 - TXT, HTML, Markdown supported (text-only)
 
 ### Size Limits
+
 - **Inline**: <20MB total request
 - **File API**: 2GB per file, 20GB project quota
 - **Retention**: 48 hours auto-delete
@@ -231,6 +255,7 @@ python scripts/document_converter.py \
 For detailed implementation guidance, see:
 
 ### Audio Processing
+
 - `references/audio-processing.md` - Transcription, analysis, TTS
   - Timestamp handling and segment analysis
   - Multi-speaker identification
@@ -238,6 +263,7 @@ For detailed implementation guidance, see:
   - Text-to-speech generation
 
 ### Image Understanding
+
 - `references/vision-understanding.md` - Captioning, detection, OCR
   - Object detection and localization
   - Pixel-level segmentation
@@ -245,6 +271,7 @@ For detailed implementation guidance, see:
   - Multi-image comparison
 
 ### Video Analysis
+
 - `references/video-analysis.md` - Scene detection, temporal understanding
   - YouTube URL processing
   - Timestamp-based queries
@@ -252,6 +279,7 @@ For detailed implementation guidance, see:
   - Long video optimization
 
 ### Document Extraction
+
 - `references/document-extraction.md` - PDF processing, structured output
   - Table and form extraction
   - Chart and diagram analysis
@@ -259,6 +287,7 @@ For detailed implementation guidance, see:
   - Multi-page handling
 
 ### Image Generation
+
 - `references/image-generation.md` - Text-to-image, editing
   - Prompt engineering strategies
   - Image editing and composition
@@ -268,22 +297,27 @@ For detailed implementation guidance, see:
 ## Cost Optimization
 
 ### Token Costs
+
 **Input Pricing**:
+
 - Gemini 2.5 Flash: $1.00/1M input, $0.10/1M output
 - Gemini 2.5 Pro: $3.00/1M input, $12.00/1M output
 - Gemini 1.5 Flash: $0.70/1M input, $0.175/1M output
 
 **Token Rates**:
+
 - Audio: 32 tokens/second (1 min = 1,920 tokens)
 - Video: ~300 tokens/second (default) or ~100 (low-res)
 - PDF: 258 tokens/page (fixed)
 - Image: 258-1,548 tokens based on size
 
 **TTS Pricing**:
+
 - Flash TTS: $10/1M tokens
 - Pro TTS: $20/1M tokens
 
 ### Best Practices
+
 1. Use `gemini-2.5-flash` for most tasks (best price/performance)
 2. Use File API for files >20MB or repeated queries
 3. Optimize media before upload (see `media_optimizer.py`)
@@ -295,16 +329,19 @@ For detailed implementation guidance, see:
 ## Rate Limits
 
 **Free Tier**:
+
 - 10-15 RPM (requests per minute)
 - 1M-4M TPM (tokens per minute)
 - 1,500 RPD (requests per day)
 
 **YouTube Limits**:
+
 - Free tier: 8 hours/day
 - Paid tier: No length limits
 - Public videos only
 
 **Storage Limits**:
+
 - 20GB per project
 - 2GB per file
 - 48-hour retention
@@ -312,6 +349,7 @@ For detailed implementation guidance, see:
 ## Error Handling
 
 Common errors and solutions:
+
 - **400**: Invalid format/size - validate before upload
 - **401**: Invalid API key - check configuration
 - **403**: Permission denied - verify API key restrictions
@@ -324,6 +362,7 @@ Common errors and solutions:
 All scripts support unified API key detection and error handling:
 
 **gemini_batch_process.py**: Batch process multiple media files
+
 - Supports all modalities (audio, image, video, PDF)
 - Progress tracking and error recovery
 - Output formats: JSON, Markdown, CSV
@@ -331,6 +370,7 @@ All scripts support unified API key detection and error handling:
 - Dry-run mode
 
 **media_optimizer.py**: Prepare media for Gemini API
+
 - Compress videos/audio for size limits
 - Resize images appropriately
 - Split long videos into chunks
@@ -338,6 +378,7 @@ All scripts support unified API key detection and error handling:
 - Quality vs size optimization
 
 **document_converter.py**: Convert documents to PDF
+
 - Convert DOCX, XLSX, PPTX to PDF
 - Extract page ranges
 - Optimize PDFs for Gemini

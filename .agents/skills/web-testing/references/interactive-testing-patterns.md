@@ -36,7 +36,10 @@ await page.click('.calendar-day:text("25")');
 ```javascript
 test('keyboard accessibility', async ({ page }) => {
   await page.keyboard.press('Tab');
-  await expect(page.locator(':focus')).toHaveAttribute('data-testid', 'first-btn');
+  await expect(page.locator(':focus')).toHaveAttribute(
+    'data-testid',
+    'first-btn'
+  );
   await page.keyboard.press('Enter'); // Activate
   await page.keyboard.press('Escape'); // Close modal
   await page.keyboard.press('Shift+Tab'); // Navigate backward
@@ -77,13 +80,17 @@ await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
 // Wait patterns
 await page.waitForLoadState('networkidle');
-await Promise.all([page.waitForResponse('**/api/data'), page.click('button.load')]);
+await Promise.all([
+  page.waitForResponse('**/api/data'),
+  page.click('button.load'),
+]);
 ```
 
 ## Disable Animations
 
 ```javascript
 await page.addStyleTag({
-  content: '* { animation-duration: 0s !important; transition-duration: 0s !important; }'
+  content:
+    '* { animation-duration: 0s !important; transition-duration: 0s !important; }',
 });
 ```

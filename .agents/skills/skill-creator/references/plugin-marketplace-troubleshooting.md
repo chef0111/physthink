@@ -5,6 +5,7 @@
 **Symptoms:** Can't add marketplace or see plugins
 
 **Solutions:**
+
 - Verify marketplace URL is accessible
 - Check `.claude-plugin/marketplace.json` exists at specified path
 - Validate JSON syntax: `claude plugin validate .` or `/plugin validate .`
@@ -16,12 +17,12 @@ Run `claude plugin validate .` or `/plugin validate .` from marketplace director
 
 ### Common Errors
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `File not found: .claude-plugin/marketplace.json` | Missing manifest | Create `.claude-plugin/marketplace.json` with required fields |
-| `Invalid JSON syntax: Unexpected token...` | JSON syntax error | Check for missing/extra commas, unquoted strings |
-| `Duplicate plugin name "x" found` | Two plugins share same name | Give each plugin unique `name` value |
-| `plugins[0].source: Path traversal not allowed` | Source path contains `..` | Use paths relative to marketplace root without `..` |
+| Error                                             | Cause                       | Solution                                                      |
+| ------------------------------------------------- | --------------------------- | ------------------------------------------------------------- |
+| `File not found: .claude-plugin/marketplace.json` | Missing manifest            | Create `.claude-plugin/marketplace.json` with required fields |
+| `Invalid JSON syntax: Unexpected token...`        | JSON syntax error           | Check for missing/extra commas, unquoted strings              |
+| `Duplicate plugin name "x" found`                 | Two plugins share same name | Give each plugin unique `name` value                          |
+| `plugins[0].source: Path traversal not allowed`   | Source path contains `..`   | Use paths relative to marketplace root without `..`           |
 
 ### Warnings (Non-blocking)
 
@@ -34,6 +35,7 @@ Run `claude plugin validate .` or `/plugin validate .` from marketplace director
 **Symptoms:** Marketplace appears but installation fails
 
 **Solutions:**
+
 - Verify plugin source URLs are accessible
 - Check plugin directories contain required files
 - For GitHub sources, ensure repos are public or you have access
@@ -62,9 +64,13 @@ Run `claude plugin validate .` or `/plugin validate .` from marketplace director
 **Cause:** URL-based marketplaces only download `marketplace.json` file, not plugin files.
 
 **Solutions:**
+
 - Use external sources (GitHub, npm, git URL) instead of relative paths:
   ```json
-  { "name": "my-plugin", "source": { "source": "github", "repo": "owner/repo" } }
+  {
+    "name": "my-plugin",
+    "source": { "source": "github", "repo": "owner/repo" }
+  }
   ```
 - Use Git-based marketplace (clones entire repo, relative paths work)
 
@@ -75,6 +81,7 @@ Run `claude plugin validate .` or `/plugin validate .` from marketplace director
 **Cause:** Plugins copied to cache directory. Paths like `../shared-utils` won't work.
 
 **Solutions:**
+
 - Use symlinks (followed during copying)
 - Restructure so shared directory is inside plugin source path
 - Reference: Plugin caching and file resolution docs

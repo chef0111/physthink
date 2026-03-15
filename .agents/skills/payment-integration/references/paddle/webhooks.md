@@ -60,27 +60,24 @@ function verifyPaddleWebhook(
     .update(signedPayload)
     .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(h1),
-    Buffer.from(expectedSig)
-  );
+  return crypto.timingSafeEqual(Buffer.from(h1), Buffer.from(expectedSig));
 }
 ```
 
 ## Key Events
 
-| Event | Description |
-|-------|-------------|
-| `transaction.completed` | Payment successful |
-| `transaction.payment_failed` | Payment failed |
-| `subscription.created` | New subscription |
-| `subscription.updated` | Subscription changed |
-| `subscription.canceled` | Subscription canceled |
-| `subscription.past_due` | Payment overdue |
-| `subscription.paused` | Subscription paused |
-| `subscription.resumed` | Subscription resumed |
-| `customer.created` | New customer |
-| `customer.updated` | Customer updated |
+| Event                        | Description           |
+| ---------------------------- | --------------------- |
+| `transaction.completed`      | Payment successful    |
+| `transaction.payment_failed` | Payment failed        |
+| `subscription.created`       | New subscription      |
+| `subscription.updated`       | Subscription changed  |
+| `subscription.canceled`      | Subscription canceled |
+| `subscription.past_due`      | Payment overdue       |
+| `subscription.paused`        | Subscription paused   |
+| `subscription.resumed`       | Subscription resumed  |
+| `customer.created`           | New customer          |
+| `customer.updated`           | Customer updated      |
 
 ## Event Payload
 
