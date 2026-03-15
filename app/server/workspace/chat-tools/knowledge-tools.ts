@@ -30,34 +30,15 @@ const ALLOWED_DOMAINS = [
 const MAX_CONTENT_LENGTH = 4000;
 
 export const knowledgeTools = {
-<<<<<<< Updated upstream:app/server/workspace/chat-tools/knowledge-tools.ts
-  lookupPhysics: tool({
-    description:
-      'Look up a physics constant, formula, or concept by symbol or keyword. Use ONLY for uncommon constants you genuinely do not know (e.g. electron mass, Boltzmann constant, drag coefficients). Do NOT use for common values like g, c, pi, or basic formulas you already know.',
-    inputSchema: z.object({
-      query: z
-        .string()
-        .describe(
-          'The constant symbol, name, or topic (e.g. "electron mass", "Boltzmann constant", "drag coefficient")'
-        ),
-    }),
-    execute: async ({ query }) => {
-      const exact = getConstantBySymbol(query);
-      if (exact) return { found: true, results: [exact] };
-      const results = searchPhysicsConstants(query);
-      if (results.length > 0) return { found: true, results };
-      return {
-        found: false,
-        results: [],
-        message: `No results for "${query}"`,
-=======
   searchProblemExamples: tool({
     description:
       'Retrieve similar solved physics-problem examples from the local RAG corpus (lesson + extracted graph + SVG). Use this first when the student gives a textbook-like mechanics problem so you can follow proven graph/diagram patterns.',
     inputSchema: z.object({
       query: z
         .string()
-        .describe('The current student problem text to retrieve similar examples'),
+        .describe(
+          'The current student problem text to retrieve similar examples'
+        ),
       topK: z
         .number()
         .int()
@@ -116,7 +97,6 @@ export const knowledgeTools = {
         found: true,
         source: 'problem-rag',
         sample,
->>>>>>> Stashed changes:app/api/workspace/chat/tools/knowledge-tools.ts
       };
     },
   }),

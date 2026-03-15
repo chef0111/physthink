@@ -114,10 +114,11 @@ function formatTraceText(trace: PipelineTraceEntry[]): string {
     .join('\n');
 }
 
-function buildGraphPrompt(lesson: string, examples: ProblemRagSample[]): string {
-  const parts: string[] = [
-    'Few-shot examples (lesson -> graph):',
-  ];
+function buildGraphPrompt(
+  lesson: string,
+  examples: ProblemRagSample[]
+): string {
+  const parts: string[] = ['Few-shot examples (lesson -> graph):'];
 
   examples.forEach((example, index) => {
     parts.push(
@@ -144,9 +145,7 @@ function buildGraphPrompt(lesson: string, examples: ProblemRagSample[]): string 
 }
 
 function buildSvgPrompt(graph: string, examples: ProblemRagSample[]): string {
-  const parts: string[] = [
-    'Few-shot examples (graph -> svg):',
-  ];
+  const parts: string[] = ['Few-shot examples (graph -> svg):'];
 
   examples.forEach((example, index) => {
     parts.push(
@@ -380,14 +379,12 @@ export const ragPipelineTools = {
         };
       }
 
-      const retrieval = candidates
-        .slice(0, examples.length)
-        .map((item) => ({
-          key: item.key,
-          category: item.category,
-          score: item.score,
-          paths: item.paths,
-        }));
+      const retrieval = candidates.slice(0, examples.length).map((item) => ({
+        key: item.key,
+        category: item.category,
+        score: item.score,
+        paths: item.paths,
+      }));
 
       logStage('retrieval_topk', 'ok', 'Top-k examples selected', {
         candidateCount: candidates.length,

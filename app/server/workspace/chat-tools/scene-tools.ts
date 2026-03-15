@@ -123,16 +123,12 @@ const AnnotationSchema = z.object({
   ]),
   text: z.string().optional(),
   color: z.string().optional(),
-<<<<<<< Updated upstream:app/server/workspace/chat-tools/scene-tools.ts
-  fontSize: z.number().min(0.01).max(2).optional(),
-=======
   fontSize: z
     .number()
     .min(0.06)
     .max(0.16)
     .optional()
     .describe('Keep annotation text small: 0.06 to 0.16'),
->>>>>>> Stashed changes:app/api/workspace/chat/tools/scene-tools.ts
   vectors: z.tuple([Vec3Schema, Vec3Schema]).optional(),
   start: Vec3Schema.optional(),
   end: Vec3Schema.optional(),

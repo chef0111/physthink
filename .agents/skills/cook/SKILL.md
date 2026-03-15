@@ -18,6 +18,7 @@ Analyze user's feature request, select the optimal skill combination, then execu
 | `backend-development` | API design, auth, DB queries, microservices, security, CI/CD         |
 | `databases`           | Schema design, queries, migrations, indexes, aggregation             |
 | `better-auth`         | Login, signup, OAuth, 2FA, sessions, RBAC                            |
+| `ai-elements`         | AI elements components built on top of shadcn                        |
 
 ### Frontend & UI
 
@@ -60,7 +61,7 @@ Analyze user's feature request, select the optimal skill combination, then execu
 Match request against the catalog above. Select **1–4 skills** — minimum needed. Always check:
 
 - New data model → `physthink-feature`
-- New UI → `ui-styling` + `shadcn`
+- New UI → `ui-styling` + `shadcn` + `ai-elements` (if AI components) + `threejs` (if 3D)
 - Unfamiliar API → `docs-seeker` first
 - Complex scope → `sequential-thinking` first
 

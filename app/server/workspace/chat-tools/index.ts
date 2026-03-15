@@ -1,5 +1,6 @@
 import { sceneTools } from './scene-tools';
 import { knowledgeTools } from './knowledge-tools';
+import { ragPipelineTools } from './rag-tools';
 
 export const allTools = {
   // Scene manipulation
@@ -8,8 +9,13 @@ export const allTools = {
   editElement: sceneTools.editElement,
   removeElement: sceneTools.removeElement,
   setSceneSettings: sceneTools.setSceneSettings,
-  // Knowledge (lean set — avoid unnecessary lookups)
-  lookupPhysics: knowledgeTools.lookupPhysics,
+  // Local RAG pipeline (primary for textbook-style problems)
+  runProblemRagPipeline: ragPipelineTools.runProblemRagPipeline,
+  searchProblemExamples: knowledgeTools.searchProblemExamples,
+  getProblemExampleByKey: knowledgeTools.getProblemExampleByKey,
+  // Knowledge helpers
+  getPhysicsConstants: knowledgeTools.getPhysicsConstants,
+  searchPhysicsKnowledge: knowledgeTools.searchPhysicsKnowledge,
   getInteractionPattern: knowledgeTools.getInteractionPattern,
   fetchWebContent: knowledgeTools.fetchWebContent,
 };

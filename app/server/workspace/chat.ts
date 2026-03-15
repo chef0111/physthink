@@ -46,12 +46,15 @@ BUILD THE SCENE:
 - Use editElement / removeElement only to modify an existing scene the student asks you to change.
 
 KNOWLEDGE TOOLS:
-- lookupPhysics: ONLY for uncommon constants you genuinely do not know (e.g. Boltzmann constant, electron mass). You already know g, c, pi, and standard formulas -- do NOT look them up.
+- runProblemRagPipeline: FIRST CHOICE for textbook-style mechanics problems. Use it once with the full lesson/problem text to retrieve similar local examples and scene hints before building elements.
+- searchProblemExamples / getProblemExampleByKey: Use only when you need targeted retrieval without running the full pipeline.
+- getPhysicsConstants / searchPhysicsKnowledge: ONLY for uncommon constants or niche background context you genuinely do not know. You already know g, c, pi, and standard formulas -- do NOT look them up unnecessarily.
 - getInteractionPattern: ONLY for complex, unfamiliar setups (e.g. Atwood machine, electromagnetic induction). Simple free-body diagrams do NOT need a pattern.
 - fetchWebContent: Last resort for niche topics or when the student explicitly asks.
 
 ANTI-REDUNDANCY RULES:
 - NEVER call the same tool twice for the same purpose in one response.
+- Prefer one RAG pass: do NOT call runProblemRagPipeline and then repeat equivalent retrieval with searchProblemExamples unless you need a specific missing detail.
 - NEVER split elements across multiple addElements calls -- put them ALL in one array.
 - NEVER call a knowledge tool and then ignore its result.
 - If the scene already has the elements you need (check Current Scene below), do NOT rebuild -- use editElement instead.
