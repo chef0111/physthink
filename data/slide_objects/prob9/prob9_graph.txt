@@ -1,0 +1,27 @@
+TOPIC: label=stickman_walking_up_rough_hill
+OBJECT: id=stickman | label=stickman | kind=person
+OBJECT: id=hill | label=hill | kind=inclined_surface
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=move_up | verb=move_up | label=stickman walking up hill | target=stickman | direction=up_incline
+EVENT: id=reach_position | verb=reach_position | label=stickman reaches position x on incline | target=stickman | location=position_x
+QUANTITY: id=m | symbol=m | unit=kg
+QUANTITY: id=theta | symbol=theta | unit=angle
+QUANTITY: id=mu_k | symbol=mu_k | unit=dimensionless
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=x | symbol=x | unit=m
+QUANTITY: id=Fnet | symbol=Fnet | unit=N
+QUANTITY: id=t_x | symbol=t_x | unit=s
+RELATION: source=stickman | rel=rests_on | target=hill
+RELATION: source=hill | rel=rests_on | target=horizontal_surface
+RELATION: source=stickman | rel=contact_has_kinetic_friction_with | target=hill
+RELATION: source=m | rel=applies_for | target=stickman
+RELATION: source=theta | rel=applies_for | target=hill
+RELATION: source=mu_k | rel=kinetic_friction_with | target=stickman,hill
+RELATION: source=g | rel=applies_for | target=stickman,hill
+RELATION: source=gravity | rel=acts_on | target=stickman,hill
+RELATION: source=x | rel=applies_for | target=reach_position
+RELATION: source=Fnet | rel=applies_for | target=stickman
+RELATION: source=t_x | rel=applies_for | target=reach_position
+QUESTION_TARGET: label=magnitude of the net force acting on the stickman along the incline | target_symbol=Fnet
+QUESTION_TARGET: label=time for the stickman to reach position x on the incline | target_symbol=t_x

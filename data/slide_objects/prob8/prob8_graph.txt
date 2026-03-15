@@ -1,0 +1,22 @@
+TOPIC: label=truck_driving_up_frictionless_hill
+OBJECT: id=truck | label=truck | kind=vehicle
+OBJECT: id=hill | label=hill | kind=inclined_surface
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=move_up | verb=move_up | label=truck driving up hill | target=truck | direction=up_incline
+QUANTITY: id=m | symbol=m | unit=kg
+QUANTITY: id=theta | symbol=theta | unit=angle
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=Ftotal | symbol=Ftotal | unit=N
+QUANTITY: id=N | symbol=N | unit=N
+RELATION: source=truck | rel=rests_on | target=hill
+RELATION: source=hill | rel=rests_on | target=horizontal_surface
+RELATION: source=truck | rel=contact_is_frictionless_with | target=hill
+RELATION: source=m | rel=applies_for | target=truck
+RELATION: source=theta | rel=applies_for | target=hill
+RELATION: source=g | rel=applies_for | target=truck,hill
+RELATION: source=gravity | rel=acts_on | target=truck,hill
+RELATION: source=Ftotal | rel=applies_for | target=truck
+RELATION: source=N | rel=applies_for | target=truck,hill
+QUESTION_TARGET: label=magnitude of the sum of all forces acting on the truck | target_symbol=Ftotal
+QUESTION_TARGET: label=magnitude of the normal force exerted by the hill on the truck | target_symbol=N

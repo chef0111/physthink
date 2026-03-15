@@ -1,0 +1,27 @@
+TOPIC: label=sled_sliding_down_rough_hill
+OBJECT: id=sled | label=sled | kind=vehicle
+OBJECT: id=hill | label=hill | kind=inclined_surface
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=slide_down | verb=slide_down | label=sled sliding down hill | target=sled | direction=down_incline
+EVENT: id=reach_position | verb=reach_position | label=sled reaches position x on incline | target=sled | location=position_x
+QUANTITY: id=m | symbol=m | unit=kg
+QUANTITY: id=theta | symbol=theta | unit=angle
+QUANTITY: id=mu_k | symbol=mu_k | unit=dimensionless
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=x | symbol=x | unit=m
+QUANTITY: id=Fnet | symbol=Fnet | unit=N
+QUANTITY: id=v_x | symbol=v_x | unit=m/s
+RELATION: source=sled | rel=rests_on | target=hill
+RELATION: source=hill | rel=rests_on | target=horizontal_surface
+RELATION: source=sled | rel=contact_has_kinetic_friction_with | target=hill
+RELATION: source=m | rel=applies_for | target=sled
+RELATION: source=theta | rel=applies_for | target=hill
+RELATION: source=mu_k | rel=kinetic_friction_with | target=sled,hill
+RELATION: source=g | rel=applies_for | target=sled,hill
+RELATION: source=gravity | rel=acts_on | target=sled,hill
+RELATION: source=x | rel=applies_for | target=reach_position
+RELATION: source=Fnet | rel=applies_for | target=sled
+RELATION: source=v_x | rel=applies_for | target=reach_position
+QUESTION_TARGET: label=magnitude of the net force acting on the sled along the incline | target_symbol=Fnet
+QUESTION_TARGET: label=speed of the sled when it reaches position x on the incline | target_symbol=v_x

@@ -35,6 +35,24 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
       const transformedContent: typeof result.content = [];
       let hasToolCalls = false;
       let idCounter = 0;
+      const seenToolCalls = new Set<string>();
+
+      const pushToolCall = (
+        toolName: string,
+        args: Record<string, unknown> | undefined
+      ) => {
+        const input = JSON.stringify(args || {});
+        const signature = `${toolName}::${input}`;
+        if (seenToolCalls.has(signature)) return;
+        seenToolCalls.add(signature);
+        transformedContent.push({
+          type: 'tool-call',
+          toolCallId: `fn-${idCounter++}`,
+          toolName,
+          input,
+        });
+        hasToolCalls = true;
+      };
 
       for (const part of result.content) {
         if (part.type !== 'text') {
@@ -56,13 +74,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             }
             const parsed = parseToolCallJson(match[2].trim());
             if (parsed) {
-              transformedContent.push({
-                type: 'tool-call',
-                toolCallId: `fn-${idCounter++}`,
-                toolName: parsed.name,
-                input: JSON.stringify(parsed.arguments || {}),
-              });
-              hasToolCalls = true;
+              pushToolCall(parsed.name, parsed.arguments);
             }
             foundTags = true;
             lastIdx = match.index + match[0].length;
@@ -87,13 +99,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
         for (const line of after.split('\n')) {
           const parsed = parseFnCallLine(line.trim());
           if (parsed) {
-            transformedContent.push({
-              type: 'tool-call',
-              toolCallId: `fn-${idCounter++}`,
-              toolName: parsed.toolName,
-              input: JSON.stringify(parsed.args),
-            });
-            hasToolCalls = true;
+            pushToolCall(parsed.toolName, parsed.args);
           }
         }
       }
@@ -336,7 +342,11 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
       function emitToolCalls(
         controller: TransformStreamDefaultController<LanguageModelV3StreamPart>
       ) {
+        const seen = new Set<string>();
         for (const tc of toolCalls) {
+          const signature = `${tc.toolName}::${tc.args}`;
+          if (seen.has(signature)) continue;
+          seen.add(signature);
           controller.enqueue({
             type: 'tool-input-start',
             id: tc.id,

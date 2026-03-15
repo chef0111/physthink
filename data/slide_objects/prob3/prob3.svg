@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="650" viewBox="0 0 1100 650">
+  <defs>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .wedge-fill { fill: #d9e8fb; }
+      .wedge-edge { stroke: #355c7d; stroke-width: 3; fill: none; }
+      .box1 { fill: #f4f1e6; stroke: #777; stroke-width: 2.5; }
+      .box2 { fill: #e8f3d6; stroke: #6d8c3c; stroke-width: 2.5; }
+      .surface { stroke: #666; stroke-width: 5; }
+      .wall { stroke: #9a9a9a; stroke-width: 10; }
+      .string { stroke: #444; stroke-width: 3; fill: none; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+      .scribble { stroke: #8c8c8c; stroke-width: 2; fill: none; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Boxes Connected by a String on a Frictionless Wedge</text>
+
+  <line x1="40" y1="540" x2="1040" y2="540" class="surface" />
+  <text x="900" y="518" class="label">horizontal surface</text>
+
+  <line x1="120" y1="180" x2="120" y2="540" class="wall" />
+  <text x="92" y="260" class="label" transform="rotate(-90 92 260)">wall</text>
+
+  <polygon points="120,275 120,540 560,540" class="wedge-fill" />
+  <line x1="120" y1="275" x2="560" y2="540" class="wedge-edge" />
+  <line x1="120" y1="540" x2="560" y2="540" class="wedge-edge" />
+  <line x1="120" y1="275" x2="120" y2="540" class="wedge-edge" />
+  <text x="190" y="430" class="label">wedge</text>
+
+  <!-- upper box moved northeast and offset outward normal so it sits on the incline -->
+  <g transform="translate(270,330) rotate(31)">
+    <rect x="-50" y="-26" width="100" height="52" rx="5" class="box1" />
+    <text x="-18" y="8" class="label">box</text>
+  </g>
+  <text x="255" y="292" class="math">m1</text>
+
+  <!-- lower box moved northeast and offset outward normal so it sits on the incline -->
+  <g transform="translate(395,405) rotate(31)">
+    <rect x="-44" y="-24" width="88" height="48" rx="5" class="box2" />
+    <text x="-18" y="8" class="label">box</text>
+  </g>
+  <text x="385" y="370" class="math">m2</text>
+
+  <!-- string along incline -->
+  <line x1="318" y1="356" x2="352" y2="376" class="string" />
+  <text x="330" y="343" class="math">T</text>
+
+  <!-- g under lower box -->
+  <line x1="395" y1="433" x2="395" y2="493" class="gline" />
+  <polygon points="395,513 370,493 420,493" class="ghead" />
+  <text x="412" y="473" class="math">g</text>
+
+  <text x="448" y="495" class="math">θ</text>
+
+  <path d="M595 205 C 635 205, 635 245, 595 245 C 565 245, 565 290, 600 290" class="scribble"/>
+  <text x="615" y="198" class="label">no friction</text>
+
+  <text x="60" y="585" class="small">both boxes are on the incline surface</text>
+  <text x="60" y="610" class="small">string is light and surfaces are frictionless</text>
+</svg>

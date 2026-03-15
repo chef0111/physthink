@@ -1,0 +1,811 @@
+You are a physics diagram renderer.
+
+Input is line-based extracted physics knowledge (TOPIC/OBJECT/EVENT/QUANTITY/RELATION...).
+Draw ONE clear 2D illustration as SVG only.
+
+Hard requirements:
+1) Output must be valid XML SVG only, no markdown, no code fence, no explanation.
+2) Root must be: <svg ... width="600" height="600" viewBox="0 0 600 600" ...>.
+3) White/light background.
+4) Draw objects/surfaces/blocks as simple shapes (rect/circle/line/polygon) with labels.
+5) Draw arrows for actions/forces/relations when relevant; add short text labels near arrows.
+6) If relation is an action/interation, the label should use base-form verb style in snake_case when possible.
+7) Include quantity labels (m, F, mu, g, etc.) near relevant objects if available.
+8) Keep the figure readable and uncluttered; prefer left-to-right force/motion direction when unclear.
+9) Use only standard SVG elements and inline styles; no external CSS/JS.
+10) Ensure the SVG is self-contained and closes with </svg>.
+11) Do not include any <think>...</think> content from the input; only draw based on the extracted facts.
+12) Do not attempt to solve for unknowns; just illustrate the given information.
+13) Output only the SVG content, no explanations or extra text.
+
+Anti-duplication rules (very important):
+1) Do NOT draw duplicate labels for the same quantity/force.
+2) For each quantity symbol (F, N, T, f, m, g, mu, ...), render one primary label per target object/arrow only.
+3) If numeric value exists, merge into one label (example: "F = 21 N"), do NOT also print a separate standalone "F".
+4) Avoid repeated identical <text> labels unless they refer to clearly different objects; if needed, disambiguate (example: F_on_upper, F_on_lower).
+5) Keep only one visual annotation for each arrow: either the symbol or the full value expression, not both repeated.
+
+Semantic grounding from examples (critical):
+1) Learn the scene pattern from the most similar examples first (Example 1, then Example 2).
+2) Infer semantics from target Extracted text, then map each item to visuals:
+   - Each OBJECT -> one visible shape + one clear label.
+   - Each key EVENT/RELATION -> one relevant arrow/connection + short label.
+   - Each important QUANTITY -> one nearby annotation on the correct target.
+3) Reuse layout style from examples, but do NOT copy unrelated objects, arrows, or labels.
+4) Preserve target meaning over style: if target semantics differ from examples, follow the target.
+5) Prioritize physically meaningful arrangement and readability over decorative detail.
+
+You are a physics diagram renderer.
+
+Input is line-based extracted physics knowledge (TOPIC/OBJECT/EVENT/QUANTITY/RELATION...).
+Draw ONE clear 2D illustration as SVG only.
+
+Hard requirements:
+1) Output must be valid XML SVG only, no markdown, no code fence, no explanation.
+2) Root must be: <svg ... width="600" height="600" viewBox="0 0 600 600" ...>.
+3) White/light background.
+4) Draw objects/surfaces/blocks as simple shapes (rect/circle/line/polygon) with labels.
+5) Draw arrows for actions/forces/relations when relevant; add short text labels near arrows.
+6) If relation is an action/interation, the label should use base-form verb style in snake_case when possible.
+7) Include quantity labels (m, F, mu, g, etc.) near relevant objects if available.
+8) Keep the figure readable and uncluttered; prefer left-to-right force/motion direction when unclear.
+9) Use only standard SVG elements and inline styles; no external CSS/JS.
+10) Ensure the SVG is self-contained and closes with </svg>.
+11) Do not include any <think>...</think> content from the input; only draw based on the extracted facts.
+12) Do not attempt to solve for unknowns; just illustrate the given information.
+13) Output only the SVG content, no explanations or extra text.
+
+Few-shot examples (extracted graph text -> SVG). Match relation labels and object mappings.
+
+Examples:
+
+Example 1:
+Similarity: 0.8180
+Source key: stack_objects/prob5
+Extracted text:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=1.8 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=4.2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.35 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <!-- table -->
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <!-- lower block -->
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="405" y="392" class="math">m₂ = 4.2 kg</text>
+
+  <!-- upper block -->
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="418" y="278" class="math">m₁ = 1.8 kg</text>
+
+  <!-- applied force on lower block -->
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="85" y="350" class="math">F</text>
+
+  <!-- gravity direction -->
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <!-- optional contact property -->
+  <text x="80" y="475" class="small">μₛ = 0.35 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find maximum F so the blocks move together without slipping</text>
+</svg>
+
+Example 2:
+Similarity: 0.7906
+Source key: stack_objects/prob9
+Extracted text:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.4 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=5.6 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.32 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="390" y="392" class="math">m₂ = 5.6 kg</text>
+
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="390" y="278" class="math">m₁ = 2.4 kg</text>
+
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="70" y="350" class="math">F</text>
+
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <text x="80" y="475" class="small">μₛ = 0.32 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find maximum F so the blocks move together without slipping</text>
+</svg>
+
+Example 3:
+Similarity: 0.7898
+Source key: stack_objects/prob1
+Extracted text:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=upper_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.2 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=4.8 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.5 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <!-- table -->
+  <line x1="80" y1="400" x2="820" y2="400" class="surface" />
+  <text x="760" y="385" class="label">table</text>
+
+  <!-- lower block -->
+  <rect x="260" y="280" width="340" height="120" rx="8" class="lower" />
+  <text x="372" y="345" class="label">lower block</text>
+  <text x="386" y="372" class="math">m₂ = 4.8 kg</text>
+
+  <!-- upper block -->
+  <rect x="340" y="180" width="180" height="100" rx="8" class="upper" />
+  <text x="387" y="232" class="label">upper block</text>
+  <text x="398" y="258" class="math">m₁ = 2.2 kg</text>
+
+  <!-- applied force -->
+  <line x1="190" y1="230" x2="320" y2="230" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="150" y="220" class="math">F</text>
+
+  <!-- optional contact property -->
+  <text x="80" y="455" class="small">μₛ = 0.5 between upper block and lower block</text>
+  <text x="80" y="480" class="small">table is frictionless</text>
+</svg>
+
+Example 4:
+Similarity: 0.7875
+Source key: stack_objects/prob3
+Extracted text:
+TOPIC: label=minimum_lower_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.5 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.40 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=20 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m2 | rel=minimum_value_for | target=move_together_condition
+QUESTION_TARGET: label=minimum lower block mass for which blocks do not slip | target_symbol=m2
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <!-- table -->
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <!-- lower block -->
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="414" y="392" class="math">m₂ = ? kg</text>
+
+  <!-- upper block -->
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="418" y="278" class="math">m₁ = 2.5 kg</text>
+
+  <!-- applied force on lower block -->
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="70" y="350" class="math">F = 20 N</text>
+
+  <!-- gravity direction -->
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <!-- optional contact property -->
+  <text x="80" y="475" class="small">μₛ = 0.40 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find minimum m₂ so the blocks move together without slipping</text>
+</svg>
+
+Example 5:
+Similarity: 0.7853
+Source key: stack_objects/prob7
+Extracted text:
+TOPIC: label=minimum_lower_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=3.2 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.45 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=26 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m2 | rel=minimum_value_for | target=move_together_condition
+QUESTION_TARGET: label=minimum lower block mass for which blocks do not slip | target_symbol=m2
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="390" y="392" class="math">m₂ = ? kg</text>
+
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="390" y="278" class="math">m₁ = 3.2 kg</text>
+
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="70" y="350" class="math">F = 26 N</text>
+
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <text x="80" y="475" class="small">μₛ = 0.45 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find minimum m₂ so the blocks move together without slipping</text>
+</svg>
+
+Example 6:
+Similarity: 0.7838
+Source key: stack_objects/prob4
+Extracted text:
+TOPIC: label=minimum_lower_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.30 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=18 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=m1_to_m2_ratio | symbol=m1/m2 | value=2/3 | unit=dimensionless
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m1 | rel=has_ratio_with | target=m2
+RELATION: source=m1_to_m2_ratio | rel=applies_for | target=m1,m2
+RELATION: source=m2 | rel=minimum_value_for | target=move_together_condition
+QUESTION_TARGET: label=minimum lower block mass for which blocks do not slip | target_symbol=m2
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <!-- table -->
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <!-- lower block -->
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="414" y="392" class="math">m₂ = ? kg</text>
+
+  <!-- upper block -->
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="248" class="label">upper block</text>
+  <text x="386" y="276" class="math">m₁ = (2/3)m₂</text>
+
+  <!-- applied force on lower block -->
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="70" y="350" class="math">F = 18 N</text>
+
+  <!-- gravity direction -->
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <!-- optional contact property -->
+  <text x="80" y="475" class="small">μₛ = 0.30 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find minimum m₂ so the blocks move together without slipping</text>
+</svg>
+
+Example 7:
+Similarity: 0.7826
+Source key: stack_objects/prob2
+Extracted text:
+TOPIC: label=minimum_static_friction_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=3.0 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=6.0 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+QUESTION_TARGET: label=minimum coefficient of static friction for which blocks do not slip | target_symbol=mu_s
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <!-- table -->
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <!-- lower block -->
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="405" y="392" class="math">m₂ = 6.0 kg</text>
+
+  <!-- upper block -->
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="418" y="278" class="math">m₁ = 3.0 kg</text>
+
+  <!-- applied force -->
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="85" y="350" class="math">F</text>
+
+  <!-- gravity direction: manual arrow, perfectly vertical -->
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <!-- optional contact property -->
+  <text x="80" y="475" class="small">find minimum μₛ so the blocks move together without slipping</text>
+  <text x="80" y="500" class="small">table is frictionless</text>
+</svg>
+
+Example 8:
+Similarity: 0.7819
+Source key: stack_objects/prob10
+Extracted text:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.0 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=7.5 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.27 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="390" y="392" class="math">m₂ = 7.5 kg</text>
+
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="390" y="278" class="math">m₁ = 2.0 kg</text>
+
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="70" y="350" class="math">F</text>
+
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <text x="80" y="475" class="small">μₛ = 0.27 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find maximum F so the blocks move together without slipping</text>
+</svg>
+
+Example 9:
+Similarity: 0.7807
+Source key: stack_objects/prob6
+Extracted text:
+TOPIC: label=maximum_upper_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=5.4 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.28 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=24 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m1 | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum upper block mass for which blocks do not slip | target_symbol=m1
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="390" y="392" class="math">m₂ = 5.4 kg</text>
+
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="390" y="278" class="math">m₁ = ? kg</text>
+
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="70" y="350" class="math">F = 24 N</text>
+
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <text x="80" y="475" class="small">μₛ = 0.28 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find maximum m₁ so the blocks move together without slipping</text>
+</svg>
+
+Example 10:
+Similarity: 0.7652
+Source key: stack_objects/prob8
+Extracted text:
+TOPIC: label=maximum_upper_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.25 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=30 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=m2_to_m1_ratio | symbol=m2/m1 | value=3 | unit=dimensionless
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m2 | rel=has_ratio_with | target=m1
+RELATION: source=m2_to_m1_ratio | rel=applies_for | target=m2,m1
+RELATION: source=m1 | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum upper block mass for which blocks do not slip | target_symbol=m1
+Output:
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1f4e79" />
+    </marker>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .upper { fill: #d9e8fb; stroke: #355c7d; stroke-width: 3; }
+      .lower { fill: #cfe8cf; stroke: #3d6b35; stroke-width: 3; }
+      .surface { stroke: #444; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Two Stacked Blocks</text>
+
+  <line x1="80" y1="420" x2="860" y2="420" class="surface" />
+  <text x="800" y="405" class="label">table</text>
+
+  <rect x="270" y="300" width="360" height="120" rx="8" class="lower" />
+  <text x="390" y="365" class="label">lower block</text>
+  <text x="390" y="392" class="math">m₂ = 3m₁</text>
+
+  <rect x="360" y="200" width="180" height="100" rx="8" class="upper" />
+  <text x="406" y="252" class="label">upper block</text>
+  <text x="390" y="278" class="math">m₁ = ? kg</text>
+
+  <line x1="120" y1="360" x2="250" y2="360" stroke="#1f4e79" stroke-width="6" marker-end="url(#arrow)" />
+  <text x="70" y="350" class="math">F = 30 N</text>
+
+  <line x1="500" y1="455" x2="500" y2="505" class="gline" />
+  <polygon points="500,525 470,505 530,505" class="ghead" />
+  <text x="515" y="488" class="math">g</text>
+
+  <text x="80" y="475" class="small">μₛ = 0.25 between upper block and lower block</text>
+  <text x="80" y="500" class="small">find maximum m₁ so the blocks move together without slipping</text>
+</svg>
+
+Now draw the new diagram.
+Remember: avoid duplicate force labels (especially repeated F).
+Extracted text:
+TOPIC: label=acceleration_and_forces_for_two_stacked_blocks
+OBJECT: id=small_block | label=small block | kind=block
+OBJECT: id=larger_block | label=larger block | kind=block
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=larger_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=small_block,larger_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=5 | unit=kg
+QUANTITY: id=F | symbol=F | value=21 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=small_block | rel=rests_on | target=larger_block
+RELATION: source=larger_block | rel=rests_on | target=horizontal_surface
+RELATION: source=larger_block | rel=contact_is_frictionless_with | target=horizontal_surface
+RELATION: source=m1 | rel=applies_for | target=small_block
+RELATION: source=m2 | rel=applies_for | target=larger_block
+RELATION: source=F | rel=applies_for | target=larger_block
+RELATION: source=g | rel=applies_for | target=small_block,larger_block
+RELATION: source=gravity | rel=acts_on | target=small_block,larger_block
+ASSUMPTION: text=Assume there is enough friction between the two blocks so that they move together without slipping.
+Output:

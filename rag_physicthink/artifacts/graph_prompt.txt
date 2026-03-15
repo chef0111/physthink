@@ -1,0 +1,448 @@
+Read the physics lesson below and extract the important information.
+
+Do not solve the problem.
+Do not return JSON.
+Do not return markdown.
+Do not include <think> tags.
+Do not include reasoning.
+Print plain text only.
+Print one fact per line.
+
+Use exactly these line prefixes when relevant:
+TOPIC: ...
+PERSON: ...
+OBJECT: ...
+EVENT: ...
+QUANTITY: ...
+RELATION: ...
+ASSUMPTION: ...
+QUESTION_TARGET: ...
+
+Output format (graph-friendly, strict):
+- After PREFIX:, print key=value pairs separated by " | " (space-pipe-space).
+- Use only ASCII for keys (id, label, kind, verb, source, rel, target, unit, value, symbol, ...).
+- IDs must be snake_case and stable (normalize from the lesson text).
+- Do not invent missing info; omit fields that are not explicitly present.
+- Keep values short. Prefer commas for lists: participants=a,b,c.
+
+Normalization rules (important):
+- EVENT.verb MUST be a base-form lemma in snake_case (NOT past tense/participle).
+  Examples: apply_force, throw, collide, move_together, slip, rest, slide, roll, fall.
+  Bad: applied, thrown, colliding.
+- For "maximum value of X such that CONDITION ...", create an EVENT node for the CONDITION and link the maximum quantity to that EVENT
+  (do NOT link Fmax -> F directly).
+
+Required fields by line type:
+- TOPIC: label=...
+- PERSON: id=... | label=...
+- OBJECT: id=... | label=... | kind=...
+- EVENT: id=... | verb=... | label=...
+- QUANTITY: id=... | symbol=... | unit=...
+- RELATION: source=... | rel=... | target=...
+- ASSUMPTION: text=...
+- QUESTION_TARGET: label=... | target_symbol=...
+
+Redundancy rules:
+- Do not output implied duplicates.
+- Use consistent IDs across lines.
+
+Read the physics lesson below and extract the important information.
+
+Do not solve the problem.
+Do not return JSON.
+Do not return markdown.
+Do not include <think> tags.
+Do not include reasoning.
+Print plain text only.
+Print one fact per line.
+
+Use exactly these line prefixes when relevant:
+TOPIC: ...
+PERSON: ...
+OBJECT: ...
+EVENT: ...
+QUANTITY: ...
+RELATION: ...
+ASSUMPTION: ...
+QUESTION_TARGET: ...
+
+Output format (graph-friendly, strict):
+- After PREFIX:, print key=value pairs separated by " | " (space-pipe-space).
+- Use only ASCII for keys (id, label, kind, verb, source, rel, target, unit, value, symbol, ...).
+- IDs must be snake_case and stable (normalize from the lesson text).
+- Do not invent missing info; omit fields that are not explicitly present.
+- Keep values short. Prefer commas for lists: participants=a,b,c.
+
+Normalization rules (important):
+- EVENT.verb MUST be a base-form lemma in snake_case (NOT past tense/participle).
+  Examples: apply_force, throw, collide, move_together, slip, rest, slide, roll, fall.
+  Bad: applied, thrown, colliding.
+- For "maximum value of X such that CONDITION ...", create an EVENT node for the CONDITION and link the maximum quantity to that EVENT
+  (do NOT link Fmax -> F directly).
+
+Required fields by line type:
+- TOPIC: label=...
+
+- PERSON: id=... | label=...
+
+- OBJECT: id=... | label=... | kind=...
+  * OBJECT includes ANY physical thing/surface/boundary/location in the scene:
+    items: can, ball, box, car, rope, spring, pulley, ramp, cart, block
+    surfaces/boundaries: table, floor, ground, wall, ceiling, incline_plane, track, platform
+    environment/medium only if mentioned: air, water, ice
+    named locations only if mentioned: throw_point, collision_point, point_a, point_b, origin, top_of_ramp
+
+- EVENT: id=... | verb=... | label=...
+  * Use EVENT for "something happens" (an action/process/condition), especially:
+    apply_force, throw/launch/drop, collide/hit, move_together, slip/without_slipping, start_motion, stop, reach_height, etc.
+  * Optional fields (use only if explicitly present):
+    agent=...        (who/what applies/does the action; omit if not stated)
+    target=...       (object affected; e.g., upper_block)
+    object=...       (object moved/thrown; if different from target)
+    participants=... (comma-separated ids; e.g., upper_block,lower_block)
+    quantity=...     (symbol/id of the primary quantity involved; e.g., F)
+    direction=...    (horizontal, vertical, up, down, left, right, along_ramp)
+    occurs_at=...    (a named location/point if present)
+    condition=...    (short condition phrase if explicitly stated)
+
+- QUANTITY: id=... | symbol=... | unit=...
+  * Add value=... only if a numeric value is explicitly given.
+  * Add applies_to=... if it clearly refers to an object/event (comma-separated).
+  * If a quantity clearly refers to exactly one object or event, also output:
+    RELATION: source=<quantity_id> | rel=applies_for | target=<that_single_id>
+  * Do NOT output applies_for if the quantity refers to multiple targets or the target is unclear.
+  * Units:
+    - Keep original units as written if possible (kg, N, m, s, m/s, m/s^2, rad/s, deg, Pa, J).
+    - For dimensionless values like coefficients (mu, mu_s), use unit=dimensionless (NOT unit=μ).
+  * Examples:
+    symbol=m2 | value=4.8 | unit=kg
+    symbol=F  | unit=N
+    symbol=mu_s | value=0.5 | unit=dimensionless
+
+- RELATION: source=... | rel=... | target=...
+  * Optional if explicitly present: event=... | quantity=... | qualifier=... | condition=...
+  * rel MUST be short snake_case.
+  * If relation describes an interaction/action between objects, rel MUST use a verb in base form.
+    Good: push, pull, collide_with, move_together_with, accelerate_with, apply_force_to.
+    Bad: pushed, pulling, collision, movement.
+  * Prefer concrete, parseable relations. Examples:
+    rests_on, on, above, below, attached_to, connected_to
+    time_between, occurs_at, measured_from
+    apply_force_to, collides_with, moves_with, accelerates_with, applies_for
+    static_friction_with, kinetic_friction_with
+    contact_is_frictionless_with
+    no_slip_with, moves_together_with
+    maximum_value_for
+
+RELATION coverage (use when explicitly present):
+- Spatial/contact: rests_on, on, above, below, along, angle_with, distance_between
+- Time: before, after, during, time_between, at_time
+- Motion: moves, moves_with, has_speed, accelerates_with, starts_from_rest, reaches, collides_with
+- Forces/interactions: apply_force_to, static_friction_with, kinetic_friction_with, normal_force_on, tension_in, gravity_on
+- Quantity attachment: applies_for
+- Surface property: contact_is_frictionless_with (use for "frictionless table/surface")
+- Constraints: no_slip_with, moves_together_with, without_slipping
+- Max/limit: maximum_value_for (target SHOULD be an EVENT that represents the condition)
+
+ASSUMPTION:
+- Only explicit assumptions stated with words like "Assume ...".
+- Do NOT treat givens like "Suppose mu_s=..." or "Take g=..." as assumptions (they are QUANTITY).
+- Format: text=...
+
+QUESTION_TARGET:
+- Format: label=... | target_symbol=... (if a symbol is explicitly named)
+
+Redundancy rules:
+- Do not output implied duplicates.
+  Example: if you already have rests_on, do NOT add above unless "above" is explicitly stated.
+- Use consistent IDs across lines.
+
+Few-shot examples (lesson -> extracted graph text). Follow the same style and prefixes.
+
+Example 1:
+Lesson:
+A small block sits on top of a larger block. The larger block is on a horizontal table with no friction. The top block has mass m1 = 1.8 kg, and the bottom block has mass m2 = 4.2 kg. The coefficient of static friction between the two blocks is mu_s = 0.35. A horizontal force of magnitude F is applied to the bottom block. Determine the largest value of F for which the two blocks can accelerate together without the top block sliding on the bottom block. Take g = 9.8 m/s^2 and give your answer in Newtons.
+Output:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=1.8 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=4.2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.35 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+
+Example 2:
+Lesson:
+A 2.4 kg block rests on top of a 5.6 kg block. The lower block is on a frictionless table. The coefficient of static friction between the blocks is mu_s = 0.32. A horizontal force F is applied to the lower block. Find the maximum value of F for which the two blocks continue moving together without slipping. Take g = 9.8 m/s^2.
+Output:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.4 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=5.6 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.32 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+
+Example 3:
+Lesson:
+Consider two blocks that are resting one on top of the other. The lower block has mass m2 = 4.8 kg and is resting on a frictionless table. The upper block has mass m1 = 2.2 kg. Suppose the coefficient of static friction between the two blocks is given by µs =0.5. A force of magnitude F is applied as shown. What is Fmax, the maximum value of F for which the upper block can be pushed horizontally so that the two blocks move together without slipping? Please give your answer in Newtons.
+Output:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=upper_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.2 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=4.8 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.5 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+
+Example 4:
+Lesson:
+Consider two blocks that are resting one on top of the other. The upper block has mass m1 = 2.5 kg. The lower block has mass m2 and is resting on a frictionless table. Suppose the coefficient of static friction between the two blocks is given by mu_s = 0.40. A horizontal force of magnitude F = 20 N is applied to the lower block as shown. What is the minimum value of m2, in kilograms, for which the two blocks move together without slipping? Take g = 9.8 m/s^2.
+Output:
+TOPIC: label=minimum_lower_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.5 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.40 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=20 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m2 | rel=minimum_value_for | target=move_together_condition
+QUESTION_TARGET: label=minimum lower block mass for which blocks do not slip | target_symbol=m2
+
+Example 5:
+Lesson:
+A top block of mass m1 = 3.2 kg rests on a bottom block that is on a frictionless horizontal table. A horizontal force F = 26 N pushes the bottom block. If the coefficient of static friction between the two blocks is mu_s = 0.45, determine the minimum mass m2 of the lower block so that the blocks move together without slipping. Take g = 9.8 m/s^2.
+Output:
+TOPIC: label=minimum_lower_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=3.2 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.45 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=26 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m2 | rel=minimum_value_for | target=move_together_condition
+QUESTION_TARGET: label=minimum lower block mass for which blocks do not slip | target_symbol=m2
+
+Example 6:
+Lesson:
+Consider two blocks that are resting one on top of the other. The lower block has mass m2 and is resting on a frictionless table. The upper block has mass m1 = (2/3)m2. Suppose the coefficient of static friction between the two blocks is given by mu_s = 0.30. A horizontal force of magnitude F = 18 N is applied to the lower block as shown. What is the minimum value of m2, in kilograms, for which the two blocks move together without slipping? Take g = 9.8 m/s^2.
+Output:
+TOPIC: label=minimum_lower_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.30 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=18 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=m1_to_m2_ratio | symbol=m1/m2 | value=2/3 | unit=dimensionless
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m1 | rel=has_ratio_with | target=m2
+RELATION: source=m1_to_m2_ratio | rel=applies_for | target=m1,m2
+RELATION: source=m2 | rel=minimum_value_for | target=move_together_condition
+QUESTION_TARGET: label=minimum lower block mass for which blocks do not slip | target_symbol=m2
+
+Example 7:
+Lesson:
+Consider two blocks that are resting one on top of the other. The lower block has mass m2 = 6.0 kg and is resting on a frictionless table. The upper block has mass m1 = 3.0 kg. A force of magnitude F is applied horizontally to the lower block as shown. What is the minimum value of the coefficient of static friction mu_s for which the two blocks move together without slipping? Take g = 9.8 m/s^2. Please give your answer as a dimensionless number.
+Output:
+TOPIC: label=minimum_static_friction_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=3.0 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=6.0 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+QUESTION_TARGET: label=minimum coefficient of static friction for which blocks do not slip | target_symbol=mu_s
+
+Example 8:
+Lesson:
+On a smooth horizontal table, a lower block of mass m2 = 7.5 kg carries an upper block of mass m1 = 2.0 kg. The static friction coefficient between the contact surfaces of the two blocks is mu_s = 0.27. A horizontal force F is exerted on the lower block. Determine the greatest force F that can be applied if both blocks are to travel together without relative slipping. Take g = 9.8 m/s^2.
+Output:
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.0 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=7.5 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.27 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax
+
+Example 9:
+Lesson:
+A block is placed on top of another block. The lower block has mass m2 = 5.4 kg and rests on a frictionless table. A horizontal force of magnitude F = 24 N is applied to the lower block. The coefficient of static friction between the two blocks is mu_s = 0.28. What is the maximum value of m1, in kilograms, for which the two blocks move together without slipping? Take g = 9.8 m/s^2.
+Output:
+TOPIC: label=maximum_upper_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=5.4 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.28 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=24 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m1 | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum upper block mass for which blocks do not slip | target_symbol=m1
+
+Example 10:
+Lesson:
+Two blocks are stacked, with the lower block on a frictionless table and the upper block on top of it. The lower block has mass m2 = 3m1. A horizontal force F = 30 N is applied to the lower block. If the coefficient of static friction between the two blocks is mu_s = 0.25, what is the maximum value of m1, in kilograms, for which the two blocks move together without slipping? Take g = 9.8 m/s^2.
+Output:
+TOPIC: label=maximum_upper_block_mass_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.25 | unit=dimensionless
+QUANTITY: id=F | symbol=F | value=30 | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=m2_to_m1_ratio | symbol=m2/m1 | value=3 | unit=dimensionless
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=m2 | rel=has_ratio_with | target=m1
+RELATION: source=m2_to_m1_ratio | rel=applies_for | target=m2,m1
+RELATION: source=m1 | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum upper block mass for which blocks do not slip | target_symbol=m1
+
+Now process the new lesson.
+Lesson:
+A small block of mass 2 kg is resting on top of a larger block of mass 5 kg, as shown. The larger block is on a frictionless horizontal surface. A horizontal force of 21 N is applied to the larger block. Assume there is enough friction between the two blocks so that they move together without slipping. Take g = 9.8 m/s^2. (a) Find the acceleration of the two-block system. (b) Find the friction force acting on the small block. (c) Find the normal force exerted by the larger block on the small block.
+Output:

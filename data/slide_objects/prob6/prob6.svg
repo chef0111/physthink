@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="650" viewBox="0 0 1100 650">
+  <defs>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .incline-fill { fill: #d9e8fb; }
+      .incline-edge { stroke: #355c7d; stroke-width: 3; fill: none; }
+      .ball1 { fill: #f4f1e6; stroke: #777; stroke-width: 2.5; }
+      .ball2 { fill: #e8f3d6; stroke: #6d8c3c; stroke-width: 2.5; }
+      .surface { stroke: #666; stroke-width: 5; }
+      .wall { stroke: #9a9a9a; stroke-width: 10; }
+      .string { stroke: #444; stroke-width: 3; fill: none; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+    </style>
+  </defs>
+  <text x="40" y="50" class="title">Two Balls Connected by a String on a Frictionless Incline</text>
+  <line x1="40" y1="540" x2="1040" y2="540" class="surface" />
+  <text x="900" y="518" class="label">horizontal surface</text>
+  <line x1="120" y1="180" x2="120" y2="540" class="wall" />
+  <text x="92" y="260" class="label" transform="rotate(-90 92 260)">wall</text>
+  <polygon points="120,275 120,540 560,540" class="incline-fill" />
+  <line x1="120" y1="275" x2="560" y2="540" class="incline-edge" />
+  <line x1="120" y1="540" x2="560" y2="540" class="incline-edge" />
+  <line x1="120" y1="275" x2="120" y2="540" class="incline-edge" />
+  <text x="190" y="430" class="label">incline</text>
+  <circle cx="272" cy="338" r="34" class="ball1" />
+  <text x="252" y="345" class="label">ball</text>
+  <text x="258" y="294" class="math">m1</text>
+  <circle cx="402" cy="416" r="30" class="ball2" />
+  <text x="384" y="423" class="label">ball</text>
+  <text x="390" y="378" class="math">m2</text>
+  <line x1="304" y1="356" x2="374" y2="398" class="string" />
+  <text x="330" y="355" class="math">T</text>
+  <line x1="402" y1="448" x2="402" y2="503" class="gline" />
+  <polygon points="402,523 377,503 427,503" class="ghead" />
+  <text x="418" y="483" class="math">g</text>
+  <text x="448" y="495" class="math">θ</text>
+</svg>

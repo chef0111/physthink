@@ -123,7 +123,16 @@ const AnnotationSchema = z.object({
   ]),
   text: z.string().optional(),
   color: z.string().optional(),
+<<<<<<< Updated upstream:app/server/workspace/chat-tools/scene-tools.ts
   fontSize: z.number().min(0.01).max(2).optional(),
+=======
+  fontSize: z
+    .number()
+    .min(0.06)
+    .max(0.16)
+    .optional()
+    .describe('Keep annotation text small: 0.06 to 0.16'),
+>>>>>>> Stashed changes:app/api/workspace/chat/tools/scene-tools.ts
   vectors: z.tuple([Vec3Schema, Vec3Schema]).optional(),
   start: Vec3Schema.optional(),
   end: Vec3Schema.optional(),
@@ -248,7 +257,7 @@ Example — truck on a 30° hill with forces:
 
   setStatus: tool({
     description:
-      'Set a user-visible status label during multi-step operations. Use this to inform the student what you are doing, e.g. "Analyzing the problem...", "Building the inclined plane...", "Adding force vectors...", "Labeling angles and variables...".',
+      'Set a user-visible status label during multi-step operations. Use this only when moving to a new stage (do not repeat the same status consecutively), e.g. "Analyzing the problem...", "Building the inclined plane...", "Adding force vectors...", "Labeling angles and variables...".',
     inputSchema: z.object({
       status: z.string().describe('The status label to display to the user'),
     }),

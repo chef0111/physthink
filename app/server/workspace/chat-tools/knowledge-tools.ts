@@ -11,6 +11,11 @@ import {
   searchPatterns,
   getPatternByName,
 } from '@/lib/knowledge/patterns-provider';
+import {
+  getProblemExampleByKey,
+  getProblemRagStats,
+  searchProblemExamples,
+} from '@/lib/knowledge/problem-rag-provider';
 
 const ALLOWED_DOMAINS = [
   'en.wikipedia.org',
@@ -25,6 +30,7 @@ const ALLOWED_DOMAINS = [
 const MAX_CONTENT_LENGTH = 4000;
 
 export const knowledgeTools = {
+<<<<<<< Updated upstream:app/server/workspace/chat-tools/knowledge-tools.ts
   lookupPhysics: tool({
     description:
       'Look up a physics constant, formula, or concept by symbol or keyword. Use ONLY for uncommon constants you genuinely do not know (e.g. electron mass, Boltzmann constant, drag coefficients). Do NOT use for common values like g, c, pi, or basic formulas you already know.',
@@ -44,6 +50,73 @@ export const knowledgeTools = {
         found: false,
         results: [],
         message: `No results for "${query}"`,
+=======
+  searchProblemExamples: tool({
+    description:
+      'Retrieve similar solved physics-problem examples from the local RAG corpus (lesson + extracted graph + SVG). Use this first when the student gives a textbook-like mechanics problem so you can follow proven graph/diagram patterns.',
+    inputSchema: z.object({
+      query: z
+        .string()
+        .describe('The current student problem text to retrieve similar examples'),
+      topK: z
+        .number()
+        .int()
+        .min(1)
+        .max(10)
+        .optional()
+        .default(3)
+        .describe('How many similar examples to retrieve'),
+      category: z
+        .string()
+        .optional()
+        .describe(
+          'Optional category filter (e.g. stack_objects, slide_objects, collision_objects)'
+        ),
+      includeSvg: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe('Whether to include truncated SVG snippets'),
+    }),
+    execute: async ({ query, topK, category, includeSvg }) => {
+      const results = searchProblemExamples(query, {
+        topK,
+        category,
+        includeSvg,
+      });
+      const stats = getProblemRagStats();
+      return {
+        query,
+        count: results.length,
+        totalSamples: stats.totalSamples,
+        categories: stats.categories,
+        results,
+      };
+    },
+  }),
+
+  getProblemExampleByKey: tool({
+    description:
+      'Get one full RAG sample by key from the local corpus, including lesson, graph text, and SVG. Use after searchProblemExamples when you need full details from a specific retrieved example.',
+    inputSchema: z.object({
+      key: z
+        .string()
+        .describe('Sample key, e.g. "stack_objects/prob1" from search results'),
+    }),
+    execute: async ({ key }) => {
+      const sample = getProblemExampleByKey(key);
+      if (!sample) {
+        return {
+          found: false,
+          content: `No local problem sample found for key "${key}"`,
+          source: 'problem-rag',
+        };
+      }
+      return {
+        found: true,
+        source: 'problem-rag',
+        sample,
+>>>>>>> Stashed changes:app/api/workspace/chat/tools/knowledge-tools.ts
       };
     },
   }),

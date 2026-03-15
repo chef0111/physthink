@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="680" viewBox="0 0 1180 680">
+  <defs>
+    <style>
+      .title { font: bold 24px Arial, sans-serif; fill: #111; }
+      .label { font: 18px Arial, sans-serif; fill: #111; }
+      .math { font: italic 20px Georgia, serif; fill: #111; }
+      .small { font: 15px Arial, sans-serif; fill: #333; }
+      .hillFill { fill: #d9e8fb; }
+      .hillEdge { stroke: #355c7d; stroke-width: 3; fill: none; }
+      .surface { stroke: #666; stroke-width: 5; }
+      .gline { stroke: #444; stroke-width: 5; }
+      .ghead { fill: #444; }
+      .target { fill: #8a5a00; }
+      .start { fill: #222; }
+      .stick { stroke: #222; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .head { fill: none; stroke: #222; stroke-width: 4; }
+      .mark { stroke: #8a5a00; stroke-width: 4; }
+    </style>
+  </defs>
+
+  <text x="40" y="50" class="title">Stickman Walking Up a Rough Hill</text>
+
+  <line x1="40" y1="590" x2="1130" y2="590" class="surface" />
+  <text x="940" y="560" class="label">horizontal surface</text>
+
+  <polygon points="180,210 180,590 840,590" class="hillFill" />
+  <line x1="180" y1="210" x2="840" y2="590" class="hillEdge" />
+  <line x1="180" y1="590" x2="840" y2="590" class="hillEdge" />
+  <text x="520" y="500" class="label">hill</text>
+
+  <!-- stickman feet placed on the incline line -->
+  <!-- incline y at x=500 is about 394 -->
+  <g transform="translate(500,394) rotate(29.93)">
+    <circle cx="0" cy="-70" r="14" class="head" />
+    <line x1="0" y1="-56" x2="0" y2="-14" class="stick" />
+    <line x1="0" y1="-40" x2="-20" y2="-26" class="stick" />
+    <line x1="0" y1="-40" x2="20" y2="-28" class="stick" />
+    <line x1="0" y1="-14" x2="-18" y2="10" class="stick" />
+    <line x1="0" y1="-14" x2="20" y2="6" class="stick" />
+  </g>
+  <text x="540" y="285" class="label">stickman</text>
+  <text x="630" y="275" class="math">m</text>
+
+  <circle cx="690" cy="505" r="5" class="start" />
+  <text x="715" y="505" class="small">start</text>
+
+  <circle cx="430" cy="355" r="6" class="target" />
+  <line x1="430" y1="355" x2="390" y2="315" class="mark" />
+  <text x="305" y="312" class="small">target position</text>
+  <text x="382" y="340" class="math">x</text>
+
+  <line x1="500" y1="394" x2="500" y2="474" class="gline" />
+  <polygon points="500,494 475,474 525,474" class="ghead" />
+  <text x="517" y="444" class="math">g</text>
+
+  <text x="760" y="555" class="math">θ</text>
+
+  <text x="60" y="625" class="small">stickman starts from rest and walks up the incline toward position x</text>
+  <text x="60" y="648" class="small">target position x is measured along the incline</text>
+</svg>

@@ -1,0 +1,24 @@
+TOPIC: label=maximum_static_friction_force_for_two_stacked_blocks
+OBJECT: id=lower_block | label=lower block | kind=block
+OBJECT: id=upper_block | label=upper block | kind=block
+OBJECT: id=table | label=table | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=apply_force | verb=apply_force | label=force applied horizontally | target=lower_block | direction=horizontal
+EVENT: id=move_together_condition | verb=move_together | label=move together without slipping | participants=upper_block,lower_block | condition=without slipping
+QUANTITY: id=m1 | symbol=m1 | value=2.0 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | value=7.5 | unit=kg
+QUANTITY: id=mu_s | symbol=mu_s | value=0.27 | unit=dimensionless
+QUANTITY: id=F | symbol=F | unit=N
+QUANTITY: id=Fmax | symbol=Fmax | unit=N
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+RELATION: source=upper_block | rel=rests_on | target=lower_block
+RELATION: source=lower_block | rel=rests_on | target=table
+RELATION: source=lower_block | rel=contact_is_frictionless_with | target=table
+RELATION: source=mu_s | rel=static_friction_with | target=upper_block,lower_block
+RELATION: source=m1 | rel=applies_for | target=upper_block
+RELATION: source=m2 | rel=applies_for | target=lower_block
+RELATION: source=F | rel=applies_for | target=lower_block
+RELATION: source=g | rel=applies_for | target=upper_block,lower_block
+RELATION: source=gravity | rel=acts_on | target=upper_block,lower_block
+RELATION: source=Fmax | rel=maximum_value_for | target=move_together_condition
+QUESTION_TARGET: label=maximum force for which upper block does not slip | target_symbol=Fmax

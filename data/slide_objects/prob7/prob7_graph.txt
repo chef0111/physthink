@@ -1,0 +1,26 @@
+TOPIC: label=crate_sliding_on_frictionless_wedge_next_to_wall
+OBJECT: id=crate | label=crate | kind=block
+OBJECT: id=wedge | label=wedge | kind=inclined_surface
+OBJECT: id=wall | label=wall | kind=surface
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=slide_down | verb=slide_down | label=crate sliding down incline surface | target=crate | direction=down_incline
+QUANTITY: id=m | symbol=m | unit=kg
+QUANTITY: id=theta | symbol=theta | unit=angle
+QUANTITY: id=g | symbol=g | unit=m/s^2
+QUANTITY: id=Ftotal | symbol=Ftotal | unit=N
+QUANTITY: id=Fww | symbol=Fww | unit=N
+RELATION: source=crate | rel=rests_on | target=wedge
+RELATION: source=wedge | rel=rests_on | target=horizontal_surface
+RELATION: source=wedge | rel=rests_next_to | target=wall
+RELATION: source=crate | rel=contact_is_frictionless_with | target=wedge
+RELATION: source=wedge | rel=contact_is_frictionless_with | target=horizontal_surface
+RELATION: source=wedge | rel=contact_is_frictionless_with | target=wall
+RELATION: source=m | rel=applies_for | target=crate
+RELATION: source=theta | rel=applies_for | target=wedge
+RELATION: source=g | rel=applies_for | target=crate,wedge
+RELATION: source=gravity | rel=acts_on | target=crate,wedge
+RELATION: source=Ftotal | rel=applies_for | target=crate
+RELATION: source=Fww | rel=applies_for | target=wall,wedge
+QUESTION_TARGET: label=magnitude of the sum of all forces acting on the crate | target_symbol=Ftotal
+QUESTION_TARGET: label=magnitude of the force exerted by the wall on the wedge | target_symbol=Fww

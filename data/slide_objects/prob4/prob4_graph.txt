@@ -1,0 +1,34 @@
+TOPIC: label=two_spheres_connected_by_string_on_frictionless_wedge
+OBJECT: id=upper_sphere | label=sphere | kind=sphere
+OBJECT: id=lower_sphere | label=sphere | kind=sphere
+OBJECT: id=wedge | label=wedge | kind=inclined_surface
+OBJECT: id=wall | label=wall | kind=surface
+OBJECT: id=horizontal_surface | label=horizontal surface | kind=surface
+OBJECT: id=string | label=string | kind=connector
+OBJECT: id=gravity | label=gravity | kind=field
+EVENT: id=slide_down | verb=slide_down | label=lower sphere sliding down incline surface | target=lower_sphere | direction=down_incline
+EVENT: id=move_together | verb=move_together | label=two spheres moving together on incline | participants=upper_sphere,lower_sphere | condition=connected by string
+QUANTITY: id=m1 | symbol=m1 | unit=kg
+QUANTITY: id=m2 | symbol=m2 | unit=kg
+QUANTITY: id=theta | symbol=theta | unit=angle
+QUANTITY: id=g | symbol=g | value=9.8 | unit=m/s^2
+QUANTITY: id=atotal | symbol=atotal | unit=m/s^2
+QUANTITY: id=T | symbol=T | unit=N
+RELATION: source=upper_sphere | rel=rests_on | target=wedge
+RELATION: source=lower_sphere | rel=rests_on | target=wedge
+RELATION: source=wedge | rel=rests_on | target=horizontal_surface
+RELATION: source=wedge | rel=rests_next_to | target=wall
+RELATION: source=upper_sphere | rel=connected_by | target=string,lower_sphere
+RELATION: source=upper_sphere | rel=contact_is_frictionless_with | target=wedge
+RELATION: source=lower_sphere | rel=contact_is_frictionless_with | target=wedge
+RELATION: source=wedge | rel=contact_is_frictionless_with | target=horizontal_surface
+RELATION: source=wedge | rel=contact_is_frictionless_with | target=wall
+RELATION: source=m1 | rel=applies_for | target=upper_sphere
+RELATION: source=m2 | rel=applies_for | target=lower_sphere
+RELATION: source=theta | rel=applies_for | target=wedge
+RELATION: source=g | rel=applies_for | target=upper_sphere,lower_sphere,wedge
+RELATION: source=gravity | rel=acts_on | target=upper_sphere,lower_sphere,wedge
+RELATION: source=T | rel=applies_for | target=string
+RELATION: source=atotal | rel=applies_for | target=upper_sphere,lower_sphere
+QUESTION_TARGET: label=magnitude of the acceleration of the two spheres | target_symbol=atotal
+QUESTION_TARGET: label=tension in the string | target_symbol=T
