@@ -17,6 +17,7 @@ import {
   FilterSelectFallback,
   SortSelectFallback,
 } from '@/components/filter/fallback';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 export const WelcomeBannerFallback = () => {
   return (
@@ -55,9 +56,12 @@ export const CourseFilterFallback = () => {
 export const CourseOverviewSkeleton = () => {
   return (
     <section className="w-full">
-      <div className="relative aspect-21/9 w-full overflow-hidden rounded-xl shadow-lg">
-        <Skeleton className="h-full w-full" />
-      </div>
+      <AspectRatio
+        ratio={21 / 9}
+        className="relative w-full rounded-xl shadow-lg"
+      >
+        <Skeleton className="h-full w-full rounded-xl" />
+      </AspectRatio>
 
       <div className="mt-8 space-y-5">
         <div className="space-y-3">

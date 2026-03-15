@@ -22,6 +22,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CourseDropdownMenu } from './course-dropdown';
 import { CourseDeleteDialog } from './course-delete-dialog';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface CourseCardProps {
   data: CourseListDTO;
@@ -40,7 +41,7 @@ export default function CourseCard({ data }: CourseCardProps) {
             onDelete={() => setDeleteOpen(true)}
           />
         </div>
-        <div className="relative mx-3 aspect-video">
+        <AspectRatio ratio={16 / 9} className="relative mx-3">
           <Image
             src={data.thumbnail}
             alt={`${data.title} thumbnail`}
@@ -48,7 +49,7 @@ export default function CourseCard({ data }: CourseCardProps) {
             className="rounded-md object-cover"
           />
           <Ring className="ring-2" />
-        </div>
+        </AspectRatio>
         <CardContent className="flex h-full flex-col items-stretch px-4 pb-0">
           <div>
             <Link

@@ -4,6 +4,7 @@ import { MediaVideo } from '@/components/media-uploader/media-video';
 import Image from 'next/image';
 import { MarkdownPreview } from '@/components/editor/markdown/preview';
 import { Card } from '@/components/ui/card';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 export default async function LessonPage({
   params,
@@ -46,11 +47,14 @@ export default async function LessonPage({
       </div>
 
       {video ? (
-        <div className="aspect-video w-full overflow-hidden">
+        <AspectRatio ratio={16 / 9} className="overflow-hidden">
           <MediaVideo src={video} poster={thumbnail ?? undefined} />
-        </div>
+        </AspectRatio>
       ) : thumbnail ? (
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl border shadow-lg">
+        <AspectRatio
+          ratio={16 / 9}
+          className="relative overflow-hidden rounded-xl border shadow-lg"
+        >
           <Image
             src={thumbnail}
             alt={`${title} thumbnail`}
@@ -58,7 +62,7 @@ export default async function LessonPage({
             className="object-cover"
             priority
           />
-        </div>
+        </AspectRatio>
       ) : null}
 
       {content && (

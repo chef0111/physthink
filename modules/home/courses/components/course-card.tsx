@@ -1,4 +1,5 @@
 import { PublicCoursesDTO } from '@/app/server/course/dto';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +36,7 @@ export default function CourseCard({
           {data.level}
         </Badge>
       </div>
-      <div className="relative mx-3 aspect-video">
+      <AspectRatio ratio={16 / 9} className="relative mx-3">
         <Link href={`/${href}/${data.slug}` as Route}>
           <Image
             src={data.thumbnail}
@@ -43,9 +44,9 @@ export default function CourseCard({
             fill
             className="rounded-md object-cover"
           />
+          <Ring className="ring-2" />
         </Link>
-        <Ring className="ring-2" />
-      </div>
+      </AspectRatio>
       <CardContent
         className={cn(
           'flex h-full flex-col items-stretch px-4',

@@ -13,6 +13,7 @@ import {
   CourseSidebarChapters,
 } from '@/modules/home/dashboard/components/course-sidebar';
 import { ChartColumnBig, ClockIcon, SchoolIcon } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 export const getCourseData = cache(async (slug: string) => {
   const queryClient = getQueryClient();
@@ -44,7 +45,10 @@ export const CourseOverview = async ({
   const course = await getCourseData(slug);
   return (
     <section className="mx-auto">
-      <div className="relative aspect-21/9 w-full overflow-hidden rounded-xl shadow-lg">
+      <AspectRatio
+        ratio={21 / 9}
+        className="relative overflow-hidden rounded-xl shadow-lg"
+      >
         <Image
           src={course.thumbnail}
           alt="Course thumbnail"
@@ -53,7 +57,7 @@ export const CourseOverview = async ({
           priority
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/20" />
-      </div>
+      </AspectRatio>
 
       <div className="mt-8 space-y-4">
         <div className="space-y-1">
