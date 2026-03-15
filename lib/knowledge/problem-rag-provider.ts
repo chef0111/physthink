@@ -96,7 +96,9 @@ function findSvgFile(dirPath: string, stem: string): string | null {
   const direct = path.join(dirPath, `${stem}.svg`);
   if (fs.existsSync(direct)) return direct;
 
-  const candidates = fs.readdirSync(dirPath).filter((name) => name.endsWith('.svg'));
+  const candidates = fs
+    .readdirSync(dirPath)
+    .filter((name) => name.endsWith('.svg'));
   if (candidates.length === 0) return null;
 
   const exact = candidates.find((name) => name === `${stem}.svg`);
@@ -105,7 +107,9 @@ function findSvgFile(dirPath: string, stem: string): string | null {
 }
 
 function toRelativePath(filePath: string): string {
-  return filePath.replace(`${process.cwd()}${path.sep}`, '').replaceAll('/', '\\');
+  return filePath
+    .replace(`${process.cwd()}${path.sep}`, '')
+    .replaceAll('/', '\\');
 }
 
 function discoverSamples(): IndexedSample[] {
@@ -127,7 +131,9 @@ function discoverSamples(): IndexedSample[] {
 
     for (const problemDir of problemDirs) {
       const problemPath = path.join(categoryPath, problemDir);
-      const jsonFiles = fs.readdirSync(problemPath).filter((name) => name.endsWith('.json'));
+      const jsonFiles = fs
+        .readdirSync(problemPath)
+        .filter((name) => name.endsWith('.json'));
 
       for (const jsonFile of jsonFiles) {
         const lessonPath = path.join(problemPath, jsonFile);
@@ -184,7 +190,11 @@ function getIndexedSamples(): IndexedSample[] {
   return cachedSamples;
 }
 
-function scoreSample(query: string, queryTokens: Set<string>, sample: IndexedSample): number {
+function scoreSample(
+  query: string,
+  queryTokens: Set<string>,
+  sample: IndexedSample
+): number {
   if (queryTokens.size === 0) return 0;
 
   let score = 0;
@@ -217,8 +227,13 @@ export function searchProblemExamples(
   const queryTokens = new Set(tokenize(normalizedQuery));
 
   const rows = getIndexedSamples()
-    .filter((sample) => !options.category || sample.category === options.category)
-    .map((sample) => ({ sample, score: scoreSample(normalizedQuery, queryTokens, sample) }))
+    .filter(
+      (sample) => !options.category || sample.category === options.category
+    )
+    .map((sample) => ({
+      sample,
+      score: scoreSample(normalizedQuery, queryTokens, sample),
+    }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, topK);
@@ -242,7 +257,13 @@ export function getProblemExampleByKey(key: string): ProblemRagSample | null {
   const sample = getIndexedSamples().find((item) => item.key === normalizedKey);
   if (!sample) return null;
 
-  const { lessonTokens, graphTokens, lessonTextLower, graphTextLower, ...result } = sample;
+  const {
+    lessonTokens,
+    graphTokens,
+    lessonTextLower,
+    graphTextLower,
+    ...result
+  } = sample;
   void lessonTokens;
   void graphTokens;
   void lessonTextLower;

@@ -32,8 +32,13 @@ function getScaleFactor(scale: AnnotationElement['scale']): number {
   return Number.isFinite(maxAxis) ? maxAxis : 1;
 }
 
-function getScaledFontSize(element: AnnotationElement, fallback: number): number {
-  return safeFontSize(element.fontSize, fallback) / getScaleFactor(element.scale);
+function getScaledFontSize(
+  element: AnnotationElement,
+  fallback: number
+): number {
+  return (
+    safeFontSize(element.fontSize, fallback) / getScaleFactor(element.scale)
+  );
 }
 
 export function AnnotationElementRenderer({
@@ -60,16 +65,10 @@ export function AnnotationElementRenderer({
 }
 
 function LabelAnnotation({ element }: { element: AnnotationElement }) {
-  const fontSize = Math.min(element.fontSize ?? 0.25, 0.5);
-
   return (
     <group>
       <Text
-<<<<<<< Updated upstream
-        fontSize={fontSize}
-=======
         fontSize={getScaledFontSize(element, DEFAULT_LABEL_FONT_SIZE)}
->>>>>>> Stashed changes
         color={element.color ?? '#ffffff'}
         anchorX="center"
         anchorY="middle"
@@ -115,11 +114,7 @@ function AngleMarkerAnnotation({ element }: { element: AnnotationElement }) {
             arcPoints[Math.floor(arcPoints.length / 2)][1] * 1.5,
             arcPoints[Math.floor(arcPoints.length / 2)][2] * 1.5,
           ]}
-<<<<<<< Updated upstream
-          fontSize={Math.min(element.fontSize ?? 0.18, 0.3)}
-=======
           fontSize={getScaledFontSize(element, DEFAULT_ANGLE_FONT_SIZE)}
->>>>>>> Stashed changes
           color={element.color ?? '#ffcc00'}
         >
           {element.text}
@@ -152,11 +147,7 @@ function DimensionAnnotation({ element }: { element: AnnotationElement }) {
             (start[1] + end[1]) / 2 + 0.15,
             (start[2] + end[2]) / 2,
           ]}
-<<<<<<< Updated upstream
-          fontSize={Math.min(element.fontSize ?? 0.15, 0.3)}
-=======
           fontSize={getScaledFontSize(element, DEFAULT_DIMENSION_FONT_SIZE)}
->>>>>>> Stashed changes
           color={color}
         >
           {element.text}

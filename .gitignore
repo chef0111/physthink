@@ -41,8 +41,3 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
-
-# /.github
-implementation*.md
-task.md
-skills-lock.json
