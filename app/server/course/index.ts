@@ -1,23 +1,14 @@
+import z from 'zod';
+import { CourseDAL } from './dal';
 import { prisma } from '@/lib/prisma';
 import { admin } from '@/app/middleware/admin';
 import { authorized } from '@/app/middleware/auth';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { CourseSchema, QueryParamsSchema } from '@/lib/validations';
-import {
-  createCourse as createCourseDAL,
-  deleteCourse as deleteCourseDAL,
-  getCourseById,
-  getCourseBySlug as getCourseBySlugDAL,
-  listCourses as listCoursesDAL,
-  listPublicCourses as listPublicCoursesDAL,
-  updateCourse as updateCourseDAL,
-  enrollCourse as enrollCourseDAL,
-  listEnrolledCourses as listEnrolledCoursesDAL,
-  getSlug,
-} from './dal';
 import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { heavyWriteSecurityMiddleware } from '@/app/middleware/arcjet/heavy-write';
 import { writeSecurityMiddleware } from '@/app/middleware/arcjet/write';
+import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
 import {
   CoursePreviewSchema,
   CoursesListSchema,
@@ -28,8 +19,6 @@ import {
   EnrollCourseSchema,
   CourseSlugSchema,
 } from './dto';
-import { readSecurityMiddleware } from '@/app/middleware/arcjet/read';
-import z from 'zod';
 
 export const createCourse = admin
   .route({
@@ -57,7 +46,7 @@ export const createCourse = admin
       });
     }
 
-    const course = await createCourseDAL(input, context.user.id);
+    const course = await CourseDAL.create(input, context.user.id);
 
     revalidateTag('courses', 'max');
     revalidatePath('/admin/courses');
@@ -76,7 +65,7 @@ export const listCourses = admin
   .input(QueryParamsSchema)
   .output(CoursesListSchema)
   .handler(async ({ input }) => {
-    const courses = await listCoursesDAL(input);
+    const courses = await CourseDAL.findMany(input);
     return courses;
   });
 
@@ -91,7 +80,7 @@ export const listPublicCourses = authorized
   .input(QueryParamsSchema)
   .output(PublicCourseListSchema)
   .handler(async ({ input, context }) => {
-    const courses = await listPublicCoursesDAL({
+    const courses = await CourseDAL.publicFindMany({
       ...input,
       userId: context.user.id,
     });
@@ -109,7 +98,7 @@ export const getCourse = admin
   .input(z.object({ id: z.string() }))
   .output(GetCourseSchema)
   .handler(async ({ input, errors }) => {
-    const course = await getCourseById(input.id);
+    const course = await CourseDAL.findById(input.id);
     if (!course) {
       throw errors.NOT_FOUND({ message: 'Course not found' });
     }
@@ -127,7 +116,7 @@ export const getCourseSlug = admin
   .input(z.object({ id: z.string() }))
   .output(CourseSlugSchema)
   .handler(async ({ input, errors }) => {
-    const course = await getSlug(input.id);
+    const course = await CourseDAL.findSlug(input.id);
     if (!course) {
       throw errors.NOT_FOUND({ message: 'Course not found' });
     }
@@ -145,7 +134,7 @@ export const getCourseBySlug = authorized
   .input(z.object({ slug: z.string() }))
   .output(CoursePreviewSchema)
   .handler(async ({ input, context, errors }) => {
-    const course = await getCourseBySlugDAL(input.slug, context.user.id);
+    const course = await CourseDAL.findBySlug(input.slug, context.user.id);
     if (!course) {
       throw errors.NOT_FOUND({ message: 'Course not found' });
     }
@@ -164,7 +153,7 @@ export const updateCourse = admin
   .output(UpdateCourseSchema)
   .handler(async ({ input }) => {
     const { id, ...data } = input;
-    const course = await updateCourseDAL(id, input);
+    const course = await CourseDAL.update(id, input);
 
     revalidateTag(`course:${course.id}`, 'max');
     revalidateTag('courses', 'max');
@@ -202,7 +191,7 @@ export const deleteCourse = admin
       });
     }
 
-    await deleteCourseDAL(existing.id);
+    await CourseDAL.delete(existing.id);
 
     revalidateTag(`course:${existing.id}`, 'max');
     revalidateTag('courses', 'max');
@@ -234,7 +223,7 @@ export const enroll = authorized
       });
     }
 
-    const enrollment = await enrollCourseDAL(input.courseId, context.user.id);
+    const enrollment = await CourseDAL.enroll(input.courseId, context.user.id);
 
     revalidateTag(`course:${input.courseId}`, 'max');
     revalidateTag(`enrolled-courses:${context.user.id}`, 'max');
@@ -255,7 +244,7 @@ export const listEnrolled = authorized
   .input(QueryParamsSchema)
   .output(PublicCourseListSchema)
   .handler(async ({ input, context }) => {
-    const { courses, totalCourses } = await listEnrolledCoursesDAL(
+    const { courses, totalCourses } = await CourseDAL.listEnrolled(
       context.user.id,
       input
     );

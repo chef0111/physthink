@@ -12,13 +12,7 @@ import {
   WorkspaceDetailSchema,
   WorkspaceListSchema,
 } from './dto';
-import {
-  createWorkspace as createWorkspaceDAL,
-  listWorkspaces as listWorkspacesDAL,
-  getWorkspaceById,
-  updateWorkspace as updateWorkspaceDAL,
-  deleteWorkspace as deleteWorkspaceDAL,
-} from './dal';
+import { WorkspaceDAL } from './dal';
 import { revalidatePath } from 'next/cache';
 
 export const create = authorized
@@ -32,7 +26,7 @@ export const create = authorized
   .input(CreateWorkspaceSchema)
   .output(WorkspaceSummarySchema)
   .handler(async ({ input, context }) => {
-    const workspace = await createWorkspaceDAL(input, context.user.id);
+    const workspace = await WorkspaceDAL.create(input, context.user.id);
     return workspace;
   });
 
@@ -47,7 +41,7 @@ export const list = authorized
   .input(QueryParamsSchema)
   .output(WorkspaceListSchema)
   .handler(async ({ input, context }) => {
-    const workspaces = await listWorkspacesDAL(context.user.id, input);
+    const workspaces = await WorkspaceDAL.findMany(context.user.id, input);
     return workspaces;
   });
 
@@ -62,7 +56,7 @@ export const get = authorized
   .input(GetWorkspaceSchema)
   .output(WorkspaceDetailSchema)
   .handler(async ({ input, context, errors }) => {
-    const workspace = await getWorkspaceById(input.id, context.user.id);
+    const workspace = await WorkspaceDAL.findById(input.id, context.user.id);
     if (!workspace) {
       throw errors.NOT_FOUND({ message: 'Workspace not found' });
     }
@@ -79,7 +73,7 @@ export const update = authorized
   .use(writeSecurityMiddleware)
   .input(UpdateWorkspaceSchema)
   .handler(async ({ input, context, errors }) => {
-    const result = await updateWorkspaceDAL(input.id, context.user.id, input);
+    const result = await WorkspaceDAL.update(input.id, context.user.id, input);
     if (result.count === 0) {
       throw errors.NOT_FOUND({ message: 'Workspace not found' });
     }
@@ -95,7 +89,7 @@ export const remove = authorized
   .use(writeSecurityMiddleware)
   .input(DeleteWorkspaceSchema)
   .handler(async ({ input, context, errors }) => {
-    const result = await deleteWorkspaceDAL(input.id, context.user.id);
+    const result = await WorkspaceDAL.delete(input.id, context.user.id);
     if (result.count === 0) {
       throw errors.NOT_FOUND({ message: 'Workspace not found' });
     }

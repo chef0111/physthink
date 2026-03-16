@@ -12,14 +12,7 @@ import {
   UpdateLessonSchema,
   LessonConfigSchema,
 } from './dto';
-import {
-  findById,
-  createLesson as createLessonDAL,
-  updateLesson as updateLessonDAL,
-  updateTitle,
-  deleteLesson as deleteLessonDAL,
-  updatePosition,
-} from './dal';
+import { LessonDAL } from './dal';
 
 export const getLesson = admin
   .route({
@@ -32,7 +25,7 @@ export const getLesson = admin
   .output(LessonSchema)
   .handler(async ({ input, errors }) => {
     const { id } = input;
-    const lesson = await findById(id);
+    const lesson = await LessonDAL.findById(id);
     if (!lesson) {
       throw errors.NOT_FOUND({ message: 'Lesson not found' });
     }
@@ -55,7 +48,7 @@ export const createLesson = admin
     revalidatePath(`/admin/courses/${courseId}/edit`);
     revalidatePath(`/courses/${courseSlug}`);
     revalidatePath(`/dashboard/course/${courseSlug}`);
-    return await createLessonDAL(title, chapterId);
+    return await LessonDAL.create(title, chapterId);
   });
 
 export const updateLesson = admin
@@ -70,7 +63,7 @@ export const updateLesson = admin
   .output(LessonConfigSchema)
   .handler(async ({ input }) => {
     const { id, courseId, courseSlug, ...data } = input;
-    const lesson = await updateLessonDAL(id, data);
+    const lesson = await LessonDAL.update(id, data);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidateTag(`lesson:${id}`, 'max');
@@ -92,7 +85,7 @@ export const updateLessonTitle = admin
   .input(UpdateLessonTitleSchema)
   .handler(async ({ input }) => {
     const { id, courseId, courseSlug, title } = input;
-    await updateTitle(id, title);
+    await LessonDAL.updateTitle(id, title);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
@@ -111,7 +104,7 @@ export const deleteLesson = admin
   .input(DeleteLessonSchema)
   .handler(async ({ input }) => {
     const { id, courseId, chapterId, courseSlug } = input;
-    await deleteLessonDAL(id, chapterId);
+    await LessonDAL.delete(id, chapterId);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
@@ -130,7 +123,7 @@ export const reorderLesson = admin
   .input(ReorderLessonSchema)
   .handler(async ({ input }) => {
     const { lessons, chapterId, courseId, courseSlug } = input;
-    await updatePosition(lessons, chapterId);
+    await LessonDAL.updatePosition(lessons, chapterId);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidateTag(`chapter:${chapterId}`, 'max');

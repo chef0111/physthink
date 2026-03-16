@@ -7,7 +7,7 @@ import { Prisma } from '@/generated/prisma/client';
 
 type WorkspaceSort = 'newest' | 'oldest' | 'recent';
 
-class WorkspaceDAL {
+export class WorkspaceDAL {
   private static getSortCriteria(
     sort?: WorkspaceSort
   ): Prisma.WorkspaceOrderByWithRelationInput {
@@ -108,23 +108,3 @@ class WorkspaceDAL {
     });
   }
 }
-
-export const createWorkspace = (
-  ...args: Parameters<typeof WorkspaceDAL.create>
-) => WorkspaceDAL.create(...args);
-
-export const listWorkspaces = (
-  ...args: Parameters<typeof WorkspaceDAL.findMany>
-) => WorkspaceDAL.findMany(...args);
-
-export const getWorkspaceById = (
-  ...args: Parameters<typeof WorkspaceDAL.findById>
-) => WorkspaceDAL.findById(...args);
-
-export const updateWorkspace = (
-  ...args: Parameters<typeof WorkspaceDAL.update>
-) => WorkspaceDAL.update(...args);
-
-export const deleteWorkspace = (
-  ...args: Parameters<typeof WorkspaceDAL.delete>
-) => WorkspaceDAL.delete(...args);

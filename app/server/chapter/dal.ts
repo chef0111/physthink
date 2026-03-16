@@ -71,17 +71,3 @@ export class ChapterDAL {
     return await prisma.$transaction(updates);
   }
 }
-
-export const createChapter = (...args: Parameters<typeof ChapterDAL.create>) =>
-  ChapterDAL.create(...args);
-
-export const updateTitle = (
-  ...args: Parameters<typeof ChapterDAL.updateTitle>
-) => ChapterDAL.updateTitle(...args);
-
-export const deleteChapter = (...args: Parameters<typeof ChapterDAL.delete>) =>
-  ChapterDAL.delete(...args);
-
-export const updatePosition = (
-  ...args: Parameters<typeof ChapterDAL.updatePosition>
-) => ChapterDAL.updatePosition(...args);

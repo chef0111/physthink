@@ -2,6 +2,15 @@ import 'server-only';
 
 import fs from 'node:fs';
 import path from 'node:path';
+import {
+  normalizeText,
+  tokenize,
+  truncate,
+  readText,
+  toRelativePath,
+  findGraphFile,
+  findSvgFile,
+} from '@/lib/knowledge/utils';
 
 const DATA_ROOT = path.join(process.cwd(), 'data');
 
@@ -53,63 +62,6 @@ export function getProblemRagIndexState() {
     cached: cachedSamples !== null,
     dataRoot: DATA_ROOT,
   };
-}
-
-function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[^\w\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function tokenize(text: string): string[] {
-  return normalizeText(text)
-    .split(' ')
-    .filter((token) => token.length > 1);
-}
-
-function truncate(text: string, maxChars: number): string {
-  if (text.length <= maxChars) return text;
-  return `${text.slice(0, maxChars)}... (truncated)`;
-}
-
-function readText(filePath: string): string {
-  return fs.readFileSync(filePath, 'utf-8').trim();
-}
-
-function findGraphFile(dirPath: string, stem: string): string | null {
-  const direct = path.join(dirPath, `${stem}_graph.txt`);
-  if (fs.existsSync(direct)) return direct;
-
-  const candidates = fs
-    .readdirSync(dirPath)
-    .filter((name) => name.endsWith('_graph.txt'));
-  if (candidates.length === 0) return null;
-
-  const exact = candidates.find((name) => name.includes(stem));
-  return path.join(dirPath, exact ?? candidates[0]);
-}
-
-function findSvgFile(dirPath: string, stem: string): string | null {
-  const direct = path.join(dirPath, `${stem}.svg`);
-  if (fs.existsSync(direct)) return direct;
-
-  const candidates = fs
-    .readdirSync(dirPath)
-    .filter((name) => name.endsWith('.svg'));
-  if (candidates.length === 0) return null;
-
-  const exact = candidates.find((name) => name === `${stem}.svg`);
-  const partial = candidates.find((name) => name.includes(stem));
-  return path.join(dirPath, exact ?? partial ?? candidates[0]);
-}
-
-function toRelativePath(filePath: string): string {
-  return filePath
-    .replace(`${process.cwd()}${path.sep}`, '')
-    .replaceAll('/', '\\');
 }
 
 function discoverSamples(): IndexedSample[] {

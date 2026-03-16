@@ -100,23 +100,3 @@ export class LessonDAL {
     return await prisma.$transaction(updates);
   }
 }
-
-export const findById = (...args: Parameters<typeof LessonDAL.findById>) =>
-  LessonDAL.findById(...args);
-
-export const createLesson = (...args: Parameters<typeof LessonDAL.create>) =>
-  LessonDAL.create(...args);
-
-export const updateLesson = (...args: Parameters<typeof LessonDAL.update>) =>
-  LessonDAL.update(...args);
-
-export const updateTitle = (
-  ...args: Parameters<typeof LessonDAL.updateTitle>
-) => LessonDAL.updateTitle(...args);
-
-export const deleteLesson = (...args: Parameters<typeof LessonDAL.delete>) =>
-  LessonDAL.delete(...args);
-
-export const updatePosition = (
-  ...args: Parameters<typeof LessonDAL.updatePosition>
-) => LessonDAL.updatePosition(...args);

@@ -10,6 +10,19 @@ import {
   searchProblemExamples,
   type ProblemRagSample,
 } from '@/lib/knowledge/problem-rag-provider';
+import {
+  truncate,
+  truncateForLog,
+  clampTopK,
+  makeRequestId,
+  formatMs,
+  toLogMessage,
+  summarizeError,
+  formatTraceText,
+  extractSvg,
+  parseKeyValues,
+  type PipelineTraceEntry,
+} from '@/lib/knowledge/utils';
 
 type GraphNode = Record<string, string>;
 type GraphHints = {
@@ -32,15 +45,6 @@ type PipelineStageName =
 
 type PipelineStageStatus = 'start' | 'ok' | 'error' | 'fallback';
 
-type PipelineTraceEntry = {
-  stage: PipelineStageName;
-  status: PipelineStageStatus;
-  elapsedMs: number;
-  at: string;
-  detail: string;
-  data?: Record<string, unknown>;
-};
-
 const GRAPH_SYSTEM_PROMPT = `You are an information extraction assistant for physics problems.
 Extract only structured graph lines from the lesson.
 Output plain text lines only, no markdown.
@@ -61,58 +65,6 @@ const MAX_SVG_EXAMPLE_GRAPH_CHARS = 1000;
 const MAX_SVG_EXAMPLE_SVG_CHARS = 2200;
 const MAX_RESULT_GRAPH_CHARS = 3200;
 const MAX_RESULT_SVG_CHARS = 4500;
-const MAX_LOG_TEXT_CHARS = 420;
-
-function truncate(text: string, limit: number): string {
-  if (text.length <= limit) return text;
-  return `${text.slice(0, limit)}\n... (truncated)`;
-}
-
-function clampTopK(topK: number): number {
-  return Math.min(Math.max(topK, 1), 2);
-}
-
-function makeRequestId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function formatMs(startAt: number): string {
-  return `${Date.now() - startAt}ms`;
-}
-
-function truncateForLog(text: string): string {
-  if (text.length <= MAX_LOG_TEXT_CHARS) return text;
-  return `${text.slice(0, MAX_LOG_TEXT_CHARS)}... (truncated)`;
-}
-
-function toLogMessage(data?: Record<string, unknown>): string {
-  if (!data) return '';
-  try {
-    const raw = JSON.stringify(data);
-    return truncateForLog(raw);
-  } catch {
-    return '[unserializable-log-data]';
-  }
-}
-
-function summarizeError(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return String(error);
-  }
-}
-
-function formatTraceText(trace: PipelineTraceEntry[]): string {
-  return trace
-    .map(
-      (entry) =>
-        `${entry.elapsedMs}ms | ${entry.stage} | ${entry.status} | ${entry.detail}`
-    )
-    .join('\n');
-}
 
 function buildGraphPrompt(
   lesson: string,
@@ -169,26 +121,6 @@ function buildSvgPrompt(graph: string, examples: ProblemRagSample[]): string {
   );
 
   return parts.join('\n\n');
-}
-
-function extractSvg(raw: string): string {
-  const match = raw.match(/<svg[\s\S]*<\/svg>/i);
-  if (!match) return truncate(raw.trim(), MAX_RESULT_SVG_CHARS);
-  return truncate(match[0].trim(), MAX_RESULT_SVG_CHARS);
-}
-
-function parseKeyValues(raw: string): Record<string, string> {
-  const output: Record<string, string> = {};
-  const pieces = raw.split('|').map((part) => part.trim());
-  for (const piece of pieces) {
-    const index = piece.indexOf('=');
-    if (index <= 0) continue;
-    const key = piece.slice(0, index).trim();
-    const value = piece.slice(index + 1).trim();
-    if (!key || !value) continue;
-    output[key] = value;
-  }
-  return output;
 }
 
 function parseGraphHints(graphText: string): GraphHints {
@@ -270,7 +202,7 @@ async function generateSvgText(graph: string, examples: ProblemRagSample[]) {
     maxOutputTokens: 1800,
   });
   return {
-    svgText: extractSvg(result.text),
+    svgText: extractSvg(result.text, MAX_RESULT_SVG_CHARS),
     svgPromptPreview: truncate(prompt, 1200),
   };
 }
