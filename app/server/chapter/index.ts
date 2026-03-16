@@ -8,12 +8,7 @@ import {
   DeleteChapterSchema,
   ReorderChapterSchema,
 } from './dto';
-import {
-  createChapter as createChapterDAL,
-  updateTitle,
-  deleteChapter as deleteChapterDAL,
-  updatePosition,
-} from './dal';
+import { ChapterDAL } from './dal';
 
 export const createChapter = admin
   .route({
@@ -29,7 +24,7 @@ export const createChapter = admin
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
-    return await createChapterDAL(title, courseId);
+    return await ChapterDAL.create(title, courseId);
   });
 
 export const updateChapterTitle = admin
@@ -43,7 +38,7 @@ export const updateChapterTitle = admin
   .input(UpdateChapterTitleSchema)
   .handler(async ({ input }) => {
     const { id, courseId, courseSlug, title } = input;
-    await updateTitle(id, title);
+    await ChapterDAL.updateTitle(id, title);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidateTag(`chapter:${id}`, 'max');
@@ -63,7 +58,7 @@ export const deleteChapter = admin
   .input(DeleteChapterSchema)
   .handler(async ({ input }) => {
     const { id, courseId, courseSlug } = input;
-    await deleteChapterDAL(id, courseId);
+    await ChapterDAL.delete(id, courseId);
 
     revalidateTag(`course:${courseId}`, 'max');
     revalidatePath(`/admin/courses/${courseId}/edit`);
@@ -82,7 +77,7 @@ export const reorderChapter = admin
   .input(ReorderChapterSchema)
   .handler(async ({ input }) => {
     const { chapters, courseId, courseSlug } = input;
-    await updatePosition(chapters, courseId);
+    await ChapterDAL.updatePosition(chapters, courseId);
 
     revalidateTag(`course:${courseId}`, 'max');
     chapters.forEach((chapter) => {

@@ -309,27 +309,3 @@ export class CourseDAL {
     return { courses, totalCourses };
   }
 }
-
-export const createCourse = (...args: Parameters<typeof CourseDAL.create>) =>
-  CourseDAL.create(...args);
-export const listCourses = (...args: Parameters<typeof CourseDAL.findMany>) =>
-  CourseDAL.findMany(...args);
-export const listPublicCourses = (
-  ...args: Parameters<typeof CourseDAL.publicFindMany>
-) => CourseDAL.publicFindMany(...args);
-export const getCourseById = (...args: Parameters<typeof CourseDAL.findById>) =>
-  CourseDAL.findById(...args);
-export const getCourseBySlug = (
-  ...args: Parameters<typeof CourseDAL.findBySlug>
-) => CourseDAL.findBySlug(...args);
-export const getSlug = (...args: Parameters<typeof CourseDAL.findSlug>) =>
-  CourseDAL.findSlug(...args);
-export const updateCourse = (...args: Parameters<typeof CourseDAL.update>) =>
-  CourseDAL.update(...args);
-export const deleteCourse = (...args: Parameters<typeof CourseDAL.delete>) =>
-  CourseDAL.delete(...args);
-export const enrollCourse = (...args: Parameters<typeof CourseDAL.enroll>) =>
-  CourseDAL.enroll(...args);
-export const listEnrolledCourses = (
-  ...args: Parameters<typeof CourseDAL.listEnrolled>
-) => CourseDAL.listEnrolled(...args);
