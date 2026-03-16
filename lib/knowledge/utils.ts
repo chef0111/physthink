@@ -157,3 +157,124 @@ export function formatTraceText(trace: PipelineTraceEntry[]): string {
     )
     .join('\n');
 }
+
+const SENSITIVE_FIELD_NAMES = new Set([
+  'authorization',
+  'apiKey',
+  'apikey',
+  'token',
+  'secret',
+  'password',
+  'cookies',
+  'set-cookie',
+  'trace',
+  'traceText',
+  'indexStats',
+  'retrieval',
+  'graphPromptPreview',
+  'svgPromptPreview',
+]);
+
+const SECRET_VALUE_PATTERNS = [
+  /\b(sk|pk)_[A-Za-z0-9]{16,}\b/g,
+  /\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b/g,
+  /\b[A-Za-z0-9+/_-]{32,}\b/g,
+  /https?:\/\/[^\s)]+/g,
+];
+
+function looksSensitiveKey(key: string): boolean {
+  const normalized = key.toLowerCase();
+  if (SENSITIVE_FIELD_NAMES.has(key)) return true;
+  return (
+    normalized.includes('token') ||
+    normalized.includes('secret') ||
+    normalized.includes('password') ||
+    normalized.includes('trace') ||
+    normalized.includes('cookie')
+  );
+}
+
+export function sanitizeTextStrict(
+  text: string,
+  options?: { maxChars?: number }
+): string {
+  const maxChars = options?.maxChars ?? 1400;
+  let next = truncate(text, maxChars);
+  for (const pattern of SECRET_VALUE_PATTERNS) {
+    next = next.replace(pattern, '[redacted]');
+  }
+  return next;
+}
+
+export function sanitizeReasoningText(text: string): string {
+  const redacted = sanitizeTextStrict(text, { maxChars: 1800 });
+  const lines = redacted
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter(
+      (line) =>
+        !line.toLowerCase().includes('tool output:') &&
+        !line.toLowerCase().includes('raw payload') &&
+        !line.toLowerCase().includes('trace:')
+    );
+  return lines.join('\n');
+}
+
+export function sanitizeUnknownStrict(
+  value: unknown,
+  options?: { maxDepth?: number; maxStringChars?: number },
+  depth: number = 0
+): unknown {
+  const maxDepth = options?.maxDepth ?? 3;
+  const maxStringChars = options?.maxStringChars ?? 500;
+
+  if (depth > maxDepth) return '[redacted:depth-limit]';
+  if (value === null || value === undefined) return value;
+
+  if (typeof value === 'string') {
+    return sanitizeTextStrict(value, { maxChars: maxStringChars });
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, 30)
+      .map((item) => sanitizeUnknownStrict(item, options, depth + 1));
+  }
+
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(obj)) {
+      if (looksSensitiveKey(key)) {
+        out[key] = '[redacted]';
+        continue;
+      }
+      out[key] = sanitizeUnknownStrict(child, options, depth + 1);
+    }
+    return out;
+  }
+
+  return '[redacted:unsupported]';
+}
+
+export function projectSafeFields(
+  value: unknown,
+  allowedKeys: string[]
+): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  const input = value as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const key of allowedKeys) {
+    if (key in input) {
+      out[key] = sanitizeUnknownStrict(input[key]);
+    }
+  }
+  return out;
+}

@@ -12,12 +12,13 @@ import {
   SidebarContent,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { ArrowUp, FolderX } from 'lucide-react';
+import { FolderX } from 'lucide-react';
 import Link from 'next/link';
 import { useSceneStore } from '@/stores/scene-store';
 import { useDebounced } from '@/hooks/use-debounced';
 import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { WorkspaceCanvas } from './canvas';
+import { PromptInputFallback } from '../layout/loading';
 import { WorkspaceToolbar } from './toolbar';
 import { WorkspaceHeader } from './workspace-header';
 import { WorkspaceChat, dbMessagesToAiMessages } from './chat';
@@ -31,7 +32,7 @@ import {
 } from '@/components/ui/empty';
 import { formatBytes } from '@/lib/utils';
 import { Loader } from '@/components/ui/loader';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 const MAX_SCENE_DATA_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -196,8 +197,10 @@ export function WorkspaceEditor({ id }: { id: string }) {
           sidebarColor="bg-background"
           transition={false}
         >
-          <SidebarHeader className="border-b p-4">
-            <h3 className="text-sm font-semibold">AI Chat</h3>
+          <SidebarHeader className="gap-1 border-b p-4">
+            <Label className="m-0 text-sm font-semibold">
+              Chat with K2Think
+            </Label>
             <p className="text-muted-foreground text-xs">
               Describe the 3D illustration you want
             </p>
@@ -215,21 +218,7 @@ export function WorkspaceEditor({ id }: { id: string }) {
                 </div>
 
                 <div className="border-t p-3">
-                  <div className="relative">
-                    <Textarea
-                      placeholder="Describe the 3D illustration you want..."
-                      rows={3}
-                      disabled={isLoading}
-                      className="resize-none pr-12"
-                    />
-                    <Button
-                      size="icon"
-                      className="absolute right-2 bottom-2 size-7"
-                      disabled={isLoading}
-                    >
-                      <ArrowUp className="size-4" />
-                    </Button>
-                  </div>
+                  <PromptInputFallback />
                 </div>
               </div>
             )}

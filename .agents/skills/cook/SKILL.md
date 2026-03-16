@@ -26,6 +26,7 @@ Analyze user's feature request, select the optimal skill combination, then execu
 | ----------------- | -------------------------------------------------------------- |
 | `frontend-design` | Page layout, component design, responsive UI                   |
 | `ui-styling`      | Tailwind, shadcn/ui, dark mode, theming, accessible components |
+| `ui-ux-pro-max`   | Advanced UI/UX design, user research, persona development      |
 | `shadcn`          | Adding/composing shadcn components, component search, registry |
 | `web-frameworks`  | Next.js App Router, RSC, SSR, SSG, Turborepo, monorepo         |
 | `aesthetic`       | Design principles, visual hierarchy, micro-interactions        |
@@ -61,7 +62,7 @@ Analyze user's feature request, select the optimal skill combination, then execu
 Match request against the catalog above. Select **1–4 skills** — minimum needed. Always check:
 
 - New data model → `physthink-feature`
-- New UI → `ui-styling` + `shadcn` + `ai-elements` (if AI components) + `threejs` (if 3D)
+- New UI → `ui-ux-pro-max` + `ui-styling` + `shadcn` + `ai-elements` (if AI components) + `threejs` (if 3D)
 - Unfamiliar API → `docs-seeker` first
 - Complex scope → `sequential-thinking` first
 

@@ -16,6 +16,12 @@ import { extractFnCallMiddleware } from './fn-call-middleware';
 import { prisma } from '@/lib/prisma';
 import { SendChatMessageSchema } from './chat.dto';
 import { ELEMENT_REFERENCE } from './chat-tools/element-reference';
+import {
+  projectSafeFields,
+  sanitizeReasoningText,
+  sanitizeTextStrict,
+  sanitizeUnknownStrict,
+} from '@/lib/knowledge/utils';
 
 const SYSTEM_PROMPT = `You are PhysThink -- an AI tutor that teaches physics by building interactive 3D illustrations.
 
@@ -30,6 +36,11 @@ Before calling ANY tools, reason through the problem thoroughly:
 4. Plan the COMPLETE element list -- decide every mesh, vector, connector, annotation with exact coordinates.
 
 Your reasoning MUST contain actual calculations (trig, vector decomposition, coordinate geometry), not just restate the problem.
+
+Reasoning format rules:
+- Write reasoning as short multi-line steps, not one long paragraph.
+- Keep each step to 1-2 sentences.
+- Use at most 8 concise steps before tool calls.
 
 ## CRITICAL: Use Presets for Real-World Objects
 
@@ -47,6 +58,7 @@ BUILD THE SCENE:
 
 KNOWLEDGE TOOLS:
 - runProblemRagPipeline: FIRST CHOICE for textbook-style mechanics problems. Use it once with the full lesson/problem text to retrieve similar local examples and scene hints before building elements.
+- HARD LIMIT: runProblemRagPipeline may be called at most ONE time per assistant response.
 - searchProblemExamples / getProblemExampleByKey: Use only when you need targeted retrieval without running the full pipeline.
 - getPhysicsConstants / searchPhysicsKnowledge: ONLY for uncommon constants or niche background context you genuinely do not know. You already know g, c, pi, and standard formulas -- do NOT look them up unnecessarily.
 - getInteractionPattern: ONLY for complex, unfamiliar setups (e.g. Atwood machine, electromagnetic induction). Simple free-body diagrams do NOT need a pattern.
@@ -139,7 +151,9 @@ interface ResponsePart {
   text?: string;
   toolCallId?: string;
   toolName?: string;
+  input?: unknown;
   args?: unknown;
+  output?: unknown;
   result?: unknown;
 }
 
@@ -163,7 +177,8 @@ function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
       if (part.type === 'tool-result' && 'toolCallId' in part) {
         toolResults.set(
           part.toolCallId as string,
-          (part as { output?: unknown }).output
+          (part as { output?: unknown; result?: unknown }).output ??
+            (part as { result?: unknown }).result
         );
       }
     }
@@ -179,16 +194,21 @@ function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
     for (const part of msg.content) {
       if (part.type === 'text' && part.text) {
         parts.push({ type: 'text', text: part.text as string });
+      } else if (part.type === 'reasoning' && part.text) {
+        parts.push({ type: 'reasoning', text: part.text as string });
       } else if (part.type === 'tool-call') {
         const toolName = part.toolName as string;
         const toolCallId = part.toolCallId as string;
         const result = toolResults.get(toolCallId);
+        const toolInput =
+          (part as { input?: unknown; args?: unknown }).input ??
+          (part as { args?: unknown }).args;
         parts.push({
           type: `tool-${toolName}`,
           toolCallId,
           toolName,
           state: result !== undefined ? 'output-available' : 'input-available',
-          input: part.args,
+          input: toolInput,
           ...(result !== undefined ? { output: result } : {}),
         });
       }
@@ -255,6 +275,77 @@ function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
   return dedupedParts;
 }
 
+function sanitizeToolOutput(toolName: string, output: unknown): unknown {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) {
+    return sanitizeUnknownStrict(output);
+  }
+
+  const raw = output as Record<string, unknown>;
+
+  if (toolName === 'runProblemRagPipeline') {
+    const safe = projectSafeFields(raw, [
+      'found',
+      'message',
+      'warnings',
+      'guidance',
+      'dryRun',
+      'topKUsed',
+      'timings',
+    ]);
+    return {
+      ...safe,
+      retrievalCount: Array.isArray(raw.retrieval) ? raw.retrieval.length : 0,
+    };
+  }
+
+  if (toolName === 'searchProblemExamples') {
+    return projectSafeFields(raw, ['count', 'totalSamples', 'categories']);
+  }
+
+  if (toolName === 'getProblemExampleByKey') {
+    return projectSafeFields(raw, ['found', 'source']);
+  }
+
+  return sanitizeUnknownStrict(raw, { maxDepth: 2, maxStringChars: 260 });
+}
+
+function sanitizePersistedPart(
+  part: Record<string, unknown>
+): Record<string, unknown> {
+  if (part.type === 'text' && typeof part.text === 'string') {
+    return {
+      ...part,
+      text: sanitizeTextStrict(part.text, { maxChars: 2200 }),
+    };
+  }
+
+  if (part.type === 'reasoning' && typeof part.text === 'string') {
+    return {
+      ...part,
+      text: sanitizeReasoningText(part.text),
+    };
+  }
+
+  if (typeof part.toolName === 'string') {
+    const sanitized: Record<string, unknown> = { ...part };
+    if ('input' in sanitized) {
+      sanitized.input = sanitizeUnknownStrict(sanitized.input, {
+        maxDepth: 1,
+        maxStringChars: 180,
+      });
+    }
+    if ('output' in sanitized) {
+      sanitized.output = sanitizeToolOutput(part.toolName, sanitized.output);
+    }
+    return sanitized;
+  }
+
+  return sanitizeUnknownStrict(part, {
+    maxDepth: 2,
+    maxStringChars: 220,
+  }) as Record<string, unknown>;
+}
+
 export const sendChat = authorized
   .route({
     method: 'POST',
@@ -311,7 +402,8 @@ export const sendChat = authorized
             .join('\n') ?? '';
 
         // Convert response messages → UI parts (reasoning + tool calls + text)
-        const assistantParts = responseToUIParts(response.messages);
+        const assistantPartsRaw = responseToUIParts(response.messages);
+        const assistantParts = assistantPartsRaw.map(sanitizePersistedPart);
         const assistantText = assistantParts
           .filter(
             (p): p is { type: string; text: string } =>
@@ -336,7 +428,7 @@ export const sendChat = authorized
           const newElements: unknown[] = [];
           let newSceneSettings: Record<string, unknown> | null = null;
 
-          for (const p of assistantParts) {
+          for (const p of assistantPartsRaw) {
             if (p.toolName === 'addElements' || p.toolName === 'addElement') {
               const output = p.output as Record<string, unknown> | undefined;
               if (Array.isArray(output?.elements)) {

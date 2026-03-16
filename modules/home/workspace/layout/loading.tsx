@@ -15,6 +15,19 @@ import {
   FilterInputFallback,
   SortSelectFallback,
 } from '@/components/filter/fallback';
+import {
+  PromptInput,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
+  PromptInputBody,
+  PromptInputButton,
+  PromptInputFooter,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputTools,
+} from '@/components/ai-elements/prompt-input';
+import { GlobeIcon } from 'lucide-react';
 
 /**
  * Pulsing wireframe cube that appears in the canvas while
@@ -76,5 +89,40 @@ export function WorkspaceFilterFallback() {
         containerClassName="w-full sm:w-auto"
       />
     </>
+  );
+}
+
+export function PromptInputFallback() {
+  return (
+    <PromptInput className="w-full" onSubmit={() => {}}>
+      <PromptInputBody>
+        <PromptInputTextarea
+          placeholder="Describe the 3D illustration you want..."
+          rows={3}
+          disabled
+          className="resize-none"
+        />
+      </PromptInputBody>
+
+      <PromptInputFooter>
+        <PromptInputTools>
+          <PromptInputActionMenu>
+            <PromptInputActionMenuTrigger disabled />
+            <PromptInputActionMenuContent className="min-w-48">
+              <div className="text-muted-foreground px-2 py-1.5 text-sm">
+                Actions unavailable while loading
+              </div>
+            </PromptInputActionMenuContent>
+          </PromptInputActionMenu>
+
+          <PromptInputButton disabled>
+            <GlobeIcon className="size-4" />
+            <span>Search</span>
+          </PromptInputButton>
+        </PromptInputTools>
+
+        <PromptInputSubmit status="ready" disabled />
+      </PromptInputFooter>
+    </PromptInput>
   );
 }

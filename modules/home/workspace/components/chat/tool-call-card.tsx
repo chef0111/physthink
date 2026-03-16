@@ -2,23 +2,15 @@
 
 import { memo } from 'react';
 import { Loader } from '@/components/ui/loader';
-import TextShimmer from '@/components/ui/text-shimmer';
 import {
-  CheckCircle2,
-  Wrench,
-  Plus,
-  Pencil,
-  Trash2,
-  Settings,
-  MessageSquare,
-  Search,
-  BookOpen,
-  Globe,
-  Code,
-  Database,
-  ChevronRight,
-  type LucideIcon,
-} from 'lucide-react';
+  Tool,
+  ToolContent,
+  ToolHeader,
+  ToolInput,
+  ToolOutput,
+  type ToolPart,
+} from '@/components/ai-elements/tool';
+import { CheckCircle2 } from 'lucide-react';
 import { formatToolName, formatArgValue } from '@/lib/utils';
 
 type ToolCardStatus = 'streaming' | 'pending' | 'complete';
@@ -30,28 +22,69 @@ interface ToolCallCardProps {
   output?: Record<string, unknown>;
 }
 
-const TOOL_ICON: Record<string, LucideIcon> = {
-  addElement: Plus,
-  addElements: Plus,
-  editElement: Pencil,
-  removeElement: Trash2,
-  setSceneSettings: Settings,
-  setStatus: MessageSquare,
-  lookupPhysics: Search,
-  getPhysicsConstants: Search,
-  searchPhysicsKnowledge: BookOpen,
-  searchThreeJsDocs: Search,
-  getInteractionPattern: BookOpen,
-  searchProblemExamples: Database,
-  getProblemExampleByKey: Database,
-  runProblemRagPipeline: Database,
-  fetchWebContent: Globe,
-  validateCode: Code,
+const SAFE_FIELDS_BY_TOOL: Record<string, string[]> = {
+  addElement: ['action', 'element'],
+  addElements: ['action', 'elements'],
+  editElement: ['action', 'id', 'updates'],
+  removeElement: ['action', 'id'],
+  setSceneSettings: ['action', 'settings'],
+  setStatus: ['status'],
+  getPhysicsConstants: ['found', 'name', 'symbol', 'value', 'unit', 'source'],
+  searchPhysicsKnowledge: ['count'],
+  searchThreeJsDocs: ['count'],
+  getInteractionPattern: ['found', 'name', 'source'],
+  searchProblemExamples: ['count', 'totalSamples'],
+  getProblemExampleByKey: ['found', 'source'],
+  runProblemRagPipeline: [
+    'found',
+    'message',
+    'warnings',
+    'topKUsed',
+    'dryRun',
+    'retrievalCount',
+  ],
+  fetchWebContent: ['source', 'error'],
+  validateCode: ['valid', 'language', 'errors'],
 };
+
+function sanitizeDisplayValue(value: unknown): string {
+  const raw = formatArgValue(value);
+  return raw
+    .replace(/https?:\/\/[^\s)]+/g, '[redacted]')
+    .replace(/\b[A-Za-z0-9+/_-]{32,}\b/g, '[redacted]');
+}
+
+function sanitizeValueForJson(value: unknown): unknown {
+  if (value === null || value === undefined) return value;
+  if (typeof value === 'string') return sanitizeDisplayValue(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if (Array.isArray(value)) return value.map(sanitizeValueForJson);
+  if (typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [
+        k,
+        sanitizeValueForJson(v),
+      ])
+    );
+  }
+  return sanitizeDisplayValue(String(value));
+}
+
+function toToolUiState(
+  toolName: string,
+  status: ToolCardStatus
+): ToolPart['state'] {
+  if (toolName === 'fetchWebContent') {
+    return status === 'complete' ? 'output-available' : 'approval-requested';
+  }
+
+  if (status === 'streaming') return 'input-streaming';
+  if (status === 'pending') return 'input-available';
+  return 'output-available';
+}
 
 export const ToolCallCard = memo(
   function ToolCallCard({ toolName, status, args, output }: ToolCallCardProps) {
-    const Icon = (TOOL_ICON[toolName] ?? Wrench) as LucideIcon;
     const label = formatToolName(toolName) || 'Tool Call';
 
     const isActive = status === 'streaming' || status === 'pending';
@@ -87,51 +120,43 @@ export const ToolCallCard = memo(
           })()
         : output;
     const rawData = parsed ?? args;
-    const detailData = rawData
-      ? Object.fromEntries(
-          Object.entries(rawData).filter(([k]) => k !== 'action')
-        )
-      : undefined;
+    const allowKeys = SAFE_FIELDS_BY_TOOL[toolName] ?? [];
+    const filteredDetailData =
+      rawData && typeof rawData === 'object' && !Array.isArray(rawData)
+        ? Object.fromEntries(
+            Object.entries(rawData).filter(
+              ([k]) => allowKeys.includes(k) && k !== 'action'
+            )
+          )
+        : undefined;
+    const detailData =
+      filteredDetailData && Object.keys(filteredDetailData).length > 0
+        ? filteredDetailData
+        : undefined;
     const hasDetails = detailData && Object.keys(detailData).length > 0;
 
+    const toolState = toToolUiState(toolName, status);
+    const sanitizedInput = sanitizeValueForJson(args ?? {});
+    const sanitizedOutput = sanitizeValueForJson(detailData ?? output ?? {});
+
     return (
-      <details className="border-border/60 bg-muted/30 group my-1 rounded-lg border">
-        <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-xs select-none [&::-webkit-details-marker]:hidden">
-          <ChevronRight className="text-muted-foreground/60 size-3 shrink-0 transition-transform group-open:rotate-90" />
-          <Icon className="text-muted-foreground size-3.5 shrink-0" />
-          <span className="text-muted-foreground min-w-0 flex-1 truncate font-medium">
-            {isActive ? (
-              <TextShimmer duration={1} className="text-xs">
-                {label}
-              </TextShimmer>
-            ) : (
-              label
-            )}
-          </span>
-          {isActive ? (
-            <Loader size={14} className="shrink-0" />
-          ) : (
-            <span className="flex shrink-0 items-center gap-1 text-emerald-500">
-              <CheckCircle2 className="size-3.5" />
-              <span className="text-[10px] font-medium">Completed</span>
-            </span>
+      <Tool defaultOpen={false}>
+        <ToolHeader
+          type={'dynamic-tool'}
+          toolName={toolName}
+          state={toolState}
+          title={label}
+        />
+        <ToolContent>
+          <ToolInput input={sanitizedInput as ToolPart['input']} />
+          {(status === 'complete' || hasDetails) && (
+            <ToolOutput
+              output={sanitizedOutput as ToolPart['output']}
+              errorText={undefined}
+            />
           )}
-        </summary>
-        {hasDetails && (
-          <div className="border-border/40 text-muted-foreground mx-3 mb-2 border-t pt-2 font-mono text-[11px] leading-relaxed">
-            {Object.entries(detailData).map(([key, value]) => (
-              <div key={key} className="flex gap-1.5">
-                <span className="text-muted-foreground/70 shrink-0">
-                  {key}:
-                </span>
-                <span className="min-w-0 break-all">
-                  {formatArgValue(value)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </details>
+        </ToolContent>
+      </Tool>
     );
   },
 
