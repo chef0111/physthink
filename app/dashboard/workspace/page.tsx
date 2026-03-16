@@ -12,8 +12,8 @@ import { FilterProvider } from '@/context/filter-provider';
 
 export default function WorkspaceListPage({ searchParams }: RouteParams) {
   return (
-    <main className="mx-auto">
-      <FilterProvider>
+    <FilterProvider>
+      <main className="mx-auto">
         <Header />
         <section className="mx-auto max-w-7xl px-6 py-8">
           <div className="mb-10 flex flex-col gap-6">
@@ -47,7 +47,7 @@ export default function WorkspaceListPage({ searchParams }: RouteParams) {
             </FilterContent>
           </Suspense>
         </section>
-      </FilterProvider>
-    </main>
+      </main>
+    </FilterProvider>
   );
 }

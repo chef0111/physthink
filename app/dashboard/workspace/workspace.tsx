@@ -19,12 +19,10 @@ export async function WorkspaceList({
 
   const queryOptions = orpc.workspace.list.queryOptions({
     input: {
-      input: {
-        page: Number(page) || 1,
-        pageSize: Number(pageSize) || 12,
-        query,
-        sort,
-      },
+      page: Number(page) || 1,
+      pageSize: Number(pageSize) || 12,
+      query,
+      sort,
     },
   });
 
