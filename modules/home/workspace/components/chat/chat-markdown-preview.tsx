@@ -17,6 +17,19 @@ interface ChatMarkdownPreviewProps {
 const remarkPlugins = [remarkMath, remarkGfm];
 const rehypePlugins = [rehypeKatex];
 
+function sanitizeHref(href?: string): string | undefined {
+  if (!href) return undefined;
+  if (href.startsWith('http://') || href.startsWith('https://')) return href;
+  if (href.startsWith('mailto:')) return href;
+  return undefined;
+}
+
+function sanitizeMarkdownContent(content: string): string {
+  return content
+    .replace(/https?:\/\/[^\s)]+/g, '[redacted]')
+    .replace(/\b[A-Za-z0-9+/_-]{32,}\b/g, '[redacted]');
+}
+
 function CodeBlock({
   className,
   children,
@@ -100,6 +113,22 @@ const components: Components = {
       </blockquote>
     );
   },
+  a({ href, children }) {
+    const safeHref = sanitizeHref(href);
+    if (!safeHref) {
+      return <span className="underline decoration-dotted">{children}</span>;
+    }
+    return (
+      <a
+        href={safeHref}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="text-primary underline"
+      >
+        {children}
+      </a>
+    );
+  },
   hr() {
     return <hr className="border-border my-4" />;
   },
@@ -113,7 +142,7 @@ export const ChatMarkdownPreview = ({ content }: ChatMarkdownPreviewProps) => {
         rehypePlugins={rehypePlugins}
         components={components}
       >
-        {preprocessMath(content)}
+        {preprocessMath(sanitizeMarkdownContent(content))}
       </ReactMarkdown>
     </div>
   );

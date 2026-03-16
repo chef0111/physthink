@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { eventIteratorToUnproxiedDataStream } from '@orpc/client';
@@ -41,7 +41,9 @@ export function WorkspaceChat({
   workspaceId,
   initialMessages,
 }: WorkspaceChatProps) {
+  const AUTO_SCROLL_THRESHOLD_PX = 64;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
   const appliedToolCalls = useRef(
     new Set<string>(
       initialMessages.flatMap((m) =>
@@ -205,16 +207,37 @@ export function WorkspaceChat({
     setSceneLoading(hasActiveToolCall);
   }, [messages, isLoading, setSceneLoading]);
 
-  // Auto-scroll to bottom on new messages (RAF-debounced)
+  const updateAutoScrollPreference = useCallback(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+
+    const distanceFromBottom =
+      scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight;
+    shouldAutoScrollRef.current =
+      distanceFromBottom <= AUTO_SCROLL_THRESHOLD_PX;
+  }, [AUTO_SCROLL_THRESHOLD_PX]);
+
+  const handleScroll = useCallback(() => {
+    updateAutoScrollPreference();
+  }, [updateAutoScrollPreference]);
+
+  // Auto-scroll only when user is near bottom (RAF-debounced)
   const rafRef = useRef(0);
   useEffect(() => {
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }
+      const scrollEl = scrollRef.current;
+      if (!scrollEl) return;
+      if (!shouldAutoScrollRef.current) return;
+      scrollEl.scrollTop = scrollEl.scrollHeight;
     });
-  }, [messages]);
+  }, [messages, isLoading]);
+
+  useEffect(() => {
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   const virtualizer = useVirtualizer({
     count: messages.length,
@@ -226,6 +249,7 @@ export function WorkspaceChat({
   const handleSubmit = () => {
     const text = input.trim();
     if (!text || isLoading) return;
+    shouldAutoScrollRef.current = true;
     setInput('');
     sendMessage({ text });
   };
@@ -236,7 +260,11 @@ export function WorkspaceChat({
 
   return (
     <div className="flex h-full flex-col">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4"
+      >
         {messages.length === 0 && (
           <div className="text-muted-foreground flex h-full items-center justify-center text-center text-sm">
             <p>

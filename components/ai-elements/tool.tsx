@@ -85,14 +85,16 @@ export const ToolHeader = ({
   return (
     <CollapsibleTrigger
       className={cn(
-        'flex w-full items-center justify-between gap-4 p-3',
+        'flex w-full items-center justify-between gap-2 p-3',
         className
       )}
       {...props}
     >
-      <div className="flex items-center gap-2">
-        <WrenchIcon className="text-muted-foreground size-4" />
-        <span className="text-sm font-medium">{title ?? derivedName}</span>
+      <div className="flex items-center gap-2 truncate">
+        <WrenchIcon className="text-muted-foreground size-4 shrink-0" />
+        <span className="truncate pr-6 text-xs" title={title ?? derivedName}>
+          {title ?? derivedName}
+        </span>
         {getStatusBadge(state)}
       </div>
       <ChevronDownIcon className="text-muted-foreground size-4 transition-transform group-data-[state=open]:rotate-180" />
@@ -105,7 +107,7 @@ export type ToolContentProps = ComponentProps<typeof CollapsibleContent>;
 export const ToolContent = ({ className, ...props }: ToolContentProps) => (
   <CollapsibleContent
     className={cn(
-      'data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground data-[state=closed]:animate-out data-[state=open]:animate-in space-y-4 p-4 outline-none',
+      'data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground data-[state=closed]:animate-out data-[state=open]:animate-in space-y-4 p-3 outline-none',
       className
     )}
     {...props}

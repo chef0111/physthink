@@ -10,6 +10,11 @@ export const TOOL_TAG_PAIR_RE = new RegExp(
  * Earlier calls with the same name are dropped.
  */
 export const LAST_WINS_TOOLS = new Set(['setSceneSettings']);
+export const SINGLE_PASS_RETRIEVAL_TOOLS = new Set(['runProblemRagPipeline']);
+
+for (const toolName of SINGLE_PASS_RETRIEVAL_TOOLS) {
+  LAST_WINS_TOOLS.add(toolName);
+}
 
 /**
  * Tools whose element arrays should be merged into a single call.

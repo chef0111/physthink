@@ -31,6 +31,7 @@ Analyze the bug/error, select the optimal skill combination, then systematically
 | `shadcn`              | Component rendering issues, missing variants, registry errors |
 | `better-auth`         | Auth flow failures, session issues, OAuth errors              |
 | `physthink-feature`   | PhysThink-specific architecture issues, oRPC errors, DAL bugs |
+| `ai-elements`         | AI elements components built on top of shadcn                 |
 
 ### Support
 
