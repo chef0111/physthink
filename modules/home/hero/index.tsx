@@ -19,7 +19,7 @@ export function HeroSection() {
           )}
         />
       </div>
-      <div className="absolute inset-0 top-16 mx-auto max-h-110 w-full max-w-6xl overflow-hidden">
+      <div className="absolute inset-0 top-16 mx-auto max-h-110 w-full max-w-7xl overflow-hidden">
         <div
           className={cn(
             'absolute inset-0 -z-30',
@@ -28,7 +28,8 @@ export function HeroSection() {
             'dark:bg-[radial-gradient(#404040_1px,transparent_1px)]'
           )}
         />
-        <div className="bg-background pointer-events-none absolute inset-0 -z-20 flex items-center justify-center mask-[radial-gradient(ellipse_at_center,transparent_1%,black)]" />
+        <div className="bg-background pointer-events-none absolute inset-0 -z-20 flex items-center justify-center mask-[radial-gradient(ellipse_at_center,transparent_10%,black)]" />
+        <div className="bg-background pointer-events-none absolute inset-0 -z-20 flex items-center justify-center mask-[radial-gradient(ellipse_at_center,transparent_10%,black)]" />
       </div>
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center gap-5">
         <Link
