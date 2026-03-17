@@ -2,20 +2,10 @@ import type {
   LanguageModelV3Middleware,
   LanguageModelV3StreamPart,
 } from '@ai-sdk/provider';
-import {
-  MERGE_TOOLS,
-  TOOL_TAG_OPEN_RE,
-  TOOL_TAG_PAIR_RE,
-} from './fn-call-middleware/constants';
-import {
-  deduplicateContentToolCalls,
-  deduplicateToolCalls,
-} from './fn-call-middleware/dedup';
-import {
-  parseFnCallLine,
-  parseToolCallJson,
-} from './fn-call-middleware/parsers';
-import type { ToolCall } from './fn-call-middleware/types';
+import { MERGE_TOOLS, TOOL_TAG_OPEN_RE, TOOL_TAG_PAIR_RE } from './constants';
+import { deduplicateContentToolCalls, deduplicateToolCalls } from './dedup';
+import { parseFnCallLine, parseToolCallJson } from './parsers';
+import type { ToolCall } from './types';
 
 /**
  * Middleware that intercepts text-based tool call formats from models that
@@ -23,13 +13,14 @@ import type { ToolCall } from './fn-call-middleware/types';
  * proper tool-call stream events.
  *
  * Supported formats:
- *   1. FN_CALL=True
- *      toolName(key="value", key2=123, key3={"nested": "json"})
+ *   1. <tool_call>{"name":"toolName","arguments":{"key":"value"}}</tool_call>
  *
- *   2. <tag>{"name":"toolName","arguments":{"key":"value"}}</tag>
- *      where tag is: tool_call, think_faster, function_call
+ *   2. FN_CALL=True
+ *      toolName(key="value", key2=123, key3={"nested": "json"})
  */
 export function extractFnCallMiddleware(): LanguageModelV3Middleware {
+  const createToolCallId = () => `fn-${crypto.randomUUID()}`;
+
   return {
     specificationVersion: 'v3',
 
@@ -37,8 +28,6 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
       const result = await doGenerate();
       const transformedContent: typeof result.content = [];
       let hasToolCalls = false;
-      let idCounter = 0;
-      const idPrefix = Math.random().toString(36).substring(2, 8);
 
       for (const part of result.content) {
         if (part.type !== 'text') {
@@ -50,7 +39,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
 
         const fnCallIdx = part.text.indexOf('FN_CALL=True');
         if (fnCallIdx === -1) {
-          // Check for tagged JSON format: <tool_call>, <think_faster>, etc.
+          // Canonical tagged JSON format: <tool_call>...</tool_call>
           TOOL_TAG_PAIR_RE.lastIndex = 0;
           let lastIdx = 0;
           let match;
@@ -64,11 +53,14 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             if (parsed) {
               transformedContent.push({
                 type: 'tool-call',
-                toolCallId: `fn-${idPrefix}-${idCounter++}`,
+                toolCallId: createToolCallId(),
                 toolName: parsed.name,
                 input: JSON.stringify(parsed.arguments || {}),
               });
               hasToolCalls = true;
+            } else {
+              // Preserve malformed tagged calls as text to avoid silent loss.
+              transformedContent.push({ type: 'text', text: match[0] });
             }
             foundTags = true;
             lastIdx = match.index + match[0].length;
@@ -95,7 +87,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
           if (parsed) {
             transformedContent.push({
               type: 'tool-call',
-              toolCallId: `fn-${idPrefix}-${idCounter++}`,
+              toolCallId: createToolCallId(),
               toolName: parsed.toolName,
               input: JSON.stringify(parsed.args),
             });
@@ -128,8 +120,6 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
       const mergeToolIdToName = new Map<string, string>();
       const mergeToolFirstStreamId: Record<string, string> = {};
       const nativeMergeToolCalls: ToolCall[] = [];
-      let idCounter = 0;
-      const idPrefix = Math.random().toString(36).substring(2, 8);
       let toolCallTagMode = false;
       let toolCallTagBuffer = '';
       let toolCallTagName = '';
@@ -164,10 +154,15 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseToolCallJson(toolCallTagBuffer.trim());
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else {
+              emitText(
+                `<${toolCallTagName}>${toolCallTagBuffer}${closeTag}`,
+                controller
+              );
             }
             // Emit any trailing content after the closing tag
             const trailing = line.substring(endIdx + closeTag.length).trim();
@@ -183,7 +178,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
           return;
         }
 
-        // Check for tool-call tag on this line (<tool_call>, <think_faster>, etc.)
+        // Check for canonical tool-call tag on this line (<tool_call>).
         const tagMatch = line.match(TOOL_TAG_OPEN_RE);
         if (tagMatch) {
           const tagName = tagMatch[1];
@@ -202,10 +197,15 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             );
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else {
+              emitText(
+                `${tagMatch[0]}${afterTag.substring(0, endIdx)}${closeTag}`,
+                controller
+              );
             }
             // Emit any trailing content after the closing tag
             const trailing = afterTag
@@ -235,7 +235,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseFnCallLine(trimmed);
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.toolName,
                 args: JSON.stringify(parsed.args),
               });
@@ -261,10 +261,12 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseToolCallJson(content);
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else if (content) {
+              emitText(`<${toolCallTagName}>${content}${closeTag}`, controller);
             }
           }
           toolCallTagMode = false;
@@ -297,10 +299,12 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseToolCallJson(content);
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else {
+              emitText(`${bufTagMatch[0]}${content}${closeTag}`, controller);
             }
           }
           lineBuffer = '';
@@ -319,7 +323,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
               const parsed = parseFnCallLine(l.trim());
               if (parsed) {
                 toolCalls.push({
-                  id: `fn-${idPrefix}-${idCounter++}`,
+                  id: createToolCallId(),
                   toolName: parsed.toolName,
                   args: JSON.stringify(parsed.args),
                 });
@@ -332,7 +336,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
           const parsed = parseFnCallLine(lineBuffer.trim());
           if (parsed) {
             toolCalls.push({
-              id: `fn-${idPrefix}-${idCounter++}`,
+              id: createToolCallId(),
               toolName: parsed.toolName,
               args: JSON.stringify(parsed.args),
             });
@@ -443,7 +447,8 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
                   }
                   return;
                 }
-                // Suppress non-merge native tool events (model may emit garbled names)
+                // Preserve non-merge native tool events to avoid dropping valid calls.
+                controller.enqueue(chunk);
                 return;
               }
 
@@ -459,7 +464,8 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
                   }
                   return;
                 }
-                // Suppress non-merge native tool events
+                // Preserve non-merge native tool events to avoid dropped execution.
+                controller.enqueue(chunk);
                 return;
               }
 
@@ -475,7 +481,8 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
                   });
                   return;
                 }
-                // Suppress non-merge native tool-call events
+                // Preserve non-merge native tool-call events.
+                controller.enqueue(chunk);
                 return;
               }
 

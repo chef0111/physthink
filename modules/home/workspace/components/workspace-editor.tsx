@@ -21,7 +21,11 @@ import { WorkspaceCanvas } from './canvas';
 import { PromptInputFallback } from '../layout/loading';
 import { WorkspaceToolbar } from './toolbar';
 import { WorkspaceHeader } from './workspace-header';
-import { WorkspaceChat, dbMessagesToAiMessages } from './chat';
+import {
+  WorkspaceChat,
+  dbMessagesToAiMessages,
+  extractFeedbackMap,
+} from './chat';
 import {
   Empty,
   EmptyContent,
@@ -210,6 +214,7 @@ export function WorkspaceEditor({ id }: { id: string }) {
               <WorkspaceChat
                 workspaceId={id}
                 initialMessages={dbMessagesToAiMessages(workspace.messages)}
+                initialFeedbackMap={extractFeedbackMap(workspace.messages)}
               />
             ) : (
               <div className="flex h-full w-full flex-col">

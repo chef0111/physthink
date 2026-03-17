@@ -1,4 +1,4 @@
-export const TOOL_TAG_NAMES = 'tool_call|think_faster|function_call';
+export const TOOL_TAG_NAMES = 'tool_call';
 export const TOOL_TAG_OPEN_RE = new RegExp(`<(${TOOL_TAG_NAMES})>`, 'i');
 export const TOOL_TAG_PAIR_RE = new RegExp(
   `<(${TOOL_TAG_NAMES})>\\s*([\\s\\S]*?)\\s*<\\/\\1>`,

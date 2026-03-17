@@ -165,6 +165,7 @@ Quick examples:
   Angle label:      { type: "annotation", annotationKind: "label", text: "θ = 30°", position: [1, 0.5, 0] }
 
 ROTATION in RADIANS: 30°=0.5236, 45°=0.7854, 60°=1.0472, 90°=1.5708`,
+    strict: true,
     inputSchema: z.object({
       element: ElementSchema.describe('The element to add to the scene'),
     }),
@@ -188,6 +189,7 @@ Example — truck on a 30° hill with forces:
   { type: "vector", from: [1.6, 1.2, 0], to: [0.6, 2.9, 0], color: "#228B22", label: "N", dashed: true },
   { type: "annotation", annotationKind: "label", text: "θ = 30°", position: [0.5, 0.3, 0], color: "#ffcc00" }
 ]`,
+    strict: true,
     inputSchema: z.object({
       elements: z
         .array(ElementSchema)
@@ -206,6 +208,7 @@ Example — truck on a 30° hill with forces:
   editElement: tool({
     description:
       'Edit an existing element in the illustration. Use this to reposition objects, adjust force vector directions/magnitudes, change colors, update labels, or modify any property. Provide the element ID and the properties to update.',
+    strict: true,
     inputSchema: z.object({
       id: z.string().describe('The ID of the element to edit'),
       updates: z
@@ -224,6 +227,7 @@ Example — truck on a 30° hill with forces:
   removeElement: tool({
     description:
       'Remove an element from the illustration by its ID. Use when the student asks to simplify the scene, remove a force, or clear specific objects.',
+    strict: true,
     inputSchema: z.object({
       id: z.string().describe('The ID of the element to remove'),
     }),
@@ -238,6 +242,7 @@ Example — truck on a 30° hill with forces:
   setSceneSettings: tool({
     description:
       'Update scene settings. Show grid for spatial reference, show axes when discussing coordinate decomposition or component analysis, or change background color for contrast.',
+    strict: true,
     inputSchema: z.object({
       gridVisible: z.boolean().optional(),
       axesVisible: z.boolean().optional(),

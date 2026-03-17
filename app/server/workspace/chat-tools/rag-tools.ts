@@ -211,6 +211,7 @@ export const ragPipelineTools = {
   runProblemRagPipeline: tool({
     description:
       'Run the full RAG pipeline for a physics lesson: retrieve top-k similar lesson/graph/svg examples, generate graph text, generate SVG, and return scene hints plus detailed stage-by-stage trace logs so you can call scene tools to build the final 3D illustration.',
+    strict: true,
     inputSchema: z.object({
       lesson: z.string().describe('The target physics lesson/problem text'),
       topK: z.number().int().min(1).max(5).optional().default(2),

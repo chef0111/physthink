@@ -5,6 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const isDev = process.env.NODE_ENV !== 'production';
+
 export const formatBytes = (bytes: number, decimals = 2): string => {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -59,6 +61,21 @@ export function preprocessMath(content: string): string {
   // \(...\) → $...$ (inline math)
   content = content.replace(
     /\\\(([\s\S]*?)\\\)/g,
+    (_, inner: string) => `$${inner}$`
+  );
+  // $ \theta = ... $ -> $\theta = ...$ so markdown math parser recognizes it.
+  content = content.replace(
+    /\$\s*([^$\n]*\\[A-Za-z][^$\n]*?)\s*\$/g,
+    (_, inner: string) => `$${inner.trim()}$`
+  );
+  // $$ \int ... $$ -> $$\int ...$$ for display expressions with extra spaces.
+  content = content.replace(
+    /\$\$\s*([\s\S]*\\[A-Za-z][\s\S]*?)\s*\$\$/g,
+    (_, inner: string) => `$$${inner.trim()}$$`
+  );
+  // ( ...\sin... ) -> $...$ for common model outputs that omit math delimiters.
+  content = content.replace(
+    /\(([^()\n]*\\[A-Za-z]+[^()\n]*)\)/g,
     (_, inner: string) => `$${inner}$`
   );
   return content;

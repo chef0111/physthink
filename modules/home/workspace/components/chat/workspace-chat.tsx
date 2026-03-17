@@ -2,48 +2,35 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useChat, type UIMessage } from '@ai-sdk/react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { eventIteratorToUnproxiedDataStream } from '@orpc/client';
 import { client } from '@/lib/orpc';
+import { isDev } from '@/lib/utils';
 import { useShallow } from 'zustand/react/shallow';
-import { useSceneStore, type SceneElement } from '@/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
+import { readDebugGenerationData, readRetryAdviceData } from './utils';
+import TextShimmer from '@/components/ui/text-shimmer';
 import { ChatMessage } from './chat-message';
 import { PromptInput } from './prompt-input';
-import { nanoid } from 'nanoid';
-import TextShimmer from '@/components/ui/text-shimmer';
+import { Retry } from './retry';
+import {
+  useChatAutoScroll,
+  useRegenerateMessage,
+  useSceneToolEffects,
+  type MessageFeedback,
+} from './hooks';
 
 interface WorkspaceChatProps {
   workspaceId: string;
   initialMessages: UIMessage[];
+  /** Pre-built messageId → feedback map for hydrating initial like/dislike UI. */
+  initialFeedbackMap?: Map<string, MessageFeedback>;
 }
-
-function dbMessagesToAiMessages(
-  dbMessages: Array<{
-    id: string;
-    role: string;
-    content: string;
-    parts?: unknown;
-    createdAt: Date;
-  }>
-): UIMessage[] {
-  return dbMessages.map((m) => ({
-    id: m.id,
-    role: m.role as UIMessage['role'],
-    parts: Array.isArray(m.parts)
-      ? (m.parts as UIMessage['parts'])
-      : [{ type: 'text' as const, text: m.content }],
-  }));
-}
-
-export { dbMessagesToAiMessages };
 
 export function WorkspaceChat({
   workspaceId,
   initialMessages,
+  initialFeedbackMap,
 }: WorkspaceChatProps) {
-  const AUTO_SCROLL_THRESHOLD_PX = 64;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const shouldAutoScrollRef = useRef(true);
   const appliedToolCalls = useRef(
     new Set<string>(
       initialMessages.flatMap((m) =>
@@ -53,7 +40,6 @@ export function WorkspaceChat({
       )
     )
   );
-  const batchAddAppliedForMsg = useRef<string | null>(null);
   const [input, setInput] = useState('');
 
   useEffect(() => {
@@ -124,73 +110,23 @@ export function WorkspaceChat({
     [workspaceId]
   );
 
-  const { messages, sendMessage, stop, status } = useChat({
-    id: workspaceId,
-    transport,
-    messages: initialMessages,
-  });
-
-  useEffect(() => {
-    const lastMsg = messages[messages.length - 1];
-    if (!lastMsg || lastMsg.role !== 'assistant') return;
-
-    const newElements: SceneElement[] = [];
-
-    for (const part of lastMsg.parts) {
-      if (
-        'toolCallId' in part &&
-        'state' in part &&
-        part.state === 'output-available' &&
-        'output' in part
-      ) {
-        const toolCallId = (part as { toolCallId: string }).toolCallId;
-        if (appliedToolCalls.current.has(toolCallId)) continue;
-        appliedToolCalls.current.add(toolCallId);
-
-        const output = part.output as Record<string, unknown>;
-        const action = output?.action;
-
-        if (action === 'addElement') {
-          // Skip if addElements was already applied for this assistant message
-          if (batchAddAppliedForMsg.current === lastMsg.id) continue;
-          const element = output.element as Omit<SceneElement, 'id'>;
-          const id = nanoid();
-          newElements.push({ ...element, id } as SceneElement);
-        } else if (action === 'addElements') {
-          // Only apply the first addElements per assistant message (cross-step dedup)
-          if (batchAddAppliedForMsg.current === lastMsg.id) continue;
-          batchAddAppliedForMsg.current = lastMsg.id;
-          const elements = output.elements as Array<Omit<SceneElement, 'id'>>;
-          for (const el of elements) {
-            newElements.push({ ...el, id: nanoid() } as SceneElement);
-          }
-        } else if (action === 'editElement') {
-          updateElement(
-            output.id as string,
-            output.updates as Partial<SceneElement>
-          );
-        } else if (action === 'removeElement') {
-          removeElement(output.id as string);
-        } else if (action === 'setSceneSettings') {
-          setSceneSettings(
-            output.settings as Partial<{
-              gridVisible: boolean;
-              axesVisible: boolean;
-              backgroundColor: string;
-            }>
-          );
-        }
-      }
-    }
-
-    if (newElements.length > 0) {
-      addElements(newElements);
-    }
-  }, [messages, addElements, updateElement, removeElement, setSceneSettings]);
+  const { messages, sendMessage, regenerate, stop, status, clearError } =
+    useChat({
+      id: workspaceId,
+      transport,
+      messages: initialMessages,
+    });
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  // Show 3D loading skeleton while scene-modifying tool calls are in progress
+  useSceneToolEffects(messages, appliedToolCalls, {
+    addElements,
+    updateElement,
+    removeElement,
+    setSceneSettings,
+  });
+
+  // Show 3D loading skeleton while scene-modifying tool calls are in progress.
   useEffect(() => {
     if (!isLoading) {
       setSceneLoading(false);
@@ -207,44 +143,10 @@ export function WorkspaceChat({
     setSceneLoading(hasActiveToolCall);
   }, [messages, isLoading, setSceneLoading]);
 
-  const updateAutoScrollPreference = useCallback(() => {
-    const scrollEl = scrollRef.current;
-    if (!scrollEl) return;
-
-    const distanceFromBottom =
-      scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight;
-    shouldAutoScrollRef.current =
-      distanceFromBottom <= AUTO_SCROLL_THRESHOLD_PX;
-  }, [AUTO_SCROLL_THRESHOLD_PX]);
-
-  const handleScroll = useCallback(() => {
-    updateAutoScrollPreference();
-  }, [updateAutoScrollPreference]);
-
-  // Auto-scroll only when user is near bottom (RAF-debounced)
-  const rafRef = useRef(0);
-  useEffect(() => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
-      const scrollEl = scrollRef.current;
-      if (!scrollEl) return;
-      if (!shouldAutoScrollRef.current) return;
-      scrollEl.scrollTop = scrollEl.scrollHeight;
-    });
-  }, [messages, isLoading]);
-
-  useEffect(() => {
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
-
-  const virtualizer = useVirtualizer({
-    count: messages.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => 80,
-    overscan: 3,
-  });
+  const { scrollRef, shouldAutoScrollRef, handleScroll } = useChatAutoScroll(
+    messages,
+    isLoading
+  );
 
   const handleSubmit = () => {
     const text = input.trim();
@@ -257,6 +159,89 @@ export function WorkspaceChat({
   const handleStop = () => {
     stop();
   };
+
+  const lastUserPrompt = useMemo(() => {
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((m) => m.role === 'user');
+    if (!lastUserMessage) return null;
+
+    const text = lastUserMessage.parts
+      .filter(
+        (part): part is { type: 'text'; text: string } =>
+          part.type === 'text' && typeof part.text === 'string'
+      )
+      .map((part) => part.text)
+      .join('\n')
+      .trim();
+
+    return text || null;
+  }, [messages]);
+
+  const latestGenerationDebug = useMemo(() => {
+    if (!isDev) return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message.role !== 'assistant') continue;
+      for (const part of message.parts) {
+        const debugData = readDebugGenerationData(part);
+        if (debugData) return debugData;
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const shouldShowRetry = useMemo(() => {
+    if (status === 'error') return true;
+    if (messages.length === 0) return false;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.role !== 'assistant') return false;
+
+    let preliminaryAdvice: ReturnType<typeof readRetryAdviceData> = null;
+
+    for (const part of lastMessage.parts) {
+      const retryAdvice = readRetryAdviceData(part);
+      if (retryAdvice) {
+        if (retryAdvice.stage === 'final') return retryAdvice.shouldRetry;
+        preliminaryAdvice = retryAdvice;
+      }
+    }
+
+    return preliminaryAdvice?.shouldRetry ?? false;
+  }, [status, messages]);
+
+  const handleRetry = useCallback(() => {
+    if (isLoading) return;
+    clearError();
+    shouldAutoScrollRef.current = true;
+    const lastAssistant = [...messages]
+      .reverse()
+      .find((m) => m.role === 'assistant');
+    if (lastAssistant) {
+      void regenerate({ messageId: lastAssistant.id });
+      return;
+    }
+    if (lastUserPrompt) {
+      sendMessage({ text: lastUserPrompt });
+    }
+  }, [
+    clearError,
+    isLoading,
+    lastUserPrompt,
+    messages,
+    regenerate,
+    sendMessage,
+    shouldAutoScrollRef,
+  ]);
+
+  const { handleRegenerateAtIndex } = useRegenerateMessage(
+    messages,
+    isLoading,
+    sendMessage,
+    regenerate,
+    shouldAutoScrollRef
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -277,47 +262,39 @@ export function WorkspaceChat({
           </div>
         )}
         {messages.length > 0 && (
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
-          >
-            {virtualizer.getVirtualItems().map((virtualItem) => {
-              const message = messages[virtualItem.index];
-              return (
-                <div
-                  key={message.id}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualItem.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                    paddingBottom: '16px',
-                  }}
-                >
-                  <ChatMessage
-                    message={message}
-                    isStreaming={
-                      isLoading && virtualItem.index === messages.length - 1
-                    }
-                  />
-                </div>
-              );
-            })}
+          <div className="space-y-4">
+            {messages.map((message, index) => (
+              <div key={message.id}>
+                <ChatMessage
+                  message={message}
+                  isStreaming={isLoading && index === messages.length - 1}
+                  initialFeedback={initialFeedbackMap?.get(message.id)}
+                  onRegenerate={
+                    message.role === 'assistant'
+                      ? () => handleRegenerateAtIndex(index)
+                      : undefined
+                  }
+                />
+              </div>
+            ))}
           </div>
         )}
         {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-          <div className="text-muted-foreground py-1 text-sm">
-            <TextShimmer duration={1}>Thinking...</TextShimmer>
+          <div className="text-muted-foreground py-4 text-sm">
+            <TextShimmer duration={1}>Working...</TextShimmer>
           </div>
         )}
+        {shouldShowRetry && <Retry className="my-2" onClick={handleRetry} />}
       </div>
       <div className="border-t p-3">
+        {isDev && latestGenerationDebug && (
+          <div className="text-muted-foreground mb-2 text-[11px] leading-relaxed">
+            debug: steps={latestGenerationDebug.stepCount} ; stop=
+            {latestGenerationDebug.stopReason} ; tools=
+            {latestGenerationDebug.toolCallCount} ; elapsed=
+            {latestGenerationDebug.elapsedSec}s
+          </div>
+        )}
         <PromptInput
           input={input}
           onInputChange={setInput}

@@ -58,3 +58,18 @@ export function useDeleteWorkspace() {
     })
   );
 }
+
+export function useUpdateWorkspaceMessageFeedback() {
+  return useMutation(
+    orpc.workspace.message.feedback.mutationOptions({
+      onSuccess: () => {
+        toast.success('Feedback submitted');
+      },
+      onError: (error) => {
+        toast.error('Failed to submit feedback', {
+          description: error.message,
+        });
+      },
+    })
+  );
+}

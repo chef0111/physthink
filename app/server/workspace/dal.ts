@@ -2,7 +2,11 @@ import 'server-only';
 
 import { prisma } from '@/lib/prisma';
 import { getPagination } from '../utils';
-import type { CreateWorkspaceDTO, UpdateWorkspaceDTO } from './dto';
+import type {
+  CreateWorkspaceDTO,
+  UpdateWorkspaceDTO,
+  UpdateWorkspaceMessageFeedbackDTO,
+} from './dto';
 import { Prisma } from '@/generated/prisma/client';
 
 type WorkspaceSort = 'newest' | 'oldest' | 'recent';
@@ -84,6 +88,8 @@ export class WorkspaceDAL {
             content: true,
             parts: true,
             codeBlock: true,
+            feedback: true,
+            feedbackAt: true,
             createdAt: true,
           },
           orderBy: { createdAt: 'asc' },
@@ -105,6 +111,25 @@ export class WorkspaceDAL {
   static async delete(id: string, userId: string) {
     return prisma.workspace.deleteMany({
       where: { id, userId },
+    });
+  }
+
+  static async updateMessageFeedback(
+    data: UpdateWorkspaceMessageFeedbackDTO,
+    userId: string
+  ) {
+    return prisma.workspaceMessage.updateMany({
+      where: {
+        id: data.messageId,
+        role: 'assistant',
+        workspace: {
+          userId,
+        },
+      },
+      data: {
+        feedback: data.feedback,
+        feedbackAt: data.feedback ? new Date() : null,
+      },
     });
   }
 }

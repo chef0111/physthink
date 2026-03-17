@@ -32,6 +32,7 @@ import {
   get as getWorkspace,
   update as updateWorkspace,
   remove as removeWorkspace,
+  updateMessageFeedback,
 } from './workspace';
 import { sendChat } from './workspace/chat';
 
@@ -74,6 +75,9 @@ export const router = {
     get: getWorkspace,
     update: updateWorkspace,
     delete: removeWorkspace,
+    message: {
+      feedback: updateMessageFeedback,
+    },
     chat: {
       send: sendChat,
     },
