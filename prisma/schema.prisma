@@ -188,6 +188,8 @@ model WorkspaceMessage {
   content     String
   parts       Json?
   codeBlock   String?
+  feedback    String?
+  feedbackAt  DateTime?
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 

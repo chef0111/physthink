@@ -11,6 +11,7 @@ export function deduplicateToolCalls(calls: ToolCall[]): ToolCall[] {
   const mergedElements: Record<string, unknown[]> = {};
   const mergeIds: Record<string, string> = {};
   const lastWins: Record<string, number> = {};
+  const malformedMergeCallIndexes = new Set<number>();
 
   for (let i = 0; i < calls.length; i++) {
     const tc = calls[i];
@@ -31,9 +32,12 @@ export function deduplicateToolCalls(calls: ToolCall[]): ToolCall[] {
             mergeIds[tc.toolName] = tc.id;
           }
           mergedElements[tc.toolName].push(...elements);
+        } else {
+          malformedMergeCallIndexes.add(i);
         }
       } catch {
-        // If JSON parse fails, drop the call
+        // Preserve malformed merge calls instead of dropping them.
+        malformedMergeCallIndexes.add(i);
       }
     }
   }
@@ -52,6 +56,11 @@ export function deduplicateToolCalls(calls: ToolCall[]): ToolCall[] {
     }
 
     if (MERGE_TOOLS.has(tc.toolName)) {
+      if (malformedMergeCallIndexes.has(i)) {
+        result.push(tc);
+        continue;
+      }
+
       if (mergedElements[tc.toolName] && !emittedMerge.has(tc.toolName)) {
         emittedMerge.add(tc.toolName);
         result.push({
@@ -59,6 +68,8 @@ export function deduplicateToolCalls(calls: ToolCall[]): ToolCall[] {
           toolName: tc.toolName,
           args: JSON.stringify({ elements: mergedElements[tc.toolName] }),
         });
+      } else if (!mergedElements[tc.toolName]) {
+        result.push(tc);
       }
       continue;
     }

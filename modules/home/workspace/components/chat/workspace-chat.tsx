@@ -35,7 +35,6 @@ export function WorkspaceChat({
       )
     )
   );
-  const batchAddAppliedForMsg = useRef<string | null>(null);
   const [input, setInput] = useState('');
 
   useEffect(() => {
@@ -133,15 +132,10 @@ export function WorkspaceChat({
         const action = output?.action;
 
         if (action === 'addElement') {
-          // Skip if addElements was already applied for this assistant message
-          if (batchAddAppliedForMsg.current === lastMsg.id) continue;
           const element = output.element as Omit<SceneElement, 'id'>;
           const id = nanoid();
           newElements.push({ ...element, id } as SceneElement);
         } else if (action === 'addElements') {
-          // Only apply the first addElements per assistant message (cross-step dedup)
-          if (batchAddAppliedForMsg.current === lastMsg.id) continue;
-          batchAddAppliedForMsg.current = lastMsg.id;
           const elements = output.elements as Array<Omit<SceneElement, 'id'>>;
           for (const el of elements) {
             newElements.push({ ...el, id: nanoid() } as SceneElement);
@@ -271,17 +265,28 @@ export function WorkspaceChat({
 
   const shouldShowRetry = useMemo(() => {
     if (status === 'error') return true;
-    if (isLoading || messages.length === 0) return false;
+    if (messages.length === 0) return false;
 
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage || lastMessage.role !== 'assistant') return false;
 
+    let preliminaryAdvice: ReturnType<typeof readRetryAdviceData> = null;
+
     for (const part of lastMessage.parts) {
       const retryAdvice = readRetryAdviceData(part);
       if (retryAdvice) {
-        return retryAdvice.shouldRetry;
+        if (retryAdvice.stage === 'final') {
+          return retryAdvice.shouldRetry;
+        }
+        preliminaryAdvice = retryAdvice;
       }
     }
+
+    if (preliminaryAdvice) {
+      return preliminaryAdvice.shouldRetry;
+    }
+
+    if (isLoading) return false;
 
     const hasToolCalls = lastMessage.parts.some(
       (part) => 'toolCallId' in part && 'state' in part

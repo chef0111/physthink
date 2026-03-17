@@ -30,6 +30,8 @@ import type { ToolCall } from './fn-call-middleware/types';
  *      where tag is: tool_call, think_faster, function_call
  */
 export function extractFnCallMiddleware(): LanguageModelV3Middleware {
+  const createToolCallId = () => `fn-${crypto.randomUUID()}`;
+
   return {
     specificationVersion: 'v3',
 
@@ -37,8 +39,6 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
       const result = await doGenerate();
       const transformedContent: typeof result.content = [];
       let hasToolCalls = false;
-      let idCounter = 0;
-      const idPrefix = Math.random().toString(36).substring(2, 8);
 
       for (const part of result.content) {
         if (part.type !== 'text') {
@@ -64,11 +64,14 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             if (parsed) {
               transformedContent.push({
                 type: 'tool-call',
-                toolCallId: `fn-${idPrefix}-${idCounter++}`,
+                toolCallId: createToolCallId(),
                 toolName: parsed.name,
                 input: JSON.stringify(parsed.arguments || {}),
               });
               hasToolCalls = true;
+            } else {
+              // Preserve malformed tagged calls as text to avoid silent loss.
+              transformedContent.push({ type: 'text', text: match[0] });
             }
             foundTags = true;
             lastIdx = match.index + match[0].length;
@@ -95,7 +98,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
           if (parsed) {
             transformedContent.push({
               type: 'tool-call',
-              toolCallId: `fn-${idPrefix}-${idCounter++}`,
+              toolCallId: createToolCallId(),
               toolName: parsed.toolName,
               input: JSON.stringify(parsed.args),
             });
@@ -128,8 +131,6 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
       const mergeToolIdToName = new Map<string, string>();
       const mergeToolFirstStreamId: Record<string, string> = {};
       const nativeMergeToolCalls: ToolCall[] = [];
-      let idCounter = 0;
-      const idPrefix = Math.random().toString(36).substring(2, 8);
       let toolCallTagMode = false;
       let toolCallTagBuffer = '';
       let toolCallTagName = '';
@@ -164,10 +165,15 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseToolCallJson(toolCallTagBuffer.trim());
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else {
+              emitText(
+                `<${toolCallTagName}>${toolCallTagBuffer}${closeTag}`,
+                controller
+              );
             }
             // Emit any trailing content after the closing tag
             const trailing = line.substring(endIdx + closeTag.length).trim();
@@ -202,10 +208,15 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             );
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else {
+              emitText(
+                `${tagMatch[0]}${afterTag.substring(0, endIdx)}${closeTag}`,
+                controller
+              );
             }
             // Emit any trailing content after the closing tag
             const trailing = afterTag
@@ -235,7 +246,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseFnCallLine(trimmed);
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.toolName,
                 args: JSON.stringify(parsed.args),
               });
@@ -261,10 +272,12 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseToolCallJson(content);
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else if (content) {
+              emitText(`<${toolCallTagName}>${content}${closeTag}`, controller);
             }
           }
           toolCallTagMode = false;
@@ -297,10 +310,12 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
             const parsed = parseToolCallJson(content);
             if (parsed) {
               toolCalls.push({
-                id: `fn-${idPrefix}-${idCounter++}`,
+                id: createToolCallId(),
                 toolName: parsed.name,
                 args: JSON.stringify(parsed.arguments || {}),
               });
+            } else {
+              emitText(`${bufTagMatch[0]}${content}${closeTag}`, controller);
             }
           }
           lineBuffer = '';
@@ -319,7 +334,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
               const parsed = parseFnCallLine(l.trim());
               if (parsed) {
                 toolCalls.push({
-                  id: `fn-${idPrefix}-${idCounter++}`,
+                  id: createToolCallId(),
                   toolName: parsed.toolName,
                   args: JSON.stringify(parsed.args),
                 });
@@ -332,7 +347,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
           const parsed = parseFnCallLine(lineBuffer.trim());
           if (parsed) {
             toolCalls.push({
-              id: `fn-${idPrefix}-${idCounter++}`,
+              id: createToolCallId(),
               toolName: parsed.toolName,
               args: JSON.stringify(parsed.args),
             });

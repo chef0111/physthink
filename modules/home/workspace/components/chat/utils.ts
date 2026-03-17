@@ -68,6 +68,7 @@ type DebugGenerationData = {
 type RetryAdviceData = {
   shouldRetry: boolean;
   reason: string;
+  stage: 'preliminary' | 'final';
 };
 
 export function readDebugGenerationData(
@@ -101,6 +102,7 @@ export function readRetryAdviceData(
   return {
     shouldRetry: Boolean(data.shouldRetry),
     reason: typeof data.reason === 'string' ? data.reason : 'unknown',
+    stage: data.stage === 'preliminary' ? 'preliminary' : 'final',
   };
 }
 

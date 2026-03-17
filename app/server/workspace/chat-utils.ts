@@ -33,6 +33,15 @@ type RetryAdvice = {
   reason: string;
 };
 
+export type RetryAdviceStage = 'preliminary' | 'final';
+
+type RetryAdviceState = {
+  textContent: string;
+  reasoningContent: string;
+  hasToolCalls: boolean;
+  stopReason: string;
+};
+
 export type GenerationDebugData = {
   stepCount: number;
   stopReason: string;
@@ -120,61 +129,53 @@ export function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
     }
   }
 
-  const mergedElements: unknown[] = [];
-  let firstAddElementsId: string | null = null;
-  const dedupedParts: Array<Record<string, unknown>> = [];
+  return parts;
+}
 
-  for (const p of parts) {
-    if (p.toolName === 'addElements' && p.state === 'output-available') {
-      const output = p.output as Record<string, unknown> | undefined;
-      const els = output?.elements;
-      if (Array.isArray(els)) {
-        mergedElements.push(...els);
-        if (!firstAddElementsId) firstAddElementsId = p.toolCallId as string;
-        continue;
-      }
-    }
-    if (p.toolName === 'addElement' && p.state === 'output-available') {
-      const output = p.output as Record<string, unknown> | undefined;
-      if (output?.element) {
-        mergedElements.push(output.element);
-        if (!firstAddElementsId) firstAddElementsId = p.toolCallId as string;
-        continue;
-      }
-    }
-    dedupedParts.push(p);
-  }
+function getRetryAdviceFromState(state: RetryAdviceState): RetryAdvice {
+  const text = state.textContent.trim();
+  const reasoning = state.reasoningContent.trim();
+  const stopReasonUnknown = state.stopReason === 'unknown';
 
-  if (mergedElements.length > 0 && firstAddElementsId) {
-    const seen = new Set<string>();
-    const uniqueElements: unknown[] = [];
-    for (const el of mergedElements) {
-      const e = el as Record<string, unknown>;
-      const pos = (e.position as number[]) ?? [0, 0, 0];
-      const rp = pos.map((v) => Math.round(v * 100) / 100);
-      let fp = `${e.type}|${rp.join(',')}`;
-      if (e.type === 'preset') fp += `|${e.presetId ?? ''}`;
-      else if (e.type === 'mesh') fp += `|${e.geometry ?? ''}`;
-      else if (e.type === 'vector') {
-        const to = (e.to as number[]) ?? [0, 0, 0];
-        fp += `|${to.map((v) => Math.round(v * 100) / 100).join(',')}`;
-      }
-      if (!seen.has(fp)) {
-        seen.add(fp);
-        uniqueElements.push(el);
-      }
-    }
-    dedupedParts.push({
-      type: 'tool-addElements',
-      toolCallId: firstAddElementsId,
-      toolName: 'addElements',
-      state: 'output-available',
-      input: { elements: uniqueElements },
-      output: { action: 'addElements', elements: uniqueElements },
-    });
-  }
+  const hasMalformedToolCallText =
+    /FN_CALL\s*=\s*TRUE/i.test(text) ||
+    /"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text);
 
-  return dedupedParts;
+  const visibleLines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !normalizeThoughtDuration(line))
+    .filter((line) => !/FN_CALL\s*=\s*TRUE/i.test(line))
+    .filter(
+      (line) => !/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(line)
+    );
+
+  const hasVisibleText = visibleLines.length > 0;
+  const hasReasoning = reasoning.length > 0;
+
+  const shouldRetry =
+    hasMalformedToolCallText ||
+    (!hasVisibleText &&
+      (stopReasonUnknown || !state.hasToolCalls || hasReasoning));
+
+  let reason = 'none';
+  if (hasMalformedToolCallText) reason = 'malformed-tool-call-text';
+  else if (!hasVisibleText && stopReasonUnknown) reason = 'unknown-stop';
+  else if (!hasVisibleText && !state.hasToolCalls) reason = 'no-tool-no-answer';
+  else if (!hasVisibleText && hasReasoning) reason = 'reasoning-without-answer';
+
+  return { shouldRetry, reason };
+}
+
+export function getRetryAdviceFromStreamState(
+  state: RetryAdviceState,
+  stage: RetryAdviceStage
+) {
+  return {
+    ...getRetryAdviceFromState(state),
+    stage,
+  };
 }
 
 export function assignReasoningDurations(
@@ -303,43 +304,18 @@ export function getRetryAdvice(
       part.type === 'text' && typeof part.text === 'string'
   );
 
-  const hasMalformedToolCallText = textParts.some((part) => {
-    const text = part.text.trim();
-    if (/FN_CALL\s*=\s*TRUE/i.test(text)) return true;
-    if (/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text)) {
-      return true;
-    }
-    return false;
+  return getRetryAdviceFromState({
+    textContent: textParts.map((part) => part.text).join('\n'),
+    reasoningContent: assistantParts
+      .filter(
+        (part): part is { type: 'reasoning'; text: string } =>
+          part.type === 'reasoning' && typeof part.text === 'string'
+      )
+      .map((part) => part.text)
+      .join('\n'),
+    hasToolCalls,
+    stopReason,
   });
-
-  const hasVisibleText = textParts.some((part) => {
-    const text = part.text.trim();
-    if (!text) return false;
-    if (normalizeThoughtDuration(text)) return false;
-    if (/FN_CALL\s*=\s*TRUE/i.test(text)) return false;
-    if (/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text)) {
-      return false;
-    }
-    return true;
-  });
-
-  const hasReasoning = assistantParts.some(
-    (part) => part.type === 'reasoning' && typeof part.text === 'string'
-  );
-
-  const stopReasonUnknown = stopReason === 'unknown';
-
-  const shouldRetry =
-    hasMalformedToolCallText ||
-    (!hasVisibleText && (stopReasonUnknown || !hasToolCalls || hasReasoning));
-
-  let reason = 'none';
-  if (hasMalformedToolCallText) reason = 'malformed-tool-call-text';
-  else if (!hasVisibleText && stopReasonUnknown) reason = 'unknown-stop';
-  else if (!hasVisibleText && !hasToolCalls) reason = 'no-tool-no-answer';
-  else if (!hasVisibleText && hasReasoning) reason = 'reasoning-without-answer';
-
-  return { shouldRetry, reason };
 }
 
 function sanitizeToolOutput(toolName: string, output: unknown): unknown {
@@ -400,6 +376,8 @@ export function sanitizePersistedPart(
 
   if (part.type === 'data-retry-advice' && typeof part.data === 'object') {
     const data = part.data as Record<string, unknown>;
+    const stage: RetryAdviceStage =
+      data.stage === 'preliminary' ? 'preliminary' : 'final';
     return {
       type: 'data-retry-advice',
       data: {
@@ -408,6 +386,7 @@ export function sanitizePersistedPart(
           typeof data.reason === 'string'
             ? sanitizeTextStrict(data.reason, { maxChars: 80 })
             : 'unknown',
+        stage,
       },
     };
   }

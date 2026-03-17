@@ -3,9 +3,11 @@ import { standardSecurityMiddleware } from '@/app/middleware/arcjet/standard';
 import { writeSecurityMiddleware } from '@/app/middleware/arcjet/write';
 import { streamToEventIterator } from '@orpc/server';
 import {
+  createUIMessageStream,
   streamText,
   convertToModelMessages,
   type UIMessage,
+  type UIMessageChunk,
   stepCountIs,
   extractReasoningMiddleware,
   wrapLanguageModel,
@@ -22,6 +24,7 @@ import {
   buildSceneContext,
   getGenerationDebugData,
   getRetryAdvice,
+  getRetryAdviceFromStreamState,
   responseToUIParts,
   sanitizePersistedPart,
   truncateMessages,
@@ -210,7 +213,10 @@ export const sendChat = authorized
           ...assistantPartsWithDurations,
           {
             type: 'data-retry-advice',
-            data: retryAdvice,
+            data: {
+              ...retryAdvice,
+              stage: 'final',
+            },
           },
         ];
 
@@ -336,9 +342,80 @@ export const sendChat = authorized
       },
     });
 
-    return streamToEventIterator(
-      result.toUIMessageStream({
-        sendReasoning: true,
-      })
-    );
+    const uiStream = createUIMessageStream<UIMessage>({
+      execute: async ({ writer }) => {
+        const baseStream = result.toUIMessageStream({
+          sendReasoning: true,
+        });
+
+        let textContent = '';
+        let reasoningContent = '';
+        let hasToolCalls = false;
+        let stopReason = 'unknown';
+        let eventCounter = 0;
+        let lastAdviceKey = '';
+
+        for await (const chunk of baseStream as AsyncIterable<UIMessageChunk>) {
+          writer.write(chunk);
+
+          if (chunk.type === 'text-delta') {
+            textContent += chunk.delta;
+            eventCounter += 1;
+          } else if (chunk.type === 'reasoning-delta') {
+            reasoningContent += chunk.delta;
+            eventCounter += 1;
+          } else if (chunk.type.startsWith('tool-')) {
+            hasToolCalls = true;
+            eventCounter += 1;
+          } else if (chunk.type === 'finish') {
+            stopReason = chunk.finishReason ?? 'unknown';
+          }
+
+          const shouldEmitPreliminary =
+            chunk.type !== 'finish' &&
+            eventCounter > 0 &&
+            eventCounter % 3 === 0;
+
+          if (shouldEmitPreliminary) {
+            const preliminaryAdvice = getRetryAdviceFromStreamState(
+              {
+                textContent,
+                reasoningContent,
+                hasToolCalls,
+                stopReason: 'unknown',
+              },
+              'preliminary'
+            );
+            const preliminaryKey = `${preliminaryAdvice.shouldRetry}:${preliminaryAdvice.reason}:${preliminaryAdvice.stage}`;
+            if (preliminaryKey !== lastAdviceKey) {
+              writer.write({
+                type: 'data-retry-advice',
+                data: preliminaryAdvice,
+                transient: true,
+              });
+              lastAdviceKey = preliminaryKey;
+            }
+          }
+
+          if (chunk.type === 'finish') {
+            const finalAdvice = getRetryAdviceFromStreamState(
+              {
+                textContent,
+                reasoningContent,
+                hasToolCalls,
+                stopReason,
+              },
+              'final'
+            );
+
+            writer.write({
+              type: 'data-retry-advice',
+              data: finalAdvice,
+            });
+          }
+        }
+      },
+    });
+
+    return streamToEventIterator(uiStream);
   });

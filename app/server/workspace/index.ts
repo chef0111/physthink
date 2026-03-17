@@ -7,6 +7,7 @@ import {
   CreateWorkspaceSchema,
   GetWorkspaceSchema,
   UpdateWorkspaceSchema,
+  UpdateWorkspaceMessageFeedbackSchema,
   DeleteWorkspaceSchema,
   WorkspaceSummarySchema,
   WorkspaceDetailSchema,
@@ -95,4 +96,23 @@ export const remove = authorized
     }
 
     revalidatePath('/dashboard/workspace');
+  });
+
+export const updateMessageFeedback = authorized
+  .route({
+    method: 'POST',
+    path: '/workspace/message/feedback',
+    tags: ['workspace', 'chat'],
+  })
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .input(UpdateWorkspaceMessageFeedbackSchema)
+  .handler(async ({ input, context, errors }) => {
+    const result = await WorkspaceDAL.updateMessageFeedback(
+      input,
+      context.user.id
+    );
+    if (result.count === 0) {
+      throw errors.NOT_FOUND({ message: 'Assistant message not found' });
+    }
   });

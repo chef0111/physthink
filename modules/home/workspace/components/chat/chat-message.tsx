@@ -20,6 +20,7 @@ import {
 import TextShimmer from '@/components/ui/text-shimmer';
 import { CheckIcon, CopyIcon, ThumbsDownIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { useUpdateWorkspaceMessageFeedback } from '@/queries/workspace';
 import {
   normalizeThoughtDuration,
   readDebugGenerationData,
@@ -45,6 +46,8 @@ type DurationMarker = {
 export const ChatMessage = memo(
   function ChatMessage({ message, isStreaming }: ChatMessageProps) {
     const isUser = message.role === 'user';
+    const { mutate: updateMessageFeedback, isPending: isFeedbackPending } =
+      useUpdateWorkspaceMessageFeedback();
     const [measuredDurationSec, setMeasuredDurationSec] = useState<
       number | null
     >(null);
@@ -228,8 +231,12 @@ export const ChatMessage = memo(
     }, [assistantVisibleText]);
 
     const handleDislikeResponse = useCallback(() => {
-      toast('Feedback noted. I will improve the next response.');
-    }, []);
+      if (isFeedbackPending) return;
+      updateMessageFeedback({
+        messageId: message.id,
+        feedback: 'dislike',
+      });
+    }, [isFeedbackPending, message.id, updateMessageFeedback]);
 
     const isThinking =
       isStreaming &&
@@ -406,6 +413,7 @@ export const ChatMessage = memo(
                   tooltip="Dislike response"
                   label="Dislike response"
                   onClick={handleDislikeResponse}
+                  disabled={isFeedbackPending}
                 >
                   <ThumbsDownIcon className="size-4" />
                 </MessageAction>
