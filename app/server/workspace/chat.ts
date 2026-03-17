@@ -79,6 +79,11 @@ ANTI-REDUNDANCY RULES:
 - If the scene already has the elements you need (check Current Scene below), do NOT rebuild -- use editElement instead.
 - After building, STOP. Do not call more tools to "verify" or "adjust" unless the student asks.
 
+TOOL CALL FORMAT RULES:
+- Preferred (canonical): <tool_call>{"name":"toolName","arguments":{...}}</tool_call>
+- Fallback only when needed: FN_CALL=True followed by toolName(arg=value, ...)
+- Do not emit any other wrapper tags or custom call syntaxes.
+
 ## Element Rendering Reference
 
 See the Element Rendering Reference section below for the complete list of element types, properties, and all 11 presets with their exact params and defaults.

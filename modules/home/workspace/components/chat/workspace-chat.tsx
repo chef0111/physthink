@@ -286,52 +286,8 @@ export function WorkspaceChat({
       return preliminaryAdvice.shouldRetry;
     }
 
-    if (isLoading) return false;
-
-    const hasToolCalls = lastMessage.parts.some(
-      (part) => 'toolCallId' in part && 'state' in part
-    );
-
-    const textParts = lastMessage.parts.filter(
-      (part): part is { type: 'text'; text: string } =>
-        part.type === 'text' && typeof part.text === 'string'
-    );
-
-    const hasMalformedToolCallText = textParts.some((part) => {
-      const text = part.text.trim();
-      if (/FN_CALL\s*=\s*TRUE/i.test(text)) return true;
-      if (/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text)) {
-        return true;
-      }
-      return false;
-    });
-
-    const hasVisibleText = textParts.some((part) => {
-      const text = part.text.trim();
-      if (!text) return false;
-      if (/^Thought for [\d.]+s$/i.test(text)) return false;
-      if (/FN_CALL\s*=\s*TRUE/i.test(text)) return false;
-      if (/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text)) {
-        return false;
-      }
-      return true;
-    });
-
-    const hasReasoning = lastMessage.parts.some(
-      (part) =>
-        part.type === 'reasoning' &&
-        typeof (part as { text?: string }).text === 'string'
-    );
-
-    const stopReasonUnknown = latestGenerationDebug?.stopReason === 'unknown';
-
-    // Retry when generation ended without a usable assistant answer,
-    // including cases where the model leaked raw tool-call JSON into text.
-    return (
-      hasMalformedToolCallText ||
-      (!hasVisibleText && (stopReasonUnknown || !hasToolCalls || hasReasoning))
-    );
-  }, [status, isLoading, messages, latestGenerationDebug]);
+    return false;
+  }, [status, messages]);
 
   const handleRetry = useCallback(() => {
     if (!lastUserPrompt || isLoading) return;

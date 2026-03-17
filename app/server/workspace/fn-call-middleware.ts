@@ -23,11 +23,10 @@ import type { ToolCall } from './fn-call-middleware/types';
  * proper tool-call stream events.
  *
  * Supported formats:
- *   1. FN_CALL=True
- *      toolName(key="value", key2=123, key3={"nested": "json"})
+ *   1. <tool_call>{"name":"toolName","arguments":{"key":"value"}}</tool_call>
  *
- *   2. <tag>{"name":"toolName","arguments":{"key":"value"}}</tag>
- *      where tag is: tool_call, think_faster, function_call
+ *   2. FN_CALL=True
+ *      toolName(key="value", key2=123, key3={"nested": "json"})
  */
 export function extractFnCallMiddleware(): LanguageModelV3Middleware {
   const createToolCallId = () => `fn-${crypto.randomUUID()}`;
@@ -50,7 +49,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
 
         const fnCallIdx = part.text.indexOf('FN_CALL=True');
         if (fnCallIdx === -1) {
-          // Check for tagged JSON format: <tool_call>, <think_faster>, etc.
+          // Canonical tagged JSON format: <tool_call>...</tool_call>
           TOOL_TAG_PAIR_RE.lastIndex = 0;
           let lastIdx = 0;
           let match;
@@ -189,7 +188,7 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
           return;
         }
 
-        // Check for tool-call tag on this line (<tool_call>, <think_faster>, etc.)
+        // Check for canonical tool-call tag on this line (<tool_call>).
         const tagMatch = line.match(TOOL_TAG_OPEN_RE);
         if (tagMatch) {
           const tagName = tagMatch[1];
