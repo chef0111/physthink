@@ -1,1 +1,2 @@
-export { WorkspaceChat, dbMessagesToAiMessages } from './workspace-chat';
+export { WorkspaceChat } from './workspace-chat';
+export { dbMessagesToAiMessages } from './utils';

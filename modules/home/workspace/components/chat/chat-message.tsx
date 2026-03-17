@@ -1,10 +1,16 @@
 'use client';
 
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type UIMessage } from 'ai';
 import { ToolCallCard } from './tool-call-card';
-import { ChatMarkdownPreview } from './chat-markdown-preview';
-import { Message, MessageContent } from '@/components/ai-elements/message';
+import {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  MessageResponse,
+  MessageToolbar,
+} from '@/components/ai-elements/message';
 import {
   ChainOfThought,
   ChainOfThoughtContent,
@@ -12,86 +18,59 @@ import {
   ChainOfThoughtStep,
 } from '@/components/ai-elements/chain-of-thought';
 import TextShimmer from '@/components/ui/text-shimmer';
-
-const THOUGHT_DURATION_RE = /^Thought for [\d.]+s$/;
-const THOUGHT_DURATION_SECONDS_RE = /^Thought for ([\d.]+) seconds?$/i;
-const URL_RE = /https?:\/\/[^\s)]+/g;
-const TOKEN_RE = /\b[A-Za-z0-9+/_-]{32,}\b/g;
-
-function normalizeThoughtDuration(text: string): string | null {
-  const normalized = text.trim();
-  if (THOUGHT_DURATION_RE.test(normalized)) return normalized;
-  const secondsMatch = normalized.match(THOUGHT_DURATION_SECONDS_RE);
-  if (!secondsMatch) return null;
-  const value = Number(secondsMatch[1]);
-  if (!Number.isFinite(value)) return null;
-  const rounded = Number.isInteger(value) ? value : Number(value.toFixed(1));
-  return `Thought for ${rounded}s`;
-}
-
-function sanitizeReasoningClient(text: string): string {
-  return text
-    .replace(URL_RE, '[redacted]')
-    .replace(TOKEN_RE, '[redacted]')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter(
-      (line) =>
-        !line.toLowerCase().includes('trace:') &&
-        !line.toLowerCase().includes('raw payload') &&
-        !line.toLowerCase().includes('tool output:')
-    )
-    .join('\n');
-}
-
-function formatReasoningForDisplay(text: string): string {
-  const sanitized = sanitizeReasoningClient(text);
-  if (!sanitized) return '';
-
-  const lines = sanitized
-    .split('\n')
-    .flatMap((line) =>
-      line
-        .split(/(?<=[.;!?])\s+(?=[A-Z0-9(])/g)
-        .map((segment) => segment.trim())
-        .filter(Boolean)
-    )
-    .map((line) => (line.length > 260 ? `${line.slice(0, 260)}...` : line))
-    .slice(0, 24);
-
-  return lines.join('\n');
-}
-
-function toReasoningSteps(text: string): string[] {
-  return formatReasoningForDisplay(text)
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 24);
-}
-
-function parseThoughtDurationSeconds(text: string | null): number | undefined {
-  if (!text) return undefined;
-  const normalized = normalizeThoughtDuration(text);
-  if (!normalized) return undefined;
-  const match = normalized.match(/^Thought for ([\d.]+)s$/i);
-  if (!match) return undefined;
-  const value = Number(match[1]);
-  if (!Number.isFinite(value)) return undefined;
-  return Math.max(1, Math.round(value));
-}
+import { CheckIcon, CopyIcon, ThumbsDownIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  normalizeThoughtDuration,
+  readDebugGenerationData,
+  toReasoningSteps,
+} from './utils';
 
 interface ChatMessageProps {
   message: UIMessage;
   isStreaming?: boolean;
 }
 
+type ReasoningPartWithDuration = {
+  type: 'reasoning';
+  text?: string;
+  durationText?: string;
+};
+
+type DurationMarker = {
+  index: number;
+  duration: string;
+};
+
 export const ChatMessage = memo(
   function ChatMessage({ message, isStreaming }: ChatMessageProps) {
     const isUser = message.role === 'user';
+    const [measuredDurationSec, setMeasuredDurationSec] = useState<
+      number | null
+    >(null);
+    const [copied, setCopied] = useState(false);
+    const streamStartRef = useRef<number | null>(null);
 
-    // "Thought for Xs" marker emitted by extractReasoningMiddleware
+    useEffect(() => {
+      if (isUser) return;
+
+      if (isStreaming) {
+        if (streamStartRef.current === null) {
+          streamStartRef.current = Date.now();
+        }
+        return;
+      }
+
+      if (streamStartRef.current !== null && measuredDurationSec === null) {
+        const elapsed = Math.max(
+          1,
+          Math.round((Date.now() - streamStartRef.current) / 1000)
+        );
+        setMeasuredDurationSec(elapsed);
+        streamStartRef.current = null;
+      }
+    }, [isStreaming, isUser, measuredDurationSec]);
+
     const thoughtDurationTextFromParts =
       message.parts
         .filter(
@@ -110,21 +89,97 @@ export const ChatMessage = memo(
         : null;
     }, [thoughtDurationTextFromParts]);
 
-    const thoughtDurationSeconds = useMemo(
-      () => parseThoughtDurationSeconds(thoughtDurationText),
-      [thoughtDurationText]
+    const reasoningIndexes = useMemo(
+      () =>
+        message.parts
+          .map((part, index) => ({ index, part }))
+          .filter(
+            ({ part }) =>
+              part.type === 'reasoning' &&
+              typeof (part as { text?: string }).text === 'string'
+          )
+          .map(({ index }) => index),
+      [message.parts]
     );
 
-    const reasoningHeaderText = useMemo(() => {
-      if (isStreaming) return null;
-      if (thoughtDurationSeconds !== undefined) {
-        return `Thought for ${thoughtDurationSeconds}s`;
+    const activeReasoningIndex =
+      isStreaming && reasoningIndexes.length > 0
+        ? reasoningIndexes[reasoningIndexes.length - 1]
+        : -1;
+    const latestReasoningIndex =
+      reasoningIndexes.length > 0
+        ? reasoningIndexes[reasoningIndexes.length - 1]
+        : -1;
+
+    const reasoningDurationsByIndex = useMemo(() => {
+      const durations = new Map<number, string | null>();
+      const markers: DurationMarker[] = [];
+      const explicitDurations = new Map<number, string>();
+
+      message.parts.forEach((part, index) => {
+        if (part.type === 'text' && typeof part.text === 'string') {
+          const normalized = normalizeThoughtDuration(part.text);
+          if (normalized) {
+            markers.push({ index, duration: normalized });
+          }
+          return;
+        }
+
+        if (part.type === 'reasoning') {
+          const explicitDuration = normalizeThoughtDuration(
+            (part as ReasoningPartWithDuration).durationText ?? ''
+          );
+          if (explicitDuration) {
+            explicitDurations.set(index, explicitDuration);
+            durations.set(index, explicitDuration);
+          }
+        }
+      });
+
+      const usedMarkerIndexes = new Set<number>();
+
+      for (const reasoningIndex of reasoningIndexes) {
+        if (durations.has(reasoningIndex)) continue;
+
+        let bestMarker: DurationMarker | null = null;
+        let bestDistance = Number.POSITIVE_INFINITY;
+
+        for (const marker of markers) {
+          if (usedMarkerIndexes.has(marker.index)) continue;
+          const distance = Math.abs(marker.index - reasoningIndex);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            bestMarker = marker;
+          }
+        }
+
+        if (bestMarker) {
+          usedMarkerIndexes.add(bestMarker.index);
+          durations.set(reasoningIndex, bestMarker.duration);
+        } else {
+          durations.set(reasoningIndex, null);
+        }
       }
-      if (thoughtDurationText) {
-        return thoughtDurationText;
+
+      return durations;
+    }, [message.parts, reasoningIndexes]);
+
+    const debugGenerationData = useMemo(() => {
+      for (const part of message.parts) {
+        const debugData = readDebugGenerationData(part);
+        if (debugData) return debugData;
       }
-      return 'Thought for a few seconds';
-    }, [isStreaming, thoughtDurationSeconds, thoughtDurationText]);
+      return null;
+    }, [message.parts]);
+
+    const persistedPerChainFallbackDurationText = useMemo(() => {
+      if (!debugGenerationData || reasoningIndexes.length === 0) return null;
+      const perChainSeconds = Math.max(
+        1,
+        Math.round(debugGenerationData.elapsedSec / reasoningIndexes.length)
+      );
+      return `Thought for ${perChainSeconds}s`;
+    }, [debugGenerationData, reasoningIndexes.length]);
 
     const hasTextContent = message.parts.some(
       (p) =>
@@ -140,6 +195,42 @@ export const ChatMessage = memo(
         typeof (p as { text?: string }).text === 'string'
     );
 
+    const assistantVisibleText = useMemo(() => {
+      if (isUser) return '';
+      return message.parts
+        .filter(
+          (part): part is { type: 'text'; text: string } =>
+            part.type === 'text' && typeof part.text === 'string'
+        )
+        .map((part) => part.text.trim())
+        .filter((text) => {
+          if (!text) return false;
+          if (normalizeThoughtDuration(text)) return false;
+          if (/FN_CALL\s*=\s*TRUE/i.test(text)) return false;
+          if (/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text)) {
+            return false;
+          }
+          return true;
+        })
+        .join('\n\n');
+    }, [isUser, message.parts]);
+
+    const handleCopyResponse = useCallback(async () => {
+      if (!assistantVisibleText) return;
+      try {
+        await navigator.clipboard.writeText(assistantVisibleText);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1200);
+        toast.success('Response copied to clipboard');
+      } catch {
+        toast.error('Could not copy response');
+      }
+    }, [assistantVisibleText]);
+
+    const handleDislikeResponse = useCallback(() => {
+      toast('Feedback noted. I will improve the next response.');
+    }, []);
+
     const isThinking =
       isStreaming &&
       !isUser &&
@@ -148,7 +239,9 @@ export const ChatMessage = memo(
       !thoughtDurationText;
 
     const thoughtDuration =
-      !isUser && thoughtDurationText !== null && !hasReasoning;
+      !isUser &&
+      !hasReasoning &&
+      (thoughtDurationText !== null || measuredDurationSec !== null);
 
     if (isUser) {
       return (
@@ -176,7 +269,7 @@ export const ChatMessage = memo(
           )}
           {thoughtDuration && (
             <div className="text-muted-foreground py-1 text-xs">
-              {thoughtDurationText}
+              {thoughtDurationText ?? `Thought for ${measuredDurationSec}s`}
             </div>
           )}
 
@@ -195,7 +288,11 @@ export const ChatMessage = memo(
                   </div>
                 );
               }
-              return <ChatMarkdownPreview key={i} content={part.text} />;
+              return (
+                <MessageResponse key={i} className="text-sm leading-relaxed">
+                  {part.text}
+                </MessageResponse>
+              );
             }
             if (part.type === 'reasoning') {
               const rawText =
@@ -205,16 +302,30 @@ export const ChatMessage = memo(
               const steps = toReasoningSteps(rawText);
               if (steps.length === 0) return null;
 
+              const chainDurationText =
+                reasoningDurationsByIndex.get(i) ?? null;
+              const isChainStreaming =
+                isStreaming && i === activeReasoningIndex;
+              const chainHeaderText = chainDurationText
+                ? chainDurationText
+                : persistedPerChainFallbackDurationText
+                  ? persistedPerChainFallbackDurationText
+                  : !isStreaming &&
+                      i === latestReasoningIndex &&
+                      measuredDurationSec !== null
+                    ? `Thought for ${measuredDurationSec}s`
+                    : 'Thought for a few seconds';
+
               return (
                 <ChainOfThought
                   key={`reasoning-${message.id}-${i}`}
-                  defaultOpen={Boolean(isStreaming)}
+                  defaultOpen={Boolean(isChainStreaming)}
                 >
                   <ChainOfThoughtHeader>
-                    {isStreaming ? (
+                    {isChainStreaming ? (
                       <TextShimmer duration={1}>Thinking...</TextShimmer>
                     ) : (
-                      reasoningHeaderText
+                      chainHeaderText
                     )}
                   </ChainOfThoughtHeader>
                   <ChainOfThoughtContent>
@@ -225,7 +336,7 @@ export const ChatMessage = memo(
                           <span className="whitespace-pre-wrap">{step}</span>
                         }
                         status={
-                          isStreaming && idx === steps.length - 1
+                          isChainStreaming && idx === steps.length - 1
                             ? 'active'
                             : 'complete'
                         }
@@ -287,6 +398,31 @@ export const ChatMessage = memo(
             }
             return null;
           })}
+
+          {assistantVisibleText && !isStreaming && (
+            <MessageToolbar className="mt-1">
+              <MessageActions>
+                <MessageAction
+                  tooltip="Dislike response"
+                  label="Dislike response"
+                  onClick={handleDislikeResponse}
+                >
+                  <ThumbsDownIcon className="size-4" />
+                </MessageAction>
+                <MessageAction
+                  tooltip={copied ? 'Copied' : 'Copy response'}
+                  label={copied ? 'Copied response' : 'Copy response'}
+                  onClick={handleCopyResponse}
+                >
+                  {copied ? (
+                    <CheckIcon className="size-4" />
+                  ) : (
+                    <CopyIcon className="size-4" />
+                  )}
+                </MessageAction>
+              </MessageActions>
+            </MessageToolbar>
+          )}
         </MessageContent>
       </Message>
     );

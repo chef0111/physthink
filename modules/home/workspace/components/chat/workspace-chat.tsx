@@ -2,40 +2,22 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useChat, type UIMessage } from '@ai-sdk/react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { eventIteratorToUnproxiedDataStream } from '@orpc/client';
 import { client } from '@/lib/orpc';
+import { isDev } from '@/lib/utils';
+import { nanoid } from 'nanoid';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore, type SceneElement } from '@/stores/scene-store';
+import { readDebugGenerationData, readRetryAdviceData } from './utils';
+import TextShimmer from '@/components/ui/text-shimmer';
 import { ChatMessage } from './chat-message';
 import { PromptInput } from './prompt-input';
-import { nanoid } from 'nanoid';
-import TextShimmer from '@/components/ui/text-shimmer';
+import { Retry } from './retry';
 
 interface WorkspaceChatProps {
   workspaceId: string;
   initialMessages: UIMessage[];
 }
-
-function dbMessagesToAiMessages(
-  dbMessages: Array<{
-    id: string;
-    role: string;
-    content: string;
-    parts?: unknown;
-    createdAt: Date;
-  }>
-): UIMessage[] {
-  return dbMessages.map((m) => ({
-    id: m.id,
-    role: m.role as UIMessage['role'],
-    parts: Array.isArray(m.parts)
-      ? (m.parts as UIMessage['parts'])
-      : [{ type: 'text' as const, text: m.content }],
-  }));
-}
-
-export { dbMessagesToAiMessages };
 
 export function WorkspaceChat({
   workspaceId,
@@ -239,13 +221,6 @@ export function WorkspaceChat({
     };
   }, []);
 
-  const virtualizer = useVirtualizer({
-    count: messages.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => 80,
-    overscan: 3,
-  });
-
   const handleSubmit = () => {
     const text = input.trim();
     if (!text || isLoading) return;
@@ -257,6 +232,107 @@ export function WorkspaceChat({
   const handleStop = () => {
     stop();
   };
+
+  const lastUserPrompt = useMemo(() => {
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((m) => m.role === 'user');
+    if (!lastUserMessage) return null;
+
+    const text = lastUserMessage.parts
+      .filter(
+        (part): part is { type: 'text'; text: string } =>
+          part.type === 'text' && typeof part.text === 'string'
+      )
+      .map((part) => part.text)
+      .join('\n')
+      .trim();
+
+    return text || null;
+  }, [messages]);
+
+  const latestGenerationDebug = useMemo(() => {
+    if (!isDev) return null;
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message.role !== 'assistant') continue;
+
+      for (const part of message.parts) {
+        const debugData = readDebugGenerationData(part);
+        if (debugData) {
+          return debugData;
+        }
+      }
+    }
+
+    return null;
+  }, [messages]);
+
+  const shouldShowRetry = useMemo(() => {
+    if (status === 'error') return true;
+    if (isLoading || messages.length === 0) return false;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.role !== 'assistant') return false;
+
+    for (const part of lastMessage.parts) {
+      const retryAdvice = readRetryAdviceData(part);
+      if (retryAdvice) {
+        return retryAdvice.shouldRetry;
+      }
+    }
+
+    const hasToolCalls = lastMessage.parts.some(
+      (part) => 'toolCallId' in part && 'state' in part
+    );
+
+    const textParts = lastMessage.parts.filter(
+      (part): part is { type: 'text'; text: string } =>
+        part.type === 'text' && typeof part.text === 'string'
+    );
+
+    const hasMalformedToolCallText = textParts.some((part) => {
+      const text = part.text.trim();
+      if (/FN_CALL\s*=\s*TRUE/i.test(text)) return true;
+      if (/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text)) {
+        return true;
+      }
+      return false;
+    });
+
+    const hasVisibleText = textParts.some((part) => {
+      const text = part.text.trim();
+      if (!text) return false;
+      if (/^Thought for [\d.]+s$/i.test(text)) return false;
+      if (/FN_CALL\s*=\s*TRUE/i.test(text)) return false;
+      if (/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text)) {
+        return false;
+      }
+      return true;
+    });
+
+    const hasReasoning = lastMessage.parts.some(
+      (part) =>
+        part.type === 'reasoning' &&
+        typeof (part as { text?: string }).text === 'string'
+    );
+
+    const stopReasonUnknown = latestGenerationDebug?.stopReason === 'unknown';
+
+    // Retry when generation ended without a usable assistant answer,
+    // including cases where the model leaked raw tool-call JSON into text.
+    return (
+      hasMalformedToolCallText ||
+      (!hasVisibleText && (stopReasonUnknown || !hasToolCalls || hasReasoning))
+    );
+  }, [status, isLoading, messages, latestGenerationDebug]);
+
+  const handleRetry = useCallback(() => {
+    if (!lastUserPrompt || isLoading) return;
+    shouldAutoScrollRef.current = true;
+    sendMessage({ text: lastUserPrompt });
+  }, [lastUserPrompt, isLoading, sendMessage]);
 
   return (
     <div className="flex h-full flex-col">
@@ -277,47 +353,33 @@ export function WorkspaceChat({
           </div>
         )}
         {messages.length > 0 && (
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
-          >
-            {virtualizer.getVirtualItems().map((virtualItem) => {
-              const message = messages[virtualItem.index];
-              return (
-                <div
-                  key={message.id}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualItem.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                    paddingBottom: '16px',
-                  }}
-                >
-                  <ChatMessage
-                    message={message}
-                    isStreaming={
-                      isLoading && virtualItem.index === messages.length - 1
-                    }
-                  />
-                </div>
-              );
-            })}
+          <div className="space-y-4">
+            {messages.map((message, index) => (
+              <div key={message.id}>
+                <ChatMessage
+                  message={message}
+                  isStreaming={isLoading && index === messages.length - 1}
+                />
+              </div>
+            ))}
           </div>
         )}
         {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-          <div className="text-muted-foreground py-1 text-sm">
-            <TextShimmer duration={1}>Thinking...</TextShimmer>
+          <div className="text-muted-foreground py-4 text-sm">
+            <TextShimmer duration={1}>Working...</TextShimmer>
           </div>
         )}
+        {shouldShowRetry && <Retry className="my-2" onClick={handleRetry} />}
       </div>
       <div className="border-t p-3">
+        {isDev && latestGenerationDebug && (
+          <div className="text-muted-foreground mb-2 text-[11px] leading-relaxed">
+            debug: steps={latestGenerationDebug.stepCount} ; stop=
+            {latestGenerationDebug.stopReason} ; tools=
+            {latestGenerationDebug.toolCallCount} ; elapsed=
+            {latestGenerationDebug.elapsedSec}s
+          </div>
+        )}
         <PromptInput
           input={input}
           onInputChange={setInput}

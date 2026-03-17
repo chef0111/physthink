@@ -25,7 +25,10 @@ export type ToolProps = ComponentProps<typeof Collapsible>;
 
 export const Tool = ({ className, ...props }: ToolProps) => (
   <Collapsible
-    className={cn('group not-prose mb-4 w-full rounded-md border', className)}
+    className={cn(
+      'group not-prose bg-card/70 mb-4 w-full rounded-md border',
+      className
+    )}
     {...props}
   />
 );
@@ -65,7 +68,7 @@ const statusIcons: Record<ToolPart['state'], ReactNode> = {
 };
 
 export const getStatusBadge = (status: ToolPart['state']) => (
-  <Badge className="gap-1.5 rounded-full text-xs" variant="secondary">
+  <Badge className="ml-auto gap-1.5 rounded-full text-xs" variant="secondary">
     {statusIcons[status]}
     {statusLabels[status]}
   </Badge>
@@ -95,8 +98,8 @@ export const ToolHeader = ({
         <span className="truncate pr-6 text-xs" title={title ?? derivedName}>
           {title ?? derivedName}
         </span>
-        {getStatusBadge(state)}
       </div>
+      {getStatusBadge(state)}
       <ChevronDownIcon className="text-muted-foreground size-4 transition-transform group-data-[state=open]:rotate-180" />
     </CollapsibleTrigger>
   );

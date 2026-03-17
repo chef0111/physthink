@@ -129,10 +129,11 @@ export function PromptInput({
           </PromptInputActionMenu>
 
           <PromptInputButton
+            size="sm"
             variant={searchEnabled ? 'default' : 'ghost'}
             onClick={() => setSearchEnabled((value) => !value)}
           >
-            <GlobeIcon className="size-4" />
+            <GlobeIcon className="shrink-0" />
             <span>Search</span>
           </PromptInputButton>
         </PromptInputTools>

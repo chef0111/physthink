@@ -443,7 +443,8 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
                   }
                   return;
                 }
-                // Suppress non-merge native tool events (model may emit garbled names)
+                // Preserve non-merge native tool events to avoid dropping valid calls.
+                controller.enqueue(chunk);
                 return;
               }
 
@@ -459,7 +460,8 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
                   }
                   return;
                 }
-                // Suppress non-merge native tool events
+                // Preserve non-merge native tool events to avoid dropped execution.
+                controller.enqueue(chunk);
                 return;
               }
 
@@ -475,7 +477,8 @@ export function extractFnCallMiddleware(): LanguageModelV3Middleware {
                   });
                   return;
                 }
-                // Suppress non-merge native tool-call events
+                // Preserve non-merge native tool-call events.
+                controller.enqueue(chunk);
                 return;
               }
 

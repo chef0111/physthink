@@ -1230,9 +1230,10 @@ export const PromptInputSubmit = ({
   if (status === 'submitted') {
     Icon = <Spinner />;
   } else if (status === 'streaming') {
-    Icon = <SquareIcon className="size-4" />;
+    variant = 'secondary';
+    Icon = <SquareIcon className="size-4 shrink-0" />;
   } else if (status === 'error') {
-    Icon = <XIcon className="size-4" />;
+    Icon = <XIcon className="size-4 shrink-0" />;
   }
 
   const handleClick = useCallback(

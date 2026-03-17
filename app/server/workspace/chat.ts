@@ -17,11 +17,15 @@ import { prisma } from '@/lib/prisma';
 import { SendChatMessageSchema } from './chat.dto';
 import { ELEMENT_REFERENCE } from './chat-tools/element-reference';
 import {
-  projectSafeFields,
-  sanitizeReasoningText,
-  sanitizeTextStrict,
-  sanitizeUnknownStrict,
-} from '@/lib/knowledge/utils';
+  assignReasoningDurations,
+  assistantPartsToText,
+  buildSceneContext,
+  getGenerationDebugData,
+  getRetryAdvice,
+  responseToUIParts,
+  sanitizePersistedPart,
+  truncateMessages,
+} from './chat-utils';
 
 const SYSTEM_PROMPT = `You are PhysThink -- an AI tutor that teaches physics by building interactive 3D illustrations.
 
@@ -126,226 +130,6 @@ Force vector arrows are VISUAL, not to scale with real Newton values. ALL vector
 Briefly explain the scene: what each key element represents and how it connects to the physics. Keep it concise -- 3-5 sentences, not a list of every element. Focus on the physics insight.
 Be encouraging and pedagogical. If asked to solve, outline the physics approach with equations.`;
 
-const MAX_CONTEXT_MESSAGES = 20;
-
-function truncateMessages(messages: UIMessage[]): UIMessage[] {
-  if (messages.length <= MAX_CONTEXT_MESSAGES) return messages;
-  return messages.slice(-MAX_CONTEXT_MESSAGES);
-}
-
-function buildSceneContext(sceneData: {
-  elements: Array<{ id: string; type: string; label?: string }>;
-  sceneSettings: Record<string, unknown>;
-}): string {
-  if (!sceneData?.elements?.length) return 'Scene is empty.';
-
-  const elementSummary = sceneData.elements
-    .map((el) => `- ${el.id} (${el.type}${el.label ? `: ${el.label}` : ''})`)
-    .join('\n');
-
-  return `${sceneData.elements.length} element(s):\n${elementSummary}\nSettings: ${JSON.stringify(sceneData.sceneSettings)}`;
-}
-
-interface ResponsePart {
-  type: string;
-  text?: string;
-  toolCallId?: string;
-  toolName?: string;
-  input?: unknown;
-  args?: unknown;
-  output?: unknown;
-  result?: unknown;
-}
-
-interface ResponseMsg {
-  role: string;
-  content: string | readonly ResponsePart[];
-}
-
-/**
- * Convert AI SDK response messages into the UIMessage parts format
- * so reasoning, tool calls, and tool results are persisted to the DB.
- */
-function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
-  const parts: Array<Record<string, unknown>> = [];
-  const toolResults = new Map<string, unknown>();
-
-  // Collect tool results from tool-role messages
-  for (const msg of responseMessages) {
-    if (msg.role !== 'tool' || typeof msg.content === 'string') continue;
-    for (const part of msg.content) {
-      if (part.type === 'tool-result' && 'toolCallId' in part) {
-        toolResults.set(
-          part.toolCallId as string,
-          (part as { output?: unknown; result?: unknown }).output ??
-            (part as { result?: unknown }).result
-        );
-      }
-    }
-  }
-
-  // Build UI parts from assistant messages
-  for (const msg of responseMessages) {
-    if (msg.role !== 'assistant') continue;
-    if (typeof msg.content === 'string') {
-      if (msg.content) parts.push({ type: 'text', text: msg.content });
-      continue;
-    }
-    for (const part of msg.content) {
-      if (part.type === 'text' && part.text) {
-        parts.push({ type: 'text', text: part.text as string });
-      } else if (part.type === 'reasoning' && part.text) {
-        parts.push({ type: 'reasoning', text: part.text as string });
-      } else if (part.type === 'tool-call') {
-        const toolName = part.toolName as string;
-        const toolCallId = part.toolCallId as string;
-        const result = toolResults.get(toolCallId);
-        const toolInput =
-          (part as { input?: unknown; args?: unknown }).input ??
-          (part as { args?: unknown }).args;
-        parts.push({
-          type: `tool-${toolName}`,
-          toolCallId,
-          toolName,
-          state: result !== undefined ? 'output-available' : 'input-available',
-          input: toolInput,
-          ...(result !== undefined ? { output: result } : {}),
-        });
-      }
-    }
-  }
-
-  // Merge cross-step addElements calls into a single part
-  const mergedElements: unknown[] = [];
-  let firstAddElementsId: string | null = null;
-  const dedupedParts: Array<Record<string, unknown>> = [];
-
-  for (const p of parts) {
-    if (p.toolName === 'addElements' && p.state === 'output-available') {
-      const output = p.output as Record<string, unknown> | undefined;
-      const els = output?.elements;
-      if (Array.isArray(els)) {
-        mergedElements.push(...els);
-        if (!firstAddElementsId) firstAddElementsId = p.toolCallId as string;
-        continue;
-      }
-    }
-    // Also fold addElement into the merged batch
-    if (p.toolName === 'addElement' && p.state === 'output-available') {
-      const output = p.output as Record<string, unknown> | undefined;
-      if (output?.element) {
-        mergedElements.push(output.element);
-        if (!firstAddElementsId) firstAddElementsId = p.toolCallId as string;
-        continue;
-      }
-    }
-    dedupedParts.push(p);
-  }
-
-  if (mergedElements.length > 0 && firstAddElementsId) {
-    // Deduplicate elements by type+position fingerprint
-    const seen = new Set<string>();
-    const uniqueElements: unknown[] = [];
-    for (const el of mergedElements) {
-      const e = el as Record<string, unknown>;
-      const pos = (e.position as number[]) ?? [0, 0, 0];
-      const rp = pos.map((v) => Math.round(v * 100) / 100);
-      let fp = `${e.type}|${rp.join(',')}`;
-      if (e.type === 'preset') fp += `|${e.presetId ?? ''}`;
-      else if (e.type === 'mesh') fp += `|${e.geometry ?? ''}`;
-      else if (e.type === 'vector') {
-        const to = (e.to as number[]) ?? [0, 0, 0];
-        fp += `|${to.map((v) => Math.round(v * 100) / 100).join(',')}`;
-      }
-      if (!seen.has(fp)) {
-        seen.add(fp);
-        uniqueElements.push(el);
-      }
-    }
-    dedupedParts.push({
-      type: 'tool-addElements',
-      toolCallId: firstAddElementsId,
-      toolName: 'addElements',
-      state: 'output-available',
-      input: { elements: uniqueElements },
-      output: { action: 'addElements', elements: uniqueElements },
-    });
-  }
-
-  return dedupedParts;
-}
-
-function sanitizeToolOutput(toolName: string, output: unknown): unknown {
-  if (!output || typeof output !== 'object' || Array.isArray(output)) {
-    return sanitizeUnknownStrict(output);
-  }
-
-  const raw = output as Record<string, unknown>;
-
-  if (toolName === 'runProblemRagPipeline') {
-    const safe = projectSafeFields(raw, [
-      'found',
-      'message',
-      'warnings',
-      'guidance',
-      'dryRun',
-      'topKUsed',
-      'timings',
-    ]);
-    return {
-      ...safe,
-      retrievalCount: Array.isArray(raw.retrieval) ? raw.retrieval.length : 0,
-    };
-  }
-
-  if (toolName === 'searchProblemExamples') {
-    return projectSafeFields(raw, ['count', 'totalSamples', 'categories']);
-  }
-
-  if (toolName === 'getProblemExampleByKey') {
-    return projectSafeFields(raw, ['found', 'source']);
-  }
-
-  return sanitizeUnknownStrict(raw, { maxDepth: 2, maxStringChars: 260 });
-}
-
-function sanitizePersistedPart(
-  part: Record<string, unknown>
-): Record<string, unknown> {
-  if (part.type === 'text' && typeof part.text === 'string') {
-    return {
-      ...part,
-      text: sanitizeTextStrict(part.text, { maxChars: 2200 }),
-    };
-  }
-
-  if (part.type === 'reasoning' && typeof part.text === 'string') {
-    return {
-      ...part,
-      text: sanitizeReasoningText(part.text),
-    };
-  }
-
-  if (typeof part.toolName === 'string') {
-    const sanitized: Record<string, unknown> = { ...part };
-    if ('input' in sanitized) {
-      sanitized.input = sanitizeUnknownStrict(sanitized.input, {
-        maxDepth: 1,
-        maxStringChars: 180,
-      });
-    }
-    if ('output' in sanitized) {
-      sanitized.output = sanitizeToolOutput(part.toolName, sanitized.output);
-    }
-    return sanitized;
-  }
-
-  return sanitizeUnknownStrict(part, {
-    maxDepth: 2,
-    maxStringChars: 220,
-  }) as Record<string, unknown>;
-}
-
 export const sendChat = authorized
   .route({
     method: 'POST',
@@ -357,6 +141,7 @@ export const sendChat = authorized
   .input(SendChatMessageSchema)
   .handler(async ({ input, context, errors }) => {
     const { workspaceId, messages, sceneData } = input;
+    const generationStartedAt = Date.now();
 
     // Verify workspace ownership
     const workspace = await prisma.workspace.findFirst({
@@ -388,8 +173,12 @@ export const sendChat = authorized
       system: `${SYSTEM_PROMPT}\n\n${ELEMENT_REFERENCE}\n\n## Current Scene\n${sceneContext}`,
       messages: modelMessages,
       tools: allTools,
-      stopWhen: stepCountIs(2),
+      stopWhen: stepCountIs(12),
       onFinish: async ({ response }) => {
+        const elapsedSec = Math.max(
+          1,
+          Math.round((Date.now() - generationStartedAt) / 1000)
+        );
         const lastUserMsg = [...messages]
           .reverse()
           .find((m) => m.role === 'user');
@@ -403,14 +192,46 @@ export const sendChat = authorized
 
         // Convert response messages → UI parts (reasoning + tool calls + text)
         const assistantPartsRaw = responseToUIParts(response.messages);
-        const assistantParts = assistantPartsRaw.map(sanitizePersistedPart);
-        const assistantText = assistantParts
-          .filter(
-            (p): p is { type: string; text: string } =>
-              p.type === 'text' && typeof p.text === 'string'
-          )
-          .map((p) => p.text)
-          .join('\n');
+        const { assistantPartsWithDurations } = assignReasoningDurations(
+          assistantPartsRaw,
+          elapsedSec
+        );
+        const generationDebug = getGenerationDebugData(
+          response,
+          assistantPartsWithDurations,
+          elapsedSec
+        );
+        const retryAdvice = getRetryAdvice(
+          assistantPartsWithDurations,
+          generationDebug.stopReason
+        );
+
+        const partsWithRetryAdvice = [
+          ...assistantPartsWithDurations,
+          {
+            type: 'data-retry-advice',
+            data: retryAdvice,
+          },
+        ];
+
+        const partsForPersistence =
+          process.env.NODE_ENV !== 'production'
+            ? [
+                ...partsWithRetryAdvice,
+                {
+                  type: 'data-debug-generation',
+                  data: {
+                    stepCount: generationDebug.stepCount,
+                    stopReason: generationDebug.stopReason,
+                    toolCallCount: generationDebug.toolCallCount,
+                    elapsedSec: generationDebug.elapsedSec,
+                  },
+                },
+              ]
+            : partsWithRetryAdvice;
+
+        const assistantParts = partsForPersistence.map(sanitizePersistedPart);
+        const assistantText = assistantPartsToText(assistantParts);
 
         await prisma.workspaceMessage.createMany({
           data: [
