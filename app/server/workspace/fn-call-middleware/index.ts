@@ -2,20 +2,10 @@ import type {
   LanguageModelV3Middleware,
   LanguageModelV3StreamPart,
 } from '@ai-sdk/provider';
-import {
-  MERGE_TOOLS,
-  TOOL_TAG_OPEN_RE,
-  TOOL_TAG_PAIR_RE,
-} from './fn-call-middleware/constants';
-import {
-  deduplicateContentToolCalls,
-  deduplicateToolCalls,
-} from './fn-call-middleware/dedup';
-import {
-  parseFnCallLine,
-  parseToolCallJson,
-} from './fn-call-middleware/parsers';
-import type { ToolCall } from './fn-call-middleware/types';
+import { MERGE_TOOLS, TOOL_TAG_OPEN_RE, TOOL_TAG_PAIR_RE } from './constants';
+import { deduplicateContentToolCalls, deduplicateToolCalls } from './dedup';
+import { parseFnCallLine, parseToolCallJson } from './parsers';
+import type { ToolCall } from './types';
 
 /**
  * Middleware that intercepts text-based tool call formats from models that

@@ -4,6 +4,11 @@ const THOUGHT_DURATION_RE = /^Thought for [\d.]+s$/;
 const THOUGHT_DURATION_SECONDS_RE = /^Thought for ([\d.]+) seconds?$/i;
 const URL_RE = /https?:\/\/[^\s)]+/g;
 const TOKEN_RE = /\b[A-Za-z0-9+/_-]{32,}\b/g;
+const TOOL_CALL_BLOCK_RE = /<tool_call>[\s\S]*?<\/tool_call>/gi;
+const TOOL_CALL_SENTINEL_RE =
+  /<\/??tool_call>|FN_CALL\s*=\s*TRUE|"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i;
+const SECRET_KV_RE =
+  /\b(api[_-]?key|access[_-]?token|refresh[_-]?token|authorization|bearer|secret|password)\b\s*[:=]\s*(["'])?[^\s,'"}]+\2?/gi;
 
 export function normalizeThoughtDuration(text: string): string | null {
   const normalized = text.trim();
@@ -18,18 +23,37 @@ export function normalizeThoughtDuration(text: string): string | null {
 
 export function sanitizeReasoningClient(text: string): string {
   return text
+    .replace(TOOL_CALL_BLOCK_RE, '')
     .replace(URL_RE, '[redacted]')
     .replace(TOKEN_RE, '[redacted]')
+    .replace(SECRET_KV_RE, '$1: [redacted]')
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
     .filter(
       (line) =>
+        !TOOL_CALL_SENTINEL_RE.test(line) &&
         !line.toLowerCase().includes('trace:') &&
         !line.toLowerCase().includes('raw payload') &&
         !line.toLowerCase().includes('tool output:')
     )
     .join('\n');
+}
+
+export function isToolCallPayloadText(text: string): boolean {
+  return TOOL_CALL_SENTINEL_RE.test(text.trim());
+}
+
+export function sanitizeAssistantTextForDisplay(text: string): string {
+  return text
+    .replace(TOOL_CALL_BLOCK_RE, '')
+    .replace(URL_RE, '[redacted]')
+    .replace(TOKEN_RE, '[redacted]')
+    .replace(SECRET_KV_RE, '$1: [redacted]')
+    .split('\n')
+    .filter((line) => !TOOL_CALL_SENTINEL_RE.test(line))
+    .join('\n')
+    .trim();
 }
 
 export function formatReasoningForDisplay(text: string): string {

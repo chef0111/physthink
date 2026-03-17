@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { type UIMessage } from '@ai-sdk/react';
 
 type SendMessage = (options: { text: string }) => void;
+type RegenerateMessage = (options?: { messageId?: string }) => Promise<void>;
 
 /**
  * Returns a handler that re-sends the nearest preceding user prompt for a
@@ -13,6 +14,7 @@ export function useRegenerateMessage(
   messages: UIMessage[],
   isLoading: boolean,
   sendMessage: SendMessage,
+  regenerate: RegenerateMessage,
   shouldAutoScrollRef: React.RefObject<boolean>
 ) {
   const getPromptBeforeIndex = useCallback(
@@ -38,14 +40,29 @@ export function useRegenerateMessage(
   );
 
   const handleRegenerateAtIndex = useCallback(
-    (messageIndex: number) => {
+    async (messageIndex: number) => {
       if (isLoading) return;
+
+      const target = messages[messageIndex];
+      if (target?.role === 'assistant') {
+        shouldAutoScrollRef.current = true;
+        await regenerate({ messageId: target.id });
+        return;
+      }
+
       const prompt = getPromptBeforeIndex(messageIndex);
       if (!prompt) return;
       shouldAutoScrollRef.current = true;
       sendMessage({ text: prompt });
     },
-    [getPromptBeforeIndex, isLoading, sendMessage, shouldAutoScrollRef]
+    [
+      getPromptBeforeIndex,
+      isLoading,
+      messages,
+      regenerate,
+      sendMessage,
+      shouldAutoScrollRef,
+    ]
   );
 
   return { handleRegenerateAtIndex };

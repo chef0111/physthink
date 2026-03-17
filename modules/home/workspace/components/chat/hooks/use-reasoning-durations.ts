@@ -82,10 +82,34 @@ export function useReasoningDurations(
   useEffect(() => {
     if (isUser || reasoningIndexes.length === 0) return;
 
-    const activeIndex =
-      isStreaming && reasoningIndexes.length > 0
-        ? reasoningIndexes[reasoningIndexes.length - 1]
-        : -1;
+    if (!isStreaming) {
+      if (reasoningStartRef.current.size === 0) return;
+
+      for (const index of reasoningIndexes) {
+        if (reasoningDurationRef.current.has(index)) continue;
+        const startedAt = reasoningStartRef.current.get(index);
+        if (!startedAt) continue;
+        const elapsedSec = Math.max(
+          1,
+          Math.round((Date.now() - startedAt) / 1000)
+        );
+        reasoningDurationRef.current.set(index, elapsedSec);
+      }
+
+      setLiveReasoningDurations(() => {
+        const nextMap = new Map<number, string>();
+        for (const index of reasoningIndexes) {
+          const stableDuration = reasoningDurationRef.current.get(index);
+          if (typeof stableDuration === 'number') {
+            nextMap.set(index, `Thought for ${stableDuration}s`);
+          }
+        }
+        return nextMap;
+      });
+      return;
+    }
+
+    const activeIndex = reasoningIndexes[reasoningIndexes.length - 1];
 
     const now = Date.now();
 
@@ -100,20 +124,6 @@ export function useReasoningDurations(
       if (index !== activeIndex && reasoningStartRef.current.has(index)) {
         const startedAt = reasoningStartRef.current.get(index)!;
         const elapsedSec = Math.max(1, Math.round((now - startedAt) / 1000));
-        reasoningDurationRef.current.set(index, elapsedSec);
-      }
-    }
-
-    // On stream end finalize all remaining active chains.
-    if (!isStreaming) {
-      for (const index of reasoningIndexes) {
-        if (reasoningDurationRef.current.has(index)) continue;
-        const startedAt = reasoningStartRef.current.get(index);
-        if (!startedAt) continue;
-        const elapsedSec = Math.max(
-          1,
-          Math.round((Date.now() - startedAt) / 1000)
-        );
         reasoningDurationRef.current.set(index, elapsedSec);
       }
     }

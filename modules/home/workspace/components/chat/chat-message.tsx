@@ -17,7 +17,11 @@ import {
   ChainOfThoughtStep,
 } from '@/components/ai-elements/chain-of-thought';
 import TextShimmer from '@/components/ui/text-shimmer';
-import { normalizeThoughtDuration, toReasoningSteps } from './utils';
+import {
+  normalizeThoughtDuration,
+  sanitizeAssistantTextForDisplay,
+  toReasoningSteps,
+} from './utils';
 import {
   useCopyResponse,
   useMessageFeedback,
@@ -31,6 +35,7 @@ import {
   LikeAction,
   RegenerateAction,
 } from './message-actions';
+import { preprocessMath } from '@/lib/utils';
 
 interface ChatMessageProps {
   message: UIMessage;
@@ -67,7 +72,7 @@ export const ChatMessage = memo(
           (part): part is { type: 'text'; text: string } =>
             part.type === 'text' && typeof part.text === 'string'
         )
-        .map((part) => part.text.trim())
+        .map((part) => sanitizeAssistantTextForDisplay(part.text))
         .filter((text) => {
           if (!text) return false;
           if (normalizeThoughtDuration(text)) return false;
@@ -153,7 +158,9 @@ export const ChatMessage = memo(
 
           {message.parts.map((part, i) => {
             if (part.type === 'text' && part.text) {
-              if (normalizeThoughtDuration(part.text.trim())) return null;
+              const cleanedText = sanitizeAssistantTextForDisplay(part.text);
+              if (!cleanedText) return null;
+              if (normalizeThoughtDuration(cleanedText)) return null;
               const isLastPart = i === message.parts.length - 1;
               if (isStreaming && isLastPart) {
                 return (
@@ -161,14 +168,14 @@ export const ChatMessage = memo(
                     key={i}
                     className="text-foreground text-sm whitespace-pre-wrap"
                   >
-                    {part.text}
+                    {preprocessMath(cleanedText)}
                     <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-current align-text-bottom" />
                   </div>
                 );
               }
               return (
                 <MessageResponse key={i} className="text-sm leading-relaxed">
-                  {part.text}
+                  {preprocessMath(cleanedText)}
                 </MessageResponse>
               );
             }
@@ -214,7 +221,9 @@ export const ChatMessage = memo(
                       <ChainOfThoughtStep
                         key={`${message.id}-reasoning-step-${idx}`}
                         label={
-                          <span className="whitespace-pre-wrap">{step}</span>
+                          <MessageResponse className="text-sm leading-relaxed">
+                            {preprocessMath(step)}
+                          </MessageResponse>
                         }
                         status={
                           isChainStreaming && idx === steps.length - 1

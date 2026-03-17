@@ -110,11 +110,12 @@ export function WorkspaceChat({
     [workspaceId]
   );
 
-  const { messages, sendMessage, stop, status } = useChat({
-    id: workspaceId,
-    transport,
-    messages: initialMessages,
-  });
+  const { messages, sendMessage, regenerate, stop, status, clearError } =
+    useChat({
+      id: workspaceId,
+      transport,
+      messages: initialMessages,
+    });
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
@@ -211,15 +212,34 @@ export function WorkspaceChat({
   }, [status, messages]);
 
   const handleRetry = useCallback(() => {
-    if (!lastUserPrompt || isLoading) return;
+    if (isLoading) return;
+    clearError();
     shouldAutoScrollRef.current = true;
-    sendMessage({ text: lastUserPrompt });
-  }, [lastUserPrompt, isLoading, sendMessage, shouldAutoScrollRef]);
+    const lastAssistant = [...messages]
+      .reverse()
+      .find((m) => m.role === 'assistant');
+    if (lastAssistant) {
+      void regenerate({ messageId: lastAssistant.id });
+      return;
+    }
+    if (lastUserPrompt) {
+      sendMessage({ text: lastUserPrompt });
+    }
+  }, [
+    clearError,
+    isLoading,
+    lastUserPrompt,
+    messages,
+    regenerate,
+    sendMessage,
+    shouldAutoScrollRef,
+  ]);
 
   const { handleRegenerateAtIndex } = useRegenerateMessage(
     messages,
     isLoading,
     sendMessage,
+    regenerate,
     shouldAutoScrollRef
   );
 

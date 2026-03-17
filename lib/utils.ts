@@ -63,6 +63,21 @@ export function preprocessMath(content: string): string {
     /\\\(([\s\S]*?)\\\)/g,
     (_, inner: string) => `$${inner}$`
   );
+  // $ \theta = ... $ -> $\theta = ...$ so markdown math parser recognizes it.
+  content = content.replace(
+    /\$\s*([^$\n]*\\[A-Za-z][^$\n]*?)\s*\$/g,
+    (_, inner: string) => `$${inner.trim()}$`
+  );
+  // $$ \int ... $$ -> $$\int ...$$ for display expressions with extra spaces.
+  content = content.replace(
+    /\$\$\s*([\s\S]*\\[A-Za-z][\s\S]*?)\s*\$\$/g,
+    (_, inner: string) => `$$${inner.trim()}$$`
+  );
+  // ( ...\sin... ) -> $...$ for common model outputs that omit math delimiters.
+  content = content.replace(
+    /\(([^()\n]*\\[A-Za-z]+[^()\n]*)\)/g,
+    (_, inner: string) => `$${inner}$`
+  );
   return content;
 }
 

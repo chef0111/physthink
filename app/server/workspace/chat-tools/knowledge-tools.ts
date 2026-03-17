@@ -33,6 +33,7 @@ export const knowledgeTools = {
   searchProblemExamples: tool({
     description:
       'Retrieve similar solved physics-problem examples from the local RAG corpus (lesson + extracted graph + SVG). Use this first when the student gives a textbook-like mechanics problem so you can follow proven graph/diagram patterns.',
+    strict: true,
     inputSchema: z.object({
       query: z
         .string()
@@ -79,6 +80,7 @@ export const knowledgeTools = {
   getProblemExampleByKey: tool({
     description:
       'Get one full RAG sample by key from the local corpus, including lesson, graph text, and SVG. Use after searchProblemExamples when you need full details from a specific retrieved example.',
+    strict: true,
     inputSchema: z.object({
       key: z
         .string()
@@ -104,6 +106,7 @@ export const knowledgeTools = {
   getPhysicsConstants: tool({
     description:
       'Look up a physics constant by its symbol or name. Use when the student mentions a constant (g, c, h, e, k_B, etc.) or you need its value for an illustration label.',
+    strict: true,
     inputSchema: z.object({
       symbol: z
         .string()
@@ -128,6 +131,7 @@ export const knowledgeTools = {
   searchPhysicsKnowledge: tool({
     description:
       'Search the physics knowledge base for information relevant to a topic. Returns matching physics constants and formulas. Use when you need background physics context for a problem.',
+    strict: true,
     inputSchema: z.object({
       query: z
         .string()
@@ -160,6 +164,7 @@ export const knowledgeTools = {
   getInteractionPattern: tool({
     description:
       'Retrieve a physics illustration pattern — a step-by-step guide for building a specific type of physics scene (e.g. free-body diagram on inclined plane, projectile motion, Atwood machine, spring-mass system). Use this before building a scene to follow best practices.',
+    strict: true,
     inputSchema: z.object({
       name: z
         .string()
