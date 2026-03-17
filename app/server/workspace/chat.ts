@@ -150,6 +150,8 @@ export const sendChat = authorized
   .handler(async ({ input, context, errors }) => {
     const { workspaceId, messages, sceneData } = input;
     const generationStartedAt = Date.now();
+    const reasoningStartById = new Map<string, number>();
+    const streamedReasoningDurationsSec: number[] = [];
 
     // Verify workspace ownership
     const workspace = await prisma.workspace.findFirst({
@@ -202,7 +204,8 @@ export const sendChat = authorized
         const assistantPartsRaw = responseToUIParts(response.messages);
         const { assistantPartsWithDurations } = assignReasoningDurations(
           assistantPartsRaw,
-          elapsedSec
+          elapsedSec,
+          [...streamedReasoningDurationsSec]
         );
         const generationDebug = getGenerationDebugData(
           response,
@@ -368,6 +371,20 @@ export const sendChat = authorized
             eventCounter += 1;
           } else if (chunk.type === 'reasoning-delta') {
             reasoningContent += chunk.delta;
+            eventCounter += 1;
+          } else if (chunk.type === 'reasoning-start') {
+            reasoningStartById.set(chunk.id, Date.now());
+            eventCounter += 1;
+          } else if (chunk.type === 'reasoning-end') {
+            const startedAt = reasoningStartById.get(chunk.id);
+            if (startedAt) {
+              const durationSec = Math.max(
+                1,
+                Math.round((Date.now() - startedAt) / 1000)
+              );
+              streamedReasoningDurationsSec.push(durationSec);
+              reasoningStartById.delete(chunk.id);
+            }
             eventCounter += 1;
           } else if (chunk.type.startsWith('tool-')) {
             hasToolCalls = true;

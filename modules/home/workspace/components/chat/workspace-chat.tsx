@@ -5,27 +5,32 @@ import { useChat, type UIMessage } from '@ai-sdk/react';
 import { eventIteratorToUnproxiedDataStream } from '@orpc/client';
 import { client } from '@/lib/orpc';
 import { isDev } from '@/lib/utils';
-import { nanoid } from 'nanoid';
 import { useShallow } from 'zustand/react/shallow';
-import { useSceneStore, type SceneElement } from '@/stores/scene-store';
+import { useSceneStore } from '@/stores/scene-store';
 import { readDebugGenerationData, readRetryAdviceData } from './utils';
 import TextShimmer from '@/components/ui/text-shimmer';
 import { ChatMessage } from './chat-message';
 import { PromptInput } from './prompt-input';
 import { Retry } from './retry';
+import {
+  useChatAutoScroll,
+  useRegenerateMessage,
+  useSceneToolEffects,
+  type MessageFeedback,
+} from './hooks';
 
 interface WorkspaceChatProps {
   workspaceId: string;
   initialMessages: UIMessage[];
+  /** Pre-built messageId → feedback map for hydrating initial like/dislike UI. */
+  initialFeedbackMap?: Map<string, MessageFeedback>;
 }
 
 export function WorkspaceChat({
   workspaceId,
   initialMessages,
+  initialFeedbackMap,
 }: WorkspaceChatProps) {
-  const AUTO_SCROLL_THRESHOLD_PX = 64;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const shouldAutoScrollRef = useRef(true);
   const appliedToolCalls = useRef(
     new Set<string>(
       initialMessages.flatMap((m) =>
@@ -111,62 +116,16 @@ export function WorkspaceChat({
     messages: initialMessages,
   });
 
-  useEffect(() => {
-    const lastMsg = messages[messages.length - 1];
-    if (!lastMsg || lastMsg.role !== 'assistant') return;
-
-    const newElements: SceneElement[] = [];
-
-    for (const part of lastMsg.parts) {
-      if (
-        'toolCallId' in part &&
-        'state' in part &&
-        part.state === 'output-available' &&
-        'output' in part
-      ) {
-        const toolCallId = (part as { toolCallId: string }).toolCallId;
-        if (appliedToolCalls.current.has(toolCallId)) continue;
-        appliedToolCalls.current.add(toolCallId);
-
-        const output = part.output as Record<string, unknown>;
-        const action = output?.action;
-
-        if (action === 'addElement') {
-          const element = output.element as Omit<SceneElement, 'id'>;
-          const id = nanoid();
-          newElements.push({ ...element, id } as SceneElement);
-        } else if (action === 'addElements') {
-          const elements = output.elements as Array<Omit<SceneElement, 'id'>>;
-          for (const el of elements) {
-            newElements.push({ ...el, id: nanoid() } as SceneElement);
-          }
-        } else if (action === 'editElement') {
-          updateElement(
-            output.id as string,
-            output.updates as Partial<SceneElement>
-          );
-        } else if (action === 'removeElement') {
-          removeElement(output.id as string);
-        } else if (action === 'setSceneSettings') {
-          setSceneSettings(
-            output.settings as Partial<{
-              gridVisible: boolean;
-              axesVisible: boolean;
-              backgroundColor: string;
-            }>
-          );
-        }
-      }
-    }
-
-    if (newElements.length > 0) {
-      addElements(newElements);
-    }
-  }, [messages, addElements, updateElement, removeElement, setSceneSettings]);
-
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  // Show 3D loading skeleton while scene-modifying tool calls are in progress
+  useSceneToolEffects(messages, appliedToolCalls, {
+    addElements,
+    updateElement,
+    removeElement,
+    setSceneSettings,
+  });
+
+  // Show 3D loading skeleton while scene-modifying tool calls are in progress.
   useEffect(() => {
     if (!isLoading) {
       setSceneLoading(false);
@@ -183,37 +142,10 @@ export function WorkspaceChat({
     setSceneLoading(hasActiveToolCall);
   }, [messages, isLoading, setSceneLoading]);
 
-  const updateAutoScrollPreference = useCallback(() => {
-    const scrollEl = scrollRef.current;
-    if (!scrollEl) return;
-
-    const distanceFromBottom =
-      scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight;
-    shouldAutoScrollRef.current =
-      distanceFromBottom <= AUTO_SCROLL_THRESHOLD_PX;
-  }, [AUTO_SCROLL_THRESHOLD_PX]);
-
-  const handleScroll = useCallback(() => {
-    updateAutoScrollPreference();
-  }, [updateAutoScrollPreference]);
-
-  // Auto-scroll only when user is near bottom (RAF-debounced)
-  const rafRef = useRef(0);
-  useEffect(() => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
-      const scrollEl = scrollRef.current;
-      if (!scrollEl) return;
-      if (!shouldAutoScrollRef.current) return;
-      scrollEl.scrollTop = scrollEl.scrollHeight;
-    });
-  }, [messages, isLoading]);
-
-  useEffect(() => {
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
+  const { scrollRef, shouldAutoScrollRef, handleScroll } = useChatAutoScroll(
+    messages,
+    isLoading
+  );
 
   const handleSubmit = () => {
     const text = input.trim();
@@ -247,19 +179,14 @@ export function WorkspaceChat({
 
   const latestGenerationDebug = useMemo(() => {
     if (!isDev) return null;
-
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i];
       if (message.role !== 'assistant') continue;
-
       for (const part of message.parts) {
         const debugData = readDebugGenerationData(part);
-        if (debugData) {
-          return debugData;
-        }
+        if (debugData) return debugData;
       }
     }
-
     return null;
   }, [messages]);
 
@@ -275,25 +202,26 @@ export function WorkspaceChat({
     for (const part of lastMessage.parts) {
       const retryAdvice = readRetryAdviceData(part);
       if (retryAdvice) {
-        if (retryAdvice.stage === 'final') {
-          return retryAdvice.shouldRetry;
-        }
+        if (retryAdvice.stage === 'final') return retryAdvice.shouldRetry;
         preliminaryAdvice = retryAdvice;
       }
     }
 
-    if (preliminaryAdvice) {
-      return preliminaryAdvice.shouldRetry;
-    }
-
-    return false;
+    return preliminaryAdvice?.shouldRetry ?? false;
   }, [status, messages]);
 
   const handleRetry = useCallback(() => {
     if (!lastUserPrompt || isLoading) return;
     shouldAutoScrollRef.current = true;
     sendMessage({ text: lastUserPrompt });
-  }, [lastUserPrompt, isLoading, sendMessage]);
+  }, [lastUserPrompt, isLoading, sendMessage, shouldAutoScrollRef]);
+
+  const { handleRegenerateAtIndex } = useRegenerateMessage(
+    messages,
+    isLoading,
+    sendMessage,
+    shouldAutoScrollRef
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -320,6 +248,12 @@ export function WorkspaceChat({
                 <ChatMessage
                   message={message}
                   isStreaming={isLoading && index === messages.length - 1}
+                  initialFeedback={initialFeedbackMap?.get(message.id)}
+                  onRegenerate={
+                    message.role === 'assistant'
+                      ? () => handleRegenerateAtIndex(index)
+                      : undefined
+                  }
                 />
               </div>
             ))}

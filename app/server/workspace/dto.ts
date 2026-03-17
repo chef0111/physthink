@@ -33,7 +33,7 @@ export const WorkspaceMessageSchema = z.object({
 
 export const UpdateWorkspaceMessageFeedbackSchema = z.object({
   messageId: z.string(),
-  feedback: z.literal('dislike').nullable(),
+  feedback: z.enum(['like', 'dislike']).nullable(),
 });
 
 export const WorkspaceSummarySchema = z.object({

@@ -180,7 +180,8 @@ export function getRetryAdviceFromStreamState(
 
 export function assignReasoningDurations(
   assistantPartsRaw: Array<Record<string, unknown>>,
-  elapsedSec: number
+  _elapsedSec: number,
+  streamedReasoningDurationsSec: number[] = []
 ) {
   const durationMarkers = assistantPartsRaw
     .map((part, index) => {
@@ -198,6 +199,7 @@ export function assignReasoningDurations(
       ({ part }) => part.type === 'reasoning' && typeof part.text === 'string'
     )
     .map(({ index }) => index);
+  const reasoningCount = reasoningIndexes.length;
 
   const assignedDurations = new Map<number, string>();
   const usedMarkerIndexes = new Set<number>();
@@ -210,6 +212,18 @@ export function assignReasoningDurations(
         : null;
     if (explicitDuration) {
       assignedDurations.set(reasoningIndex, explicitDuration);
+      continue;
+    }
+
+    const streamedDuration = streamedReasoningDurationsSec.shift();
+    if (
+      typeof streamedDuration === 'number' &&
+      Number.isFinite(streamedDuration)
+    ) {
+      assignedDurations.set(
+        reasoningIndex,
+        `Thought for ${Math.max(1, Math.round(streamedDuration))}s`
+      );
       continue;
     }
 
@@ -231,17 +245,13 @@ export function assignReasoningDurations(
     }
   }
 
-  const reasoningCount = reasoningIndexes.length;
-  const perChainFallbackSec =
-    reasoningCount > 0
-      ? Math.max(1, Math.round(elapsedSec / reasoningCount))
-      : elapsedSec;
-
   const assistantPartsWithDurations = assistantPartsRaw.map((part, index) => {
     if (part.type !== 'reasoning') return part;
 
-    const durationText =
-      assignedDurations.get(index) ?? `Thought for ${perChainFallbackSec}s`;
+    const durationText = assignedDurations.get(index);
+    if (!durationText) {
+      return part;
+    }
 
     return {
       ...part,

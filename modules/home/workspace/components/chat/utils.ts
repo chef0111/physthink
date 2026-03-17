@@ -123,3 +123,20 @@ export function dbMessagesToAiMessages(
       : [{ type: 'text' as const, text: m.content }],
   }));
 }
+
+/**
+ * Builds a messageId → feedback map from persisted DB messages so that the
+ * chat UI can hydrate like/dislike state on initial load without an extra
+ * network round-trip.
+ */
+export function extractFeedbackMap(
+  dbMessages: Array<{ id: string; feedback?: string | null }>
+): Map<string, 'like' | 'dislike'> {
+  const map = new Map<string, 'like' | 'dislike'>();
+  for (const m of dbMessages) {
+    if (m.feedback === 'like' || m.feedback === 'dislike') {
+      map.set(m.id, m.feedback);
+    }
+  }
+  return map;
+}
