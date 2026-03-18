@@ -14,15 +14,20 @@ import {
 } from 'ai';
 import { k2think } from '@/app/server/k2think/provider';
 import { allTools } from '../chat-tools';
-import { extractFnCallMiddleware } from '../fn-call-middleware';
 import { prisma } from '@/lib/prisma';
 import { SendChatMessageSchema } from './chat.dto';
 import { ELEMENT_REFERENCE } from '../chat-tools/element-reference';
+import {
+  getCapabilityAllowedTools,
+  getCapabilitySystemContext,
+  resolveCapabilityIntent,
+} from './chat-capabilities';
 import {
   assignReasoningDurations,
   assistantPartsToText,
   buildSceneContext,
   getGenerationDebugData,
+  normalizeFinishReason,
   getRetryAdvice,
   getRetryAdviceFromStreamState,
   responseToUIParts,
@@ -47,18 +52,37 @@ export const sendChat = authorized
   .use(writeSecurityMiddleware)
   .input(SendChatMessageSchema)
   .handler(async ({ input, context, errors }) => {
-    const { workspaceId, messages, sceneData } = input;
+    const { workspaceId, messages, sceneData, capabilityIntent } = input;
+    const capabilityResolution = resolveCapabilityIntent(capabilityIntent);
+    const capabilityAllowedTools = getCapabilityAllowedTools(
+      capabilityResolution.capability
+    );
+    const capabilitySystemContext = getCapabilitySystemContext(
+      capabilityResolution.capability,
+      capabilityResolution.unknownRequested,
+      capabilityResolution.requestedRaw
+    );
     const generationStartedAt = Date.now();
     const logger = new ChatStreamLogger(generationStartedAt);
     const reasoningStartById = new Map<string, number>();
     const streamedReasoningDurationsSec: number[] = [];
     let forcedTextOnlyLogged = false;
+    let latestToolPolicyStats = {
+      totalToolAttempts: 0,
+      attemptCountByTool: {} as Record<string, number>,
+      reason: undefined as 'per-tool-cap' | 'total-cap' | undefined,
+      forceTextOnly: false,
+    };
 
     try {
       logger.logSetup({
         workspaceId,
         messageCount: messages.length,
         hasSceneData: !!sceneData,
+        pipelineVersion: 'v2',
+        capability: capabilityResolution.capability,
+        unknownCapabilityRequested: capabilityResolution.unknownRequested,
+        capabilityRequestedRaw: capabilityResolution.requestedRaw,
       });
 
       // Verify workspace ownership
@@ -99,21 +123,70 @@ export const sendChat = authorized
             tagName: 'think',
             startWithReasoning: true,
           }),
-          extractFnCallMiddleware(),
         ],
       });
 
       const result = streamText({
         model: wrappedModel,
-        system: `${WORKSPACE_CHAT_SYSTEM_PROMPT}\n\n${ELEMENT_REFERENCE}\n\n## Current Scene\n${sceneContext}`,
+        system: `${WORKSPACE_CHAT_SYSTEM_PROMPT}\n\n${ELEMENT_REFERENCE}${capabilitySystemContext ? `\n\n${capabilitySystemContext}` : ''}\n\n## Current Scene\n${sceneContext}`,
         messages: modelMessages,
         tools: allTools,
         temperature: 0.2,
         stopWhen: stepCountIs(8),
+        toolChoice: capabilityResolution.unknownRequested ? 'none' : 'auto',
+        onStepFinish: ({
+          stepNumber,
+          finishReason,
+          usage,
+          toolCalls,
+          toolResults,
+        }) => {
+          logger.logSetup({
+            step: 'step_finished',
+            stepNumber,
+            finishReason: normalizeFinishReason(finishReason),
+            toolCalls: toolCalls.length,
+            toolResults: toolResults.length,
+            totalTokens:
+              typeof usage.totalTokens === 'number'
+                ? usage.totalTokens
+                : undefined,
+          });
+        },
+        experimental_onToolCallStart: ({ toolCall }) => {
+          logger.logSetup({
+            step: 'tool_call_start',
+            toolName: toolCall.toolName,
+            toolCallId: toolCall.toolCallId,
+          });
+        },
+        experimental_onToolCallFinish: ({
+          toolCall,
+          durationMs,
+          success,
+          error,
+        }) => {
+          logger.logSetup({
+            step: 'tool_call_finish',
+            toolName: toolCall.toolName,
+            toolCallId: toolCall.toolCallId,
+            durationMs,
+            success,
+            error: error instanceof Error ? error.message : undefined,
+          });
+        },
         prepareStep: async ({ steps }) => {
           const policy = computeToolExecutionPolicyFromSteps(
-            steps as unknown[]
+            steps as unknown[],
+            capabilityResolution.unknownRequested ? [] : capabilityAllowedTools
           );
+
+          latestToolPolicyStats = {
+            totalToolAttempts: policy.totalToolAttempts,
+            attemptCountByTool: policy.attemptCountByTool,
+            reason: policy.reason,
+            forceTextOnly: policy.forceTextOnly,
+          };
 
           if (policy.forceTextOnly && !forcedTextOnlyLogged) {
             logger.logSetup({
@@ -130,10 +203,9 @@ export const sendChat = authorized
           };
         },
         onFinish: async ({ response }) => {
-          const finishReasonRaw = (response as { finishReason?: unknown })
-            ?.finishReason;
-          const finishReason =
-            typeof finishReasonRaw === 'string' ? finishReasonRaw : 'unknown';
+          const finishReason = normalizeFinishReason(
+            (response as { finishReason?: unknown })?.finishReason
+          );
           logger.logFinishPhaseStart(finishReason);
 
           flushOpenReasoningDurations(
@@ -223,58 +295,7 @@ export const sendChat = authorized
           const assistantParts = partsForPersistence.map(sanitizePersistedPart);
           const assistantText = assistantPartsToText(assistantParts);
 
-          logger.logDbPersistStart();
-          try {
-            const primaryWriteRows = [
-              {
-                workspaceId,
-                role: 'user',
-                content: userContent,
-              },
-              {
-                workspaceId,
-                role: 'assistant',
-                content: assistantText,
-                parts: JSON.parse(JSON.stringify(assistantParts)),
-                reasoningDurations:
-                  reasoningDurationsSecForStorage.length > 0
-                    ? reasoningDurationsSecForStorage
-                    : undefined,
-              },
-            ];
-
-            try {
-              await prisma.workspaceMessage.createMany({
-                data: primaryWriteRows,
-              });
-            } catch (writeErr) {
-              const writeErrMsg =
-                writeErr instanceof Error ? writeErr.message : String(writeErr);
-              if (/reasoningDurations/i.test(writeErrMsg)) {
-                await prisma.workspaceMessage.createMany({
-                  data: [
-                    { workspaceId, role: 'user', content: userContent },
-                    {
-                      workspaceId,
-                      role: 'assistant',
-                      content: assistantText,
-                      parts: JSON.parse(JSON.stringify(assistantParts)),
-                    },
-                  ],
-                });
-              } else {
-                throw writeErr;
-              }
-            }
-
-            logger.logDbPersistEnd();
-          } catch (dbError) {
-            logger.logFinishError(
-              dbError instanceof Error ? dbError : new Error(String(dbError)),
-              'prisma_messages_persist'
-            );
-            throw dbError;
-          }
+          let persistedSceneData: unknown = null;
 
           try {
             const newElements: unknown[] = [];
@@ -315,7 +336,6 @@ export const sendChat = authorized
                 : [];
               const existingSettings = scene.sceneSettings ?? {};
 
-              // Deduplicate: only add elements that don't already exist (by type+position fingerprint)
               const fingerprint = (e: Record<string, unknown>) => {
                 const pos = (e.position as number[]) ?? [0, 0, 0];
                 const rp = pos.map(
@@ -330,11 +350,13 @@ export const sendChat = authorized
                 }
                 return fp;
               };
+
               const existingFPs = new Set(
                 existingElements.map((el) =>
                   fingerprint(el as Record<string, unknown>)
                 )
               );
+
               const deduped = newElements.filter((el) => {
                 const fp = fingerprint(el as Record<string, unknown>);
                 if (existingFPs.has(fp)) return false;
@@ -357,7 +379,7 @@ export const sendChat = authorized
                   })),
                 ];
 
-                const persistedSceneData = JSON.parse(
+                persistedSceneData = JSON.parse(
                   JSON.stringify({
                     elements: updatedElements,
                     sceneSettings: newSceneSettings
@@ -365,25 +387,6 @@ export const sendChat = authorized
                       : existingSettings,
                   })
                 );
-
-                logger.logSceneUpdateStart();
-                try {
-                  await prisma.workspace.updateMany({
-                    where: { id: workspaceId, userId: context.user.id },
-                    data: {
-                      sceneData: persistedSceneData,
-                    },
-                  });
-                  logger.logSceneUpdateEnd();
-                } catch (updateErr) {
-                  logger.logFinishError(
-                    updateErr instanceof Error
-                      ? updateErr
-                      : new Error(String(updateErr)),
-                    'prisma_scene_update'
-                  );
-                  throw updateErr;
-                }
               }
             }
 
@@ -393,8 +396,80 @@ export const sendChat = authorized
               sceneErr instanceof Error
                 ? sceneErr
                 : new Error(String(sceneErr)),
-              'scene_processing'
+              'scene_processing_prepare'
             );
+          }
+
+          logger.logDbPersistStart();
+          try {
+            const assistantPartsJson = JSON.parse(
+              JSON.stringify(assistantParts)
+            );
+
+            await prisma.$transaction(async (tx) => {
+              const primaryWriteRows = [
+                {
+                  workspaceId,
+                  role: 'user',
+                  content: userContent,
+                },
+                {
+                  workspaceId,
+                  role: 'assistant',
+                  content: assistantText,
+                  parts: assistantPartsJson,
+                  reasoningDurations:
+                    reasoningDurationsSecForStorage.length > 0
+                      ? reasoningDurationsSecForStorage
+                      : undefined,
+                },
+              ];
+
+              try {
+                await tx.workspaceMessage.createMany({
+                  data: primaryWriteRows,
+                });
+              } catch (writeErr) {
+                const writeErrMsg =
+                  writeErr instanceof Error
+                    ? writeErr.message
+                    : String(writeErr);
+                if (/reasoningDurations/i.test(writeErrMsg)) {
+                  await tx.workspaceMessage.createMany({
+                    data: [
+                      { workspaceId, role: 'user', content: userContent },
+                      {
+                        workspaceId,
+                        role: 'assistant',
+                        content: assistantText,
+                        parts: assistantPartsJson,
+                      },
+                    ],
+                  });
+                } else {
+                  throw writeErr;
+                }
+              }
+
+              if (persistedSceneData) {
+                logger.logSceneUpdateStart();
+                await tx.workspace.updateMany({
+                  where: { id: workspaceId, userId: context.user.id },
+                  data: {
+                    sceneData: persistedSceneData as never,
+                  },
+                });
+                logger.logSceneUpdateEnd();
+              }
+            });
+
+            logger.logDbPersistEnd();
+          } catch (dbError) {
+            logger.logFinishError(
+              dbError instanceof Error ? dbError : new Error(String(dbError)),
+              'prisma_transaction_persist'
+            );
+            throw dbError;
           }
 
           if (isDev) {
@@ -419,8 +494,6 @@ export const sendChat = authorized
             let reasoningContent = '';
             let hasToolCalls = false;
             let stopReason = 'unknown';
-            let eventCounter = 0;
-            let lastAdviceKey = '';
 
             for await (const chunk of baseStream as AsyncIterable<UIMessageChunk>) {
               try {
@@ -438,13 +511,10 @@ export const sendChat = authorized
 
               if (chunk.type === 'text-delta') {
                 textContent += chunk.delta;
-                eventCounter += 1;
               } else if (chunk.type === 'reasoning-delta') {
                 reasoningContent += chunk.delta;
-                eventCounter += 1;
               } else if (chunk.type === 'reasoning-start') {
                 reasoningStartById.set(chunk.id, Date.now());
-                eventCounter += 1;
               } else if (chunk.type === 'reasoning-end') {
                 const startedAt = reasoningStartById.get(chunk.id);
                 if (startedAt) {
@@ -456,42 +526,14 @@ export const sendChat = authorized
                   logger.logReasoningDuration(chunk.id, durationSec);
                   reasoningStartById.delete(chunk.id);
                 }
-                eventCounter += 1;
               } else if (chunk.type.startsWith('tool-')) {
                 hasToolCalls = true;
-                eventCounter += 1;
               } else if (chunk.type === 'finish') {
-                stopReason = chunk.finishReason ?? 'unknown';
+                stopReason = normalizeFinishReason(chunk.finishReason);
                 flushOpenReasoningDurations(
                   reasoningStartById,
                   streamedReasoningDurationsSec
                 );
-              }
-
-              const shouldEmitPreliminary =
-                chunk.type !== 'finish' &&
-                eventCounter > 0 &&
-                eventCounter % 3 === 0;
-
-              if (shouldEmitPreliminary) {
-                const preliminaryAdvice = getRetryAdviceFromStreamState(
-                  {
-                    textContent,
-                    reasoningContent,
-                    hasToolCalls,
-                    stopReason: 'unknown',
-                  },
-                  'preliminary'
-                );
-                const preliminaryKey = `${preliminaryAdvice.shouldRetry}:${preliminaryAdvice.reason}:${preliminaryAdvice.stage}`;
-                if (preliminaryKey !== lastAdviceKey) {
-                  writer.write({
-                    type: 'data-retry-advice',
-                    data: preliminaryAdvice,
-                    transient: true,
-                  });
-                  lastAdviceKey = preliminaryKey;
-                }
               }
 
               if (chunk.type === 'finish') {
@@ -509,6 +551,18 @@ export const sendChat = authorized
                   type: 'data-retry-advice',
                   data: finalAdvice,
                 });
+
+                writer.write({
+                  type: 'data-generation-metadata',
+                  data: {
+                    finishReason: stopReason,
+                    totalToolAttempts: latestToolPolicyStats.totalToolAttempts,
+                    attemptCountByTool:
+                      latestToolPolicyStats.attemptCountByTool,
+                    forceTextOnly: latestToolPolicyStats.forceTextOnly,
+                    fallbackReason: latestToolPolicyStats.reason ?? null,
+                  },
+                });
               }
             }
           } catch (streamErr) {
@@ -517,7 +571,24 @@ export const sendChat = authorized
                 ? streamErr
                 : new Error(String(streamErr))
             );
-            throw streamErr;
+
+            writer.write({
+              type: 'data-stream-error',
+              data: {
+                recoverable: true,
+                stage: 'stream',
+                reason: 'stream-error',
+              },
+            });
+
+            writer.write({
+              type: 'data-retry-advice',
+              data: {
+                shouldRetry: true,
+                reason: 'stream-error',
+                stage: 'final',
+              },
+            });
           }
         },
       });

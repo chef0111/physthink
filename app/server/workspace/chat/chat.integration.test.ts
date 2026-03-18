@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getRetryAdviceFromStreamState, responseToUIParts } from './chat-utils';
+import {
+  getCapabilityAllowedTools,
+  resolveCapabilityIntent,
+} from './chat-capabilities';
 
 vi.mock('server-only', () => ({}));
 
@@ -214,5 +218,29 @@ describe('workspace chat integration behavior', () => {
     expect(addElementsParts.every((p) => p.state === 'output-available')).toBe(
       true
     );
+  });
+
+  it('maps threejs capability to scene-only tool allowlist', () => {
+    const resolution = resolveCapabilityIntent('threejs');
+    const allowedTools = getCapabilityAllowedTools(resolution.capability);
+
+    expect(resolution.unknownRequested).toBe(false);
+    expect(allowedTools).toEqual([
+      'addElement',
+      'addElements',
+      'editElement',
+      'removeElement',
+      'setSceneSettings',
+    ]);
+  });
+
+  it('downgrades unknown capability request to safe default mode', () => {
+    const resolution = resolveCapabilityIntent('nonexistent-skill');
+    const allowedTools = getCapabilityAllowedTools(resolution.capability);
+
+    expect(resolution.capability).toBe('default');
+    expect(resolution.unknownRequested).toBe(true);
+    expect(resolution.requestedRaw).toBe('nonexistent-skill');
+    expect(allowedTools.length).toBeGreaterThan(5);
   });
 });

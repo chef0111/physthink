@@ -49,6 +49,17 @@ export type GenerationDebugData = {
   toolCallCount: number;
 };
 
+export function normalizeFinishReason(raw: unknown): string {
+  if (typeof raw === 'string') return raw;
+  if (!raw || typeof raw !== 'object') return 'unknown';
+
+  const candidate = raw as { unified?: unknown; raw?: unknown };
+  if (typeof candidate.unified === 'string') return candidate.unified;
+  if (typeof candidate.raw === 'string') return candidate.raw;
+
+  return 'unknown';
+}
+
 export function normalizeThoughtDuration(text: string): string | null {
   const normalized = text.trim();
   if (THOUGHT_DURATION_RE.test(normalized)) return normalized;
@@ -331,14 +342,7 @@ export function getGenerationDebugData(
     steps?: unknown[];
   };
 
-  const stopReason =
-    typeof responseWithDebug.finishReason === 'string'
-      ? responseWithDebug.finishReason
-      : typeof responseWithDebug.finishReason?.unified === 'string'
-        ? responseWithDebug.finishReason.unified
-        : typeof responseWithDebug.finishReason?.raw === 'string'
-          ? responseWithDebug.finishReason.raw
-          : 'unknown';
+  const stopReason = normalizeFinishReason(responseWithDebug.finishReason);
 
   const toolCallCount = assistantPartsWithDurations.filter(
     (part) => typeof part.toolCallId === 'string'

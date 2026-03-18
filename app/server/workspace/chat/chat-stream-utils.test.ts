@@ -77,4 +77,18 @@ describe('computeActiveToolsFromSteps', () => {
     expect(policy.reason).toBe('total-cap');
     expect(policy.activeTools).toHaveLength(0);
   });
+
+  it('respects capability allowlist when computing active tools', () => {
+    const policy = computeToolExecutionPolicyFromSteps(
+      [],
+      ['addElement', 'addElements', 'setSceneSettings']
+    );
+
+    expect(policy.forceTextOnly).toBe(false);
+    expect(policy.activeTools).toEqual([
+      'addElement',
+      'addElements',
+      'setSceneSettings',
+    ]);
+  });
 });

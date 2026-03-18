@@ -8,9 +8,11 @@ import { isDev } from '@/lib/utils';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '@/stores/scene-store';
 import {
+  readGenerationMetadataData,
   normalizeThoughtDuration,
   readDebugGenerationData,
   readRetryAdviceData,
+  readStreamErrorData,
   sanitizeAssistantTextForDisplay,
 } from './utils';
 import TextShimmer from '@/components/ui/text-shimmer';
@@ -36,6 +38,7 @@ export function WorkspaceChat({
   initialMessages,
   initialFeedbackMap,
 }: WorkspaceChatProps) {
+  const capabilityIntentRef = useRef<string | undefined>(undefined);
   const appliedToolCalls = useRef(
     new Set<string>(
       initialMessages.flatMap((m) =>
@@ -87,6 +90,7 @@ export function WorkspaceChat({
         const result = await client.workspace.chat.send(
           {
             workspaceId,
+            capabilityIntent: capabilityIntentRef.current,
             messages: msgs.map((m) => ({
               id: m.id,
               role: m.role,
@@ -106,6 +110,7 @@ export function WorkspaceChat({
           },
           { signal: abortSignal }
         );
+        capabilityIntentRef.current = undefined;
         return eventIteratorToUnproxiedDataStream(result);
       },
       reconnectToStream() {
@@ -154,7 +159,19 @@ export function WorkspaceChat({
   );
 
   const handleSubmit = () => {
-    const text = input.trim();
+    const raw = input.trim();
+    const slashMatch = raw.match(/^\/([a-z0-9_-]+)\s*(.*)$/i);
+
+    let text = raw;
+    capabilityIntentRef.current = undefined;
+
+    if (slashMatch) {
+      const capability = slashMatch[1].toLowerCase();
+      const rest = slashMatch[2]?.trim() ?? '';
+      capabilityIntentRef.current = capability;
+      text = rest || `Use ${capability} capability for this task.`;
+    }
+
     if (!text || isLoading) return;
     shouldAutoScrollRef.current = true;
     setInput('');
@@ -196,7 +213,21 @@ export function WorkspaceChat({
     return null;
   }, [messages]);
 
+  const latestGenerationMetadata = useMemo(() => {
+    if (!isDev) return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message.role !== 'assistant') continue;
+      for (const part of message.parts) {
+        const metadata = readGenerationMetadataData(part);
+        if (metadata) return metadata;
+      }
+    }
+    return null;
+  }, [messages]);
+
   const shouldShowRetry = useMemo(() => {
+    if (status === 'streaming' || status === 'submitted') return false;
     if (messages.length === 0) return false;
 
     const lastMessage = messages[messages.length - 1];
@@ -212,27 +243,32 @@ export function WorkspaceChat({
         })()
     );
 
-    let preliminaryAdvice: ReturnType<typeof readRetryAdviceData> = null;
     let finalAdvice: ReturnType<typeof readRetryAdviceData> = null;
+    let streamError = false;
 
     for (const part of lastMessage.parts) {
+      if (readStreamErrorData(part)) {
+        streamError = true;
+      }
+
       const retryAdvice = readRetryAdviceData(part);
       if (retryAdvice) {
         if (retryAdvice.stage === 'final') {
           finalAdvice = retryAdvice;
           break;
         }
-        preliminaryAdvice = retryAdvice;
       }
     }
 
     if (finalAdvice) return finalAdvice.shouldRetry;
 
+    if (streamError) return true;
+
     if (status === 'error') {
       return !hasMeaningfulAssistantText;
     }
 
-    return preliminaryAdvice?.shouldRetry ?? false;
+    return false;
   }, [status, messages]);
 
   const handleRetry = useCallback(() => {
@@ -317,6 +353,9 @@ export function WorkspaceChat({
             {latestGenerationDebug.stopReason} ; tools=
             {latestGenerationDebug.toolCallCount} ; elapsed=
             {latestGenerationDebug.elapsedSec}s
+            {latestGenerationMetadata
+              ? ` ; finish=${latestGenerationMetadata.finishReason} ; attempts=${latestGenerationMetadata.totalToolAttempts} ; forced=${latestGenerationMetadata.forceTextOnly ? 'yes' : 'no'}`
+              : ''}
           </div>
         )}
         <PromptInput

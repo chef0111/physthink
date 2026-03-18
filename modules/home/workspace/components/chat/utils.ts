@@ -103,6 +103,20 @@ type RetryAdviceData = {
   stage: 'preliminary' | 'final';
 };
 
+type StreamErrorData = {
+  recoverable: boolean;
+  stage: string;
+  reason: string;
+};
+
+type GenerationMetadataData = {
+  finishReason: string;
+  totalToolAttempts: number;
+  attemptCountByTool: Record<string, number>;
+  forceTextOnly: boolean;
+  fallbackReason: string | null;
+};
+
 export function readDebugGenerationData(
   part: UIMessage['parts'][number]
 ): DebugGenerationData | null {
@@ -135,6 +149,46 @@ export function readRetryAdviceData(
     shouldRetry: Boolean(data.shouldRetry),
     reason: typeof data.reason === 'string' ? data.reason : 'unknown',
     stage: data.stage === 'preliminary' ? 'preliminary' : 'final',
+  };
+}
+
+export function readStreamErrorData(
+  part: UIMessage['parts'][number]
+): StreamErrorData | null {
+  if (part.type !== 'data-stream-error') return null;
+  if (!('data' in part) || !part.data || typeof part.data !== 'object') {
+    return null;
+  }
+
+  const data = part.data as Record<string, unknown>;
+  return {
+    recoverable: data.recoverable !== false,
+    stage: typeof data.stage === 'string' ? data.stage : 'unknown',
+    reason: typeof data.reason === 'string' ? data.reason : 'stream-error',
+  };
+}
+
+export function readGenerationMetadataData(
+  part: UIMessage['parts'][number]
+): GenerationMetadataData | null {
+  if (part.type !== 'data-generation-metadata') return null;
+  if (!('data' in part) || !part.data || typeof part.data !== 'object') {
+    return null;
+  }
+
+  const data = part.data as Record<string, unknown>;
+  return {
+    finishReason:
+      typeof data.finishReason === 'string' ? data.finishReason : 'unknown',
+    totalToolAttempts:
+      typeof data.totalToolAttempts === 'number' ? data.totalToolAttempts : 0,
+    attemptCountByTool:
+      data.attemptCountByTool && typeof data.attemptCountByTool === 'object'
+        ? (data.attemptCountByTool as Record<string, number>)
+        : {},
+    forceTextOnly: Boolean(data.forceTextOnly),
+    fallbackReason:
+      typeof data.fallbackReason === 'string' ? data.fallbackReason : null,
   };
 }
 

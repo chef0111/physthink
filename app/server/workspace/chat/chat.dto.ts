@@ -18,6 +18,7 @@ const UIMessagePartSchema = z.union([
 
 export const SendChatMessageSchema = z.object({
   workspaceId: z.string(),
+  capabilityIntent: z.string().optional(),
   messages: z.array(
     z.object({
       id: z.string(),

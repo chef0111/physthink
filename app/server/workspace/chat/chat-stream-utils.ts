@@ -31,9 +31,13 @@ export type ToolExecutionPolicy = {
 };
 
 export function computeToolExecutionPolicyFromSteps(
-  steps: unknown[]
+  steps: unknown[],
+  allowedToolNames?: Array<keyof typeof allTools>
 ): ToolExecutionPolicy {
-  const allToolNames = Object.keys(allTools) as Array<keyof typeof allTools>;
+  const allToolNames =
+    allowedToolNames && allowedToolNames.length > 0
+      ? allowedToolNames
+      : (Object.keys(allTools) as Array<keyof typeof allTools>);
   const usedToolNames = new Set<string>();
   const errorCountByTool = new Map<string, number>();
   const attemptCountByTool = new Map<string, number>();
