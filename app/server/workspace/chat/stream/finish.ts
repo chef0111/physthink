@@ -4,7 +4,6 @@ import type { UIMessage } from 'ai';
 import { formatChatMetricsForClient, type ChatStreamLogger } from './logging';
 import { appendConversationMemory } from '../agent/memory';
 import {
-  assignReasoningDurations,
   assistantPartsToText,
   getGenerationDebugData,
   getRetryAdvice,
@@ -23,6 +22,8 @@ type FinishResponse = {
 
 type HandleChatFinishParams = {
   response: FinishResponse;
+  finishReason?: unknown;
+  rawFinishReason?: unknown;
   generationStartedAt: number;
   workspaceId: string;
   userId: string;
@@ -39,6 +40,8 @@ type HandleChatFinishParams = {
 export async function handleChatFinish(params: HandleChatFinishParams) {
   const {
     response,
+    finishReason,
+    rawFinishReason,
     generationStartedAt,
     workspaceId,
     userId,
@@ -49,8 +52,10 @@ export async function handleChatFinish(params: HandleChatFinishParams) {
     flushOpenReasoningDurations,
   } = params;
 
-  const finishReason = normalizeFinishReason(response.finishReason);
-  logger.logFinishPhaseStart(finishReason);
+  const normalizedFinishReason = normalizeFinishReason(
+    finishReason ?? response.finishReason ?? rawFinishReason
+  );
+  logger.logFinishPhaseStart(normalizedFinishReason);
 
   flushOpenReasoningDurations(
     reasoningStartById,
@@ -69,37 +74,19 @@ export async function handleChatFinish(params: HandleChatFinishParams) {
       .join('\n') ?? '';
 
   const assistantPartsRaw = responseToUIParts(response.messages);
-  const { assistantPartsWithDurations } = assignReasoningDurations(
-    assistantPartsRaw,
-    elapsedSec,
-    [...streamedReasoningDurationsSec]
-  );
   const generationDebug = getGenerationDebugData(
     response,
-    assistantPartsWithDurations,
-    elapsedSec
+    assistantPartsRaw,
+    elapsedSec,
+    normalizedFinishReason
   );
   const retryAdvice = getRetryAdvice(
-    assistantPartsWithDurations,
+    assistantPartsRaw,
     generationDebug.stopReason
   );
 
-  const reasoningDurationsSecForStorage = assistantPartsWithDurations
-    .filter(
-      (part): part is { type: 'reasoning'; durationText?: string } =>
-        part.type === 'reasoning'
-    )
-    .map((part) => {
-      if (typeof part.durationText !== 'string') return null;
-      const m = part.durationText.match(/^Thought for ([\d.]+)s$/i);
-      if (!m) return null;
-      const value = Number(m[1]);
-      return Number.isFinite(value) ? Math.max(1, Math.round(value)) : null;
-    })
-    .filter((value): value is number => typeof value === 'number');
-
   const partsWithRetryAdvice = [
-    ...assistantPartsWithDurations,
+    ...assistantPartsRaw,
     {
       type: 'data-retry-advice',
       data: {
@@ -154,10 +141,6 @@ export async function handleChatFinish(params: HandleChatFinishParams) {
           role: 'assistant',
           content: assistantText,
           parts: assistantPartsJson,
-          reasoningDurations:
-            reasoningDurationsSecForStorage.length > 0
-              ? reasoningDurationsSecForStorage
-              : undefined,
         },
       ];
 

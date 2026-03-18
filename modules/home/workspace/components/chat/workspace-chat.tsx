@@ -25,6 +25,7 @@ import {
   useSceneToolEffects,
   type MessageFeedback,
 } from '@/hooks/chat';
+import { useUpdateReasoningDurations } from '@/queries/workspace';
 
 interface WorkspaceChatProps {
   workspaceId: string;
@@ -38,6 +39,9 @@ export function WorkspaceChat({
   initialMessages,
   initialFeedbackMap,
 }: WorkspaceChatProps) {
+  const persistedReasoningDurationsRef = useRef(new Set<string>());
+  const reasoningDurationPersistInFlightRef = useRef(new Set<string>());
+  const reasoningDurationPersistAttemptsRef = useRef(new Map<string, number>());
   const capabilityIntentRef = useRef<string | undefined>(undefined);
   const appliedToolCalls = useRef(
     new Set<string>(
@@ -126,6 +130,8 @@ export function WorkspaceChat({
       transport,
       messages: initialMessages,
     });
+  const { mutateAsync: persistReasoningDurations } =
+    useUpdateReasoningDurations();
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
@@ -244,11 +250,17 @@ export function WorkspaceChat({
     );
 
     let finalAdvice: ReturnType<typeof readRetryAdviceData> = null;
+    let finalMetadata: ReturnType<typeof readGenerationMetadataData> = null;
     let streamError = false;
 
     for (const part of lastMessage.parts) {
       if (readStreamErrorData(part)) {
         streamError = true;
+      }
+
+      const generationMetadata = readGenerationMetadataData(part);
+      if (generationMetadata) {
+        finalMetadata = generationMetadata;
       }
 
       const retryAdvice = readRetryAdviceData(part);
@@ -265,11 +277,25 @@ export function WorkspaceChat({
     if (streamError) return true;
 
     if (status === 'error') {
+      // If server already classified this as successful output, do not keep a stale error banner.
+      if (
+        finalMetadata?.finishReason === 'stop' &&
+        finalMetadata.visibleTextChars > 0
+      ) {
+        return false;
+      }
+
       return !hasMeaningfulAssistantText;
     }
 
     return false;
   }, [status, messages]);
+
+  useEffect(() => {
+    if (status !== 'error') return;
+    if (shouldShowRetry) return;
+    clearError();
+  }, [status, shouldShowRetry, clearError]);
 
   const handleRetry = useCallback(() => {
     if (isLoading) return;
@@ -303,6 +329,54 @@ export function WorkspaceChat({
     shouldAutoScrollRef
   );
 
+  const handlePersistReasoningDurations = useCallback(
+    function persistReasoningDurationsForMessage(
+      messageId: string,
+      durations: number[]
+    ) {
+      if (durations.length === 0) return;
+
+      const key = `${messageId}:${durations.join(',')}`;
+      if (persistedReasoningDurationsRef.current.has(key)) return;
+      if (reasoningDurationPersistInFlightRef.current.has(key)) return;
+
+      const attempt =
+        (reasoningDurationPersistAttemptsRef.current.get(key) ?? 0) + 1;
+      reasoningDurationPersistAttemptsRef.current.set(key, attempt);
+      reasoningDurationPersistInFlightRef.current.add(key);
+
+      const payload =
+        attempt === 1
+          ? {
+              workspaceId,
+              messageId,
+              reasoningDurations: durations,
+            }
+          : {
+              workspaceId,
+              reasoningDurations: durations,
+            };
+
+      void persistReasoningDurations(payload)
+        .then(() => {
+          persistedReasoningDurationsRef.current.add(key);
+          reasoningDurationPersistAttemptsRef.current.delete(key);
+        })
+        .catch(() => {
+          if (attempt < 3) {
+            const delayMs = attempt * 600;
+            window.setTimeout(() => {
+              persistReasoningDurationsForMessage(messageId, durations);
+            }, delayMs);
+          }
+        })
+        .finally(() => {
+          reasoningDurationPersistInFlightRef.current.delete(key);
+        });
+    },
+    [persistReasoningDurations, workspaceId]
+  );
+
   return (
     <div className="flex h-full flex-col">
       <div
@@ -329,6 +403,11 @@ export function WorkspaceChat({
                   message={message}
                   isStreaming={isLoading && index === messages.length - 1}
                   initialFeedback={initialFeedbackMap?.get(message.id)}
+                  onPersistReasoningDurations={
+                    message.role === 'assistant'
+                      ? handlePersistReasoningDurations
+                      : undefined
+                  }
                   onRegenerate={
                     message.role === 'assistant'
                       ? () => handleRegenerateAtIndex(index)
@@ -354,7 +433,7 @@ export function WorkspaceChat({
             {latestGenerationDebug.toolCallCount} ; elapsed=
             {latestGenerationDebug.elapsedSec}s
             {latestGenerationMetadata
-              ? ` ; finish=${latestGenerationMetadata.finishReason} ; attempts=${latestGenerationMetadata.totalToolAttempts} ; forced=${latestGenerationMetadata.forceTextOnly ? 'yes' : 'no'}`
+              ? ` ; status=${status} ; finish=${latestGenerationMetadata.finishReason} ; attempts=${latestGenerationMetadata.totalToolAttempts} ; forced=${latestGenerationMetadata.forceTextOnly ? 'yes' : 'no'} ; textChars=${latestGenerationMetadata.textChars} ; visibleChars=${latestGenerationMetadata.visibleTextChars} ; visibleLines=${latestGenerationMetadata.visibleTextLineCount} ; reasoningChars=${latestGenerationMetadata.reasoningChars}${latestGenerationMetadata.detectedIssue ? ` ; issue=${latestGenerationMetadata.detectedIssue}` : ''}`
               : ''}
           </div>
         )}

@@ -7,7 +7,8 @@ import {
   CreateWorkspaceSchema,
   GetWorkspaceSchema,
   UpdateWorkspaceSchema,
-  UpdateWorkspaceMessageFeedbackSchema,
+  UpdateResponseFeedbackSchema,
+  UpdateReasoningDurationsSchema,
   DeleteWorkspaceSchema,
   WorkspaceSummarySchema,
   WorkspaceDetailSchema,
@@ -106,7 +107,7 @@ export const updateMessageFeedback = authorized
   })
   .use(standardSecurityMiddleware)
   .use(writeSecurityMiddleware)
-  .input(UpdateWorkspaceMessageFeedbackSchema)
+  .input(UpdateResponseFeedbackSchema)
   .handler(async ({ input, context, errors }) => {
     const result = await WorkspaceDAL.updateMessageFeedback(
       input,
@@ -115,4 +116,21 @@ export const updateMessageFeedback = authorized
     if (result.count === 0) {
       throw errors.NOT_FOUND({ message: 'Assistant message not found' });
     }
+  });
+
+export const updateReasoningDurations = authorized
+  .route({
+    method: 'POST',
+    path: '/workspace/message/reasoning-durations',
+    tags: ['workspace', 'chat'],
+  })
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .input(UpdateReasoningDurationsSchema)
+  .handler(async ({ input, context }) => {
+    const result = await WorkspaceDAL.updateReasoningDurations(
+      input,
+      context.user.id
+    );
+    if (result.count === 0) return;
   });

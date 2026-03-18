@@ -8,8 +8,13 @@ export function normalizeFinishReason(raw: unknown): string {
   if (typeof raw === 'string') return raw;
   if (!raw || typeof raw !== 'object') return 'unknown';
 
-  const candidate = raw as { unified?: unknown; raw?: unknown };
+  const candidate = raw as {
+    unified?: unknown;
+    raw?: unknown;
+    finishReason?: unknown;
+  };
   if (typeof candidate.unified === 'string') return candidate.unified;
+  if (typeof candidate.finishReason === 'string') return candidate.finishReason;
   if (typeof candidate.raw === 'string') return candidate.raw;
 
   return 'unknown';

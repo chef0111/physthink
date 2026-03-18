@@ -6,7 +6,11 @@ export {
 } from './base';
 export { responseToUIParts } from './response-parts';
 export { assignReasoningDurations, getGenerationDebugData } from './reasoning';
-export { getRetryAdvice, getRetryAdviceFromStreamState } from './retry-advice';
+export {
+  getRetryAdvice,
+  getRetryAdviceFromStreamState,
+  getVisibleTextStats,
+} from './retry-advice';
 export { assistantPartsToText, sanitizePersistedPart } from './sanitize';
 export type {
   GenerationDebugData,

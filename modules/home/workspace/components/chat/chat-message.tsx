@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { type UIMessage } from 'ai';
 import { ToolCallCard } from './tool-call-card';
 import {
@@ -42,6 +42,10 @@ interface ChatMessageProps {
   isStreaming?: boolean;
   initialFeedback?: MessageFeedback | null;
   onRegenerate?: () => void;
+  onPersistReasoningDurations?: (
+    messageId: string,
+    durations: number[]
+  ) => void;
 }
 
 export const ChatMessage = memo(
@@ -50,12 +54,15 @@ export const ChatMessage = memo(
     isStreaming,
     initialFeedback,
     onRegenerate,
+    onPersistReasoningDurations,
   }: ChatMessageProps) {
     const isUser = message.role === 'user';
+    const persistedDurationSignatureRef = useRef<string | null>(null);
 
     const measuredDurationSec = useStreamDuration(isStreaming, isUser);
 
     const {
+      reasoningIndexes,
       activeReasoningIndex,
       latestReasoningIndex,
       reasoningDurationsByIndex,
@@ -126,6 +133,42 @@ export const ChatMessage = memo(
       !hasReasoning &&
       (thoughtDurationText !== null || measuredDurationSec !== null);
 
+    useEffect(() => {
+      if (isUser || isStreaming || !onPersistReasoningDurations) return;
+      if (reasoningIndexes.length === 0) return;
+
+      const durations = reasoningIndexes
+        .map((index) => {
+          const label =
+            reasoningDurationsByIndex.get(index) ??
+            liveReasoningDurations.get(index) ??
+            null;
+          if (!label || typeof label !== 'string') return null;
+          const match = label.match(/^Thought for ([\d.]+)s$/i);
+          if (!match) return null;
+          const value = Number(match[1]);
+          if (!Number.isFinite(value)) return null;
+          return Math.max(1, Math.round(value));
+        })
+        .filter((value): value is number => typeof value === 'number');
+
+      if (durations.length === 0) return;
+
+      const signature = JSON.stringify(durations);
+      if (persistedDurationSignatureRef.current === signature) return;
+
+      persistedDurationSignatureRef.current = signature;
+      onPersistReasoningDurations(message.id, durations);
+    }, [
+      isUser,
+      isStreaming,
+      liveReasoningDurations,
+      message.id,
+      onPersistReasoningDurations,
+      reasoningDurationsByIndex,
+      reasoningIndexes,
+    ]);
+
     if (isUser) {
       return (
         <Message from="user">
@@ -146,7 +189,7 @@ export const ChatMessage = memo(
       <Message from="assistant">
         <MessageContent>
           {isThinking && (
-            <div className="text-muted-foreground py-1 text-sm">
+            <div className="text-muted-foreground text-sm">
               <TextShimmer duration={1}>Processing...</TextShimmer>
             </div>
           )}

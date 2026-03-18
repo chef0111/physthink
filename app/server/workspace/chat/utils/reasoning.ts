@@ -91,14 +91,18 @@ export function assignReasoningDurations(
 export function getGenerationDebugData(
   response: unknown,
   assistantPartsWithDurations: Array<Record<string, unknown>>,
-  elapsedSec: number
+  elapsedSec: number,
+  fallbackStopReason?: string
 ): GenerationDebugData {
   const responseWithDebug = response as {
     finishReason?: { unified?: string; raw?: string } | string;
     steps?: unknown[];
   };
 
-  const stopReason = normalizeFinishReason(responseWithDebug.finishReason);
+  const stopReason =
+    typeof fallbackStopReason === 'string' && fallbackStopReason.length > 0
+      ? fallbackStopReason
+      : normalizeFinishReason(responseWithDebug.finishReason);
 
   const toolCallCount = assistantPartsWithDurations.filter(
     (part) => typeof part.toolCallId === 'string'

@@ -159,6 +159,10 @@ export const sendChat = authorized
         messages: modelMessages,
         tools,
         temperature: 0.2,
+        timeout: {
+          totalMs: 180_000,
+          chunkMs: 60_000,
+        },
         stopWhen: stepCountIs(8),
         toolChoice: capabilityResolution.unknownRequested ? 'none' : 'auto',
         onStepFinish: ({
@@ -232,9 +236,11 @@ export const sendChat = authorized
             ),
           };
         },
-        onFinish: async ({ response }) => {
+        onFinish: async ({ response, finishReason, rawFinishReason }) => {
           await handleChatFinish({
             response,
+            finishReason,
+            rawFinishReason,
             generationStartedAt,
             workspaceId,
             userId,

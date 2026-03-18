@@ -33,6 +33,7 @@ import {
   update as updateWorkspace,
   remove as removeWorkspace,
   updateMessageFeedback,
+  updateReasoningDurations,
 } from './workspace';
 import { sendChat } from './workspace/chat';
 
@@ -77,6 +78,7 @@ export const router = {
     delete: removeWorkspace,
     message: {
       feedback: updateMessageFeedback,
+      reasoningDurations: updateReasoningDurations,
     },
     chat: {
       send: sendChat,

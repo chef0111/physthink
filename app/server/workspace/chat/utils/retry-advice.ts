@@ -1,16 +1,10 @@
 import { normalizeThoughtDuration } from './base';
 import type { RetryAdvice, RetryAdviceStage, RetryAdviceState } from './types';
 
-function getRetryAdviceFromState(state: RetryAdviceState): RetryAdvice {
-  const text = state.textContent.trim();
-  const reasoning = state.reasoningContent.trim();
-  const stopReasonUnknown = state.stopReason === 'unknown';
+const MALFORMED_RETRY_SUPPRESS_MIN_VISIBLE_CHARS = 120;
 
-  const hasMalformedToolCallText =
-    /FN_CALL\s*=\s*TRUE/i.test(text) ||
-    /"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text);
-
-  const visibleLines = text
+export function getVisibleTextStats(textContent: string) {
+  const visibleLines = textContent
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
@@ -20,16 +14,40 @@ function getRetryAdviceFromState(state: RetryAdviceState): RetryAdvice {
       (line) => !/"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(line)
     );
 
-  const hasVisibleText = visibleLines.length > 0;
+  const visibleTextChars = visibleLines.join('\n').trim().length;
+  return {
+    visibleLines,
+    visibleTextLineCount: visibleLines.length,
+    visibleTextChars,
+    hasVisibleText: visibleLines.length > 0,
+  };
+}
+
+function getRetryAdviceFromState(state: RetryAdviceState): RetryAdvice {
+  const text = state.textContent.trim();
+  const reasoning = state.reasoningContent.trim();
+  const stopReasonUnknown = state.stopReason === 'unknown';
+
+  const hasMalformedToolCallText =
+    /FN_CALL\s*=\s*TRUE/i.test(text) ||
+    /"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i.test(text);
+
+  const { hasVisibleText, visibleTextChars } = getVisibleTextStats(text);
   const hasReasoning = reasoning.length > 0;
 
+  const suppressMalformedRetry =
+    hasMalformedToolCallText &&
+    state.stopReason === 'stop' &&
+    visibleTextChars >= MALFORMED_RETRY_SUPPRESS_MIN_VISIBLE_CHARS;
+
   const shouldRetry =
-    hasMalformedToolCallText ||
+    (!hasVisibleText && hasMalformedToolCallText && !suppressMalformedRetry) ||
     (!hasVisibleText &&
       (stopReasonUnknown || !state.hasToolCalls || hasReasoning));
 
   let reason = 'none';
-  if (hasMalformedToolCallText) reason = 'malformed-tool-call-text';
+  if (!hasVisibleText && hasMalformedToolCallText && !suppressMalformedRetry)
+    reason = 'malformed-tool-call-text';
   else if (!hasVisibleText && stopReasonUnknown) reason = 'unknown-stop';
   else if (!hasVisibleText && !state.hasToolCalls) reason = 'no-tool-no-answer';
   else if (!hasVisibleText && hasReasoning) reason = 'reasoning-without-answer';

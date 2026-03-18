@@ -1,6 +1,10 @@
 import { createUIMessageStream, type UIMessage, type UIMessageChunk } from 'ai';
 import type { ChatStreamLogger } from './logging';
-import { getRetryAdviceFromStreamState, normalizeFinishReason } from '../utils';
+import {
+  getRetryAdviceFromStreamState,
+  getVisibleTextStats,
+  normalizeFinishReason,
+} from '../utils';
 
 type ToolPolicyStats = {
   totalToolAttempts: number;
@@ -47,9 +51,14 @@ export function createChatUiStream({
         let stopReason = 'unknown';
 
         for await (const chunk of baseStream as AsyncIterable<UIMessageChunk>) {
+          const chunkDelta =
+            chunk.type === 'text-delta' || chunk.type === 'reasoning-delta'
+              ? chunk.delta
+              : undefined;
+
           try {
             writer.write(chunk);
-            logger.logStreamChunk(chunk.type);
+            logger.logStreamChunk(chunk.type, chunkDelta);
           } catch (writeErr) {
             logger.logWriterError(
               writeErr instanceof Error
@@ -88,6 +97,10 @@ export function createChatUiStream({
           }
 
           if (chunk.type === 'finish') {
+            const trimmedText = textContent.trim();
+            const trimmedReasoning = reasoningContent.trim();
+            const { visibleTextLineCount, visibleTextChars } =
+              getVisibleTextStats(textContent);
             const finalAdvice = getRetryAdviceFromStreamState(
               {
                 textContent,
@@ -97,6 +110,27 @@ export function createChatUiStream({
               },
               'final'
             );
+
+            const detectedIssue = finalAdvice.shouldRetry
+              ? finalAdvice.reason
+              : !hasToolCalls &&
+                  trimmedReasoning.length >= 2000 &&
+                  trimmedText.length < 240
+                ? 'reasoning-dominant-no-tool'
+                : 'none';
+
+            logger.logSetup({
+              step: 'stream_output_profile',
+              stopReason,
+              textChars: trimmedText.length,
+              visibleTextChars,
+              visibleTextLineCount,
+              reasoningChars: trimmedReasoning.length,
+              hasToolCalls,
+              shouldRetry: finalAdvice.shouldRetry,
+              retryReason: finalAdvice.reason,
+              detectedIssue,
+            });
 
             writer.write({
               type: 'data-retry-advice',
@@ -111,6 +145,11 @@ export function createChatUiStream({
                 attemptCountByTool: latestToolPolicyStats.attemptCountByTool,
                 forceTextOnly: latestToolPolicyStats.forceTextOnly,
                 fallbackReason: latestToolPolicyStats.reason ?? null,
+                textChars: trimmedText.length,
+                visibleTextChars,
+                visibleTextLineCount,
+                reasoningChars: trimmedReasoning.length,
+                detectedIssue,
               },
             });
           }

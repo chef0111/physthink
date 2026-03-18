@@ -115,6 +115,11 @@ type GenerationMetadataData = {
   attemptCountByTool: Record<string, number>;
   forceTextOnly: boolean;
   fallbackReason: string | null;
+  textChars: number;
+  visibleTextChars: number;
+  visibleTextLineCount: number;
+  reasoningChars: number;
+  detectedIssue: string | null;
 };
 
 export function readDebugGenerationData(
@@ -189,6 +194,19 @@ export function readGenerationMetadataData(
     forceTextOnly: Boolean(data.forceTextOnly),
     fallbackReason:
       typeof data.fallbackReason === 'string' ? data.fallbackReason : null,
+    textChars: typeof data.textChars === 'number' ? data.textChars : 0,
+    visibleTextChars:
+      typeof data.visibleTextChars === 'number' ? data.visibleTextChars : 0,
+    visibleTextLineCount:
+      typeof data.visibleTextLineCount === 'number'
+        ? data.visibleTextLineCount
+        : 0,
+    reasoningChars:
+      typeof data.reasoningChars === 'number' ? data.reasoningChars : 0,
+    detectedIssue:
+      typeof data.detectedIssue === 'string' && data.detectedIssue !== 'none'
+        ? data.detectedIssue
+        : null,
   };
 }
 
