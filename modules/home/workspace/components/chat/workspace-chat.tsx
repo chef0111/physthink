@@ -24,7 +24,7 @@ import {
   useRegenerateMessage,
   useSceneToolEffects,
   type MessageFeedback,
-} from './hooks';
+} from '@/hooks/chat';
 
 interface WorkspaceChatProps {
   workspaceId: string;

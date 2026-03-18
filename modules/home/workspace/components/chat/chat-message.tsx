@@ -28,7 +28,7 @@ import {
   useReasoningDurations,
   useStreamDuration,
   type MessageFeedback,
-} from './hooks';
+} from '@/hooks/chat';
 import {
   CopyAction,
   DislikeAction,
