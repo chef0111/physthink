@@ -41,6 +41,7 @@ export function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
 
   const seenToolCallIds = new Set<string>();
   const sceneToolDedupKeys = new Set<string>();
+  const sceneToolErrorDedupKeys = new Set<string>();
 
   const isSceneMutationTool = (toolName: string) =>
     toolName === 'addElement' ||
@@ -90,12 +91,18 @@ export function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
         if (!outcome && normalizedState === 'input-available') continue;
 
         // Scene mutation tools can retry many times in one completion.
-        // Persist only successful unique calls and skip noisy error attempts.
+        // Persist unique successful calls and only keep one standalone error
+        // when there is no successful attempt for the same input.
         if (isSceneMutationTool(toolName)) {
-          if (normalizedState === 'output-error') continue;
           const dedupKey = `${toolName}:${JSON.stringify(toolInput ?? {})}`;
-          if (sceneToolDedupKeys.has(dedupKey)) continue;
-          sceneToolDedupKeys.add(dedupKey);
+          if (normalizedState === 'output-error') {
+            if (sceneToolDedupKeys.has(dedupKey)) continue;
+            if (sceneToolErrorDedupKeys.has(dedupKey)) continue;
+            sceneToolErrorDedupKeys.add(dedupKey);
+          } else {
+            if (sceneToolDedupKeys.has(dedupKey)) continue;
+            sceneToolDedupKeys.add(dedupKey);
+          }
         }
 
         parts.push({

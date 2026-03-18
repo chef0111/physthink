@@ -14,13 +14,13 @@ import { k2think } from '@/app/server/k2think/provider';
 import { createChatTools } from './agent/tools';
 import { prisma } from '@/lib/prisma';
 import { SendChatMessageSchema } from './chat.dto';
-import { ELEMENT_REFERENCE } from './agent/tools/element-reference';
 import { readCoreMemory } from './agent/memory';
 import {
   DEFAULT_SKILL_DIRECTORIES,
   buildSkillsPrompt,
   discoverSkills,
 } from './agent/skills';
+import { buildChatSystemPrompt } from './prompt/builder';
 import {
   getCapabilityAllowedTools,
   getCapabilitySystemContext,
@@ -37,7 +37,6 @@ import {
   computeToolExecutionPolicyFromSteps,
   flushOpenReasoningDurations,
 } from './stream/stream-utils';
-import { WORKSPACE_CHAT_SYSTEM_PROMPT } from './system-prompt';
 import { ChatStreamLogger } from './stream/logging';
 
 export const sendChat = authorized
@@ -151,7 +150,12 @@ export const sendChat = authorized
 
       const result = streamText({
         model: wrappedModel,
-        system: `${WORKSPACE_CHAT_SYSTEM_PROMPT}\n\n${ELEMENT_REFERENCE}${capabilitySystemContext ? `\n\n${capabilitySystemContext}` : ''}\n\n${skillsPrompt}${coreMemory ? `\n\n## Core Memory\n${coreMemory}` : ''}\n\n## Current Scene\n${sceneContext}`,
+        system: buildChatSystemPrompt({
+          capabilitySystemContext,
+          skillsPrompt,
+          coreMemory,
+          sceneContext,
+        }),
         messages: modelMessages,
         tools,
         temperature: 0.2,

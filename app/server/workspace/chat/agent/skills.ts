@@ -178,4 +178,4 @@ export function buildSkillsPrompt(skills: DiscoveredSkill[]): string {
   ].join('\n');
 }
 
-export const DEFAULT_SKILL_DIRECTORIES = ['.agents/skills', '.github/skills'];
+export const DEFAULT_SKILL_DIRECTORIES = ['.agent-runtime-skills'];

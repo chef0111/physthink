@@ -2,6 +2,9 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 const MEMORY_DIR_NAME = '.memory';
+const MAX_MEMORY_WRITE_CHARS = 16_000;
+const MAX_MEMORY_SEARCH_QUERY_CHARS = 200;
+const MAX_CONVERSATION_CHARS = 3_000;
 const DEFAULT_CORE_MEMORY = [
   '# Core Memory',
   '',
@@ -39,8 +42,22 @@ export type MemoryCommand =
     };
 
 function getMemoryRoot(context: MemoryContext): string {
-  void context;
-  return path.resolve(process.cwd(), MEMORY_DIR_NAME);
+  const safeWorkspaceId = context.workspaceId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeUserId = context.userId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  return path.resolve(
+    process.cwd(),
+    MEMORY_DIR_NAME,
+    'workspaces',
+    safeWorkspaceId,
+    safeUserId
+  );
+}
+
+function sanitizeMemoryText(text: string, maxChars: number): string {
+  const noNullBytes = text.replace(/\u0000/g, '');
+  return noNullBytes.length > maxChars
+    ? noNullBytes.slice(0, maxChars)
+    : noNullBytes;
 }
 
 function assertSafeMemoryPath(
@@ -115,7 +132,7 @@ export async function appendConversationMemory(
     workspaceId: context.workspaceId,
     userId: context.userId,
     role: entry.role,
-    content: entry.content,
+    content: sanitizeMemoryText(entry.content, MAX_CONVERSATION_CHARS),
   });
 
   await fs.appendFile(conversationsPath, line + '\n', 'utf8');
@@ -140,6 +157,15 @@ export async function runMemoryCommand(
   }
 
   if (command.action === 'create') {
+    if (command.content.length > MAX_MEMORY_WRITE_CHARS) {
+      return {
+        ok: false,
+        action: 'create',
+        path: command.path,
+        error: `Content exceeds ${MAX_MEMORY_WRITE_CHARS} characters.`,
+      };
+    }
+
     const absolutePath = assertSafeMemoryPath(memoryRoot, command.path);
     try {
       await fs.access(absolutePath);
@@ -150,7 +176,11 @@ export async function runMemoryCommand(
         error: 'File already exists.',
       };
     } catch {
-      await fs.writeFile(absolutePath, command.content, 'utf8');
+      await fs.writeFile(
+        absolutePath,
+        sanitizeMemoryText(command.content, MAX_MEMORY_WRITE_CHARS),
+        'utf8'
+      );
       return {
         ok: true,
         action: 'create',
@@ -160,13 +190,26 @@ export async function runMemoryCommand(
   }
 
   if (command.action === 'update') {
+    if (command.content.length > MAX_MEMORY_WRITE_CHARS) {
+      return {
+        ok: false,
+        action: 'update',
+        path: command.path,
+        error: `Content exceeds ${MAX_MEMORY_WRITE_CHARS} characters.`,
+      };
+    }
+
     const absolutePath = assertSafeMemoryPath(memoryRoot, command.path);
     const mode = command.mode ?? 'append';
+    const safeContent = sanitizeMemoryText(
+      command.content,
+      MAX_MEMORY_WRITE_CHARS
+    );
 
     if (mode === 'overwrite') {
-      await fs.writeFile(absolutePath, command.content, 'utf8');
+      await fs.writeFile(absolutePath, safeContent, 'utf8');
     } else {
-      await fs.appendFile(absolutePath, command.content, 'utf8');
+      await fs.appendFile(absolutePath, safeContent, 'utf8');
     }
 
     return {
@@ -177,7 +220,10 @@ export async function runMemoryCommand(
     };
   }
 
-  const query = command.query.trim().toLowerCase();
+  const query = command.query
+    .trim()
+    .slice(0, MAX_MEMORY_SEARCH_QUERY_CHARS)
+    .toLowerCase();
   if (!query) {
     return {
       ok: false,
@@ -190,6 +236,10 @@ export async function runMemoryCommand(
   const searchCandidates: MemoryFilePath[] = command.path
     ? [command.path as MemoryFilePath]
     : ['core.md', 'notes.md', 'conversations.jsonl'];
+
+  if (command.path) {
+    assertSafeMemoryPath(memoryRoot, command.path);
+  }
 
   const filesToSearch = searchCandidates.filter((filePath) =>
     ALLOWED_MEMORY_FILES.has(filePath)

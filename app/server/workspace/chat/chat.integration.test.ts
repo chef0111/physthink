@@ -308,4 +308,56 @@ describe('workspace chat integration behavior', () => {
     expect(result.found).toBe(false);
     expect(String(result.message)).toContain('not found');
   });
+
+  it('supports memory tool write/read/search flow', async () => {
+    const tools = createChatTools({
+      skills: [],
+      context: { workspaceId: 'ws_mem', userId: 'usr_mem' },
+    });
+
+    const executeMemory = tools.memory.execute as unknown as (
+      input: {
+        action: 'view' | 'create' | 'update' | 'search';
+        path?: string;
+        content?: string;
+        mode?: 'append' | 'overwrite';
+        query?: string;
+      },
+      options?: unknown
+    ) => Promise<Record<string, unknown>>;
+
+    const update = await executeMemory({
+      action: 'update',
+      path: 'notes.md',
+      mode: 'append',
+      content: 'memory-flow-token\n',
+    });
+    expect(update.ok).toBe(true);
+
+    const view = await executeMemory({ action: 'view', path: 'notes.md' });
+    expect(String(view.content)).toContain('memory-flow-token');
+
+    const search = await executeMemory({
+      action: 'search',
+      query: 'memory-flow-token',
+    });
+    expect(Array.isArray(search.results)).toBe(true);
+    expect((search.results as unknown[]).length).toBeGreaterThan(0);
+  });
+
+  it('keeps memory tool available in default mode and restricted in threejs mode', () => {
+    const defaultAllowed = getCapabilityAllowedTools('default', [
+      'addElement',
+      'memory',
+      'loadSkill',
+    ]);
+    const threejsAllowed = getCapabilityAllowedTools('threejs', [
+      'addElement',
+      'memory',
+      'loadSkill',
+    ]);
+
+    expect(defaultAllowed).toContain('memory');
+    expect(threejsAllowed).not.toContain('memory');
+  });
 });

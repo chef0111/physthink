@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { type UIMessage } from 'ai';
-import { normalizeThoughtDuration } from '../utils';
+import { normalizeThoughtDuration } from '@/modules/home/workspace/components/chat/utils';
 
 type ReasoningPartWithDuration = {
   type: 'reasoning';

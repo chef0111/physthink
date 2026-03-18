@@ -1,4 +1,4 @@
-import { allTools } from '../chat-tools';
+import { allTools } from '../agent/tools';
 
 const MAX_ATTEMPTS_PER_TOOL = 3;
 const MAX_TOTAL_TOOL_ATTEMPTS = 7;

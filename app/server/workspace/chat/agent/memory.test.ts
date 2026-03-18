@@ -20,7 +20,9 @@ describe('memory store', () => {
 
   it('bootstraps default .memory files', async () => {
     const store = await ensureMemoryStore(TEST_CONTEXT);
-    expect(store.memoryRoot.endsWith('.memory')).toBe(true);
+    expect(store.memoryRoot).toContain(path.join('.memory', 'workspaces'));
+    expect(store.memoryRoot).toContain('test-workspace');
+    expect(store.memoryRoot).toContain('test-user');
 
     const core = await readCoreMemory(TEST_CONTEXT);
     expect(core).toContain('# Core Memory');
