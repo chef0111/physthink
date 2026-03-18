@@ -3,7 +3,7 @@ import {
   getRetryAdvice,
   getRetryAdviceFromStreamState,
   sanitizePersistedPart,
-} from './chat-utils';
+} from '.';
 
 vi.mock('server-only', () => ({}));
 

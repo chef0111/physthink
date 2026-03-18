@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getRetryAdviceFromStreamState, responseToUIParts } from './chat-utils';
+import { getRetryAdviceFromStreamState, responseToUIParts } from '../utils';
 import {
   getCapabilityAllowedTools,
   resolveCapabilityIntent,
-} from './chat-capabilities';
+} from './capabilities';
 
 vi.mock('server-only', () => ({}));
 

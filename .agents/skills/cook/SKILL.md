@@ -75,7 +75,7 @@ Match request against the catalog above. Select **1–4 skills** — minimum nee
 
 ### 4. Load & Follow
 
-For each selected skill, read its `SKILL.md` from `.github/skills/<name>/SKILL.md` and follow its procedure. Skills may reference sub-files — load those as needed.
+For each selected skill, read its `SKILL.md` from `.agents/skills/<name>/SKILL.md` and follow its procedure. Skills may reference sub-files — load those as needed.
 
 ## Example Dispatch
 

@@ -1,4 +1,4 @@
-import { allTools } from '../chat-tools';
+import { allTools } from '../../chat-tools';
 
 export type ChatCapability = 'default' | 'threejs';
 
@@ -52,12 +52,17 @@ export function resolveCapabilityIntent(
 }
 
 export function getCapabilityAllowedTools(
-  capability: ChatCapability
+  capability: ChatCapability,
+  availableToolNames?: string[]
 ): Array<keyof typeof allTools> {
+  const allToolNames = (availableToolNames ?? Object.keys(allTools)) as Array<
+    keyof typeof allTools
+  >;
+
   if (capability === 'threejs') {
     return THREEJS_TOOL_NAMES;
   }
-  return Object.keys(allTools) as Array<keyof typeof allTools>;
+  return allToolNames;
 }
 
 export function getCapabilitySystemContext(

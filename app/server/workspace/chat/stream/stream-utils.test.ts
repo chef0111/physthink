@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   computeActiveToolsFromSteps,
   computeToolExecutionPolicyFromSteps,
-} from './chat-stream-utils';
+} from './stream-utils';
 
 vi.mock('server-only', () => ({}));
 
