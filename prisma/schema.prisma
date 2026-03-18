@@ -183,17 +183,18 @@ model Workspace {
 }
 
 model WorkspaceMessage {
-  id          String    @id @default(uuid())
-  role        String
-  content     String
-  parts       Json?
-  codeBlock   String?
-  feedback    String?
-  feedbackAt  DateTime?
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  id                  String    @id @default(uuid())
+  role                String
+  content             String
+  parts               Json?
+  reasoningDurations  Json?
+  codeBlock           String?
+  feedback            String?
+  feedbackAt          DateTime?
+  workspaceId         String
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime  @default(now())
+  createdAt           DateTime  @default(now())
 
   @@index([workspaceId])
   @@map("workspace_message")

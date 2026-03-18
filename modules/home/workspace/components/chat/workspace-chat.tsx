@@ -7,7 +7,12 @@ import { client } from '@/lib/orpc';
 import { isDev } from '@/lib/utils';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '@/stores/scene-store';
-import { readDebugGenerationData, readRetryAdviceData } from './utils';
+import {
+  normalizeThoughtDuration,
+  readDebugGenerationData,
+  readRetryAdviceData,
+  sanitizeAssistantTextForDisplay,
+} from './utils';
 import TextShimmer from '@/components/ui/text-shimmer';
 import { ChatMessage } from './chat-message';
 import { PromptInput } from './prompt-input';
@@ -192,20 +197,39 @@ export function WorkspaceChat({
   }, [messages]);
 
   const shouldShowRetry = useMemo(() => {
-    if (status === 'error') return true;
     if (messages.length === 0) return false;
 
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage || lastMessage.role !== 'assistant') return false;
 
+    const hasMeaningfulAssistantText = lastMessage.parts.some(
+      (part) =>
+        part.type === 'text' &&
+        typeof part.text === 'string' &&
+        (() => {
+          const cleaned = sanitizeAssistantTextForDisplay(part.text);
+          return Boolean(cleaned && !normalizeThoughtDuration(cleaned));
+        })()
+    );
+
     let preliminaryAdvice: ReturnType<typeof readRetryAdviceData> = null;
+    let finalAdvice: ReturnType<typeof readRetryAdviceData> = null;
 
     for (const part of lastMessage.parts) {
       const retryAdvice = readRetryAdviceData(part);
       if (retryAdvice) {
-        if (retryAdvice.stage === 'final') return retryAdvice.shouldRetry;
+        if (retryAdvice.stage === 'final') {
+          finalAdvice = retryAdvice;
+          break;
+        }
         preliminaryAdvice = retryAdvice;
       }
+    }
+
+    if (finalAdvice) return finalAdvice.shouldRetry;
+
+    if (status === 'error') {
+      return !hasMeaningfulAssistantText;
     }
 
     return preliminaryAdvice?.shouldRetry ?? false;

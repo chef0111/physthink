@@ -87,6 +87,7 @@ export class WorkspaceDAL {
             role: true,
             content: true,
             parts: true,
+            reasoningDurations: true,
             codeBlock: true,
             feedback: true,
             feedbackAt: true,

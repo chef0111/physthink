@@ -74,4 +74,145 @@ describe('workspace chat integration behavior', () => {
     expect(final.stage).toBe('final');
     expect(final.shouldRetry).toBe(false);
   });
+
+  it('preserves tool error states instead of coercing them to completed', () => {
+    const parts = responseToUIParts([
+      {
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool-call',
+            toolCallId: 'tc-err',
+            toolName: 'addElements',
+            args: { elements: [{ type: 'mesh' }] },
+            state: 'output-error',
+          },
+        ],
+      },
+      {
+        role: 'tool',
+        content: [
+          {
+            type: 'tool-error',
+            toolCallId: 'tc-err',
+            output: { message: 'Invalid schema' },
+          },
+        ],
+      },
+    ]);
+
+    expect(parts).toHaveLength(1);
+    expect(parts[0].type).toBe('tool-addElements');
+    expect(parts[0].state).toBe('output-error');
+    expect(parts[0]).not.toHaveProperty('output');
+  });
+
+  it('deduplicates repeated assistant tool-call parts by toolCallId', () => {
+    const parts = responseToUIParts([
+      {
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool-call',
+            toolCallId: 'tc-dup',
+            toolName: 'addElements',
+            args: { elements: [{ type: 'mesh' }] },
+          },
+          {
+            type: 'tool-call',
+            toolCallId: 'tc-dup',
+            toolName: 'addElements',
+            args: { elements: [{ type: 'mesh' }] },
+          },
+        ],
+      },
+      {
+        role: 'tool',
+        content: [
+          {
+            type: 'tool-result',
+            toolCallId: 'tc-dup',
+            output: { action: 'addElements', elements: [{ type: 'mesh' }] },
+          },
+        ],
+      },
+    ]);
+
+    expect(parts).toHaveLength(1);
+    expect(parts[0].toolCallId).toBe('tc-dup');
+    expect(parts[0].state).toBe('output-available');
+  });
+
+  it('drops unresolved input-only tool calls from persisted parts', () => {
+    const parts = responseToUIParts([
+      {
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool-call',
+            toolCallId: 'tc-pending',
+            toolName: 'addElements',
+            args: { elements: [{ type: 'mesh' }] },
+            state: 'input-available',
+          },
+        ],
+      },
+    ]);
+
+    expect(parts).toHaveLength(0);
+  });
+
+  it('deduplicates repeated scene tool calls with same input and skips scene tool errors', () => {
+    const parts = responseToUIParts([
+      {
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool-call',
+            toolCallId: 'tc-a1',
+            toolName: 'addElements',
+            args: { elements: [{ type: 'mesh', position: [0, 0, 0] }] },
+          },
+          {
+            type: 'tool-call',
+            toolCallId: 'tc-a2',
+            toolName: 'addElements',
+            args: { elements: [{ type: 'mesh', position: [0, 0, 0] }] },
+          },
+          {
+            type: 'tool-call',
+            toolCallId: 'tc-a3',
+            toolName: 'addElements',
+            args: { elements: [{ type: 'mesh', position: [1, 0, 0] }] },
+          },
+        ],
+      },
+      {
+        role: 'tool',
+        content: [
+          {
+            type: 'tool-result',
+            toolCallId: 'tc-a1',
+            output: { action: 'addElements' },
+          },
+          {
+            type: 'tool-error',
+            toolCallId: 'tc-a2',
+            output: { message: 'invalid' },
+          },
+          {
+            type: 'tool-result',
+            toolCallId: 'tc-a3',
+            output: { action: 'addElements' },
+          },
+        ],
+      },
+    ]);
+
+    const addElementsParts = parts.filter((p) => p.type === 'tool-addElements');
+    expect(addElementsParts).toHaveLength(2);
+    expect(addElementsParts.every((p) => p.state === 'output-available')).toBe(
+      true
+    );
+  });
 });

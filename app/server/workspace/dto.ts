@@ -25,6 +25,7 @@ export const WorkspaceMessageSchema = z.object({
   role: z.string(),
   content: z.string(),
   parts: z.any().nullish(),
+  reasoningDurations: z.any().nullish(),
   codeBlock: z.string().nullish(),
   feedback: z.string().nullish(),
   feedbackAt: z.date().nullish(),
