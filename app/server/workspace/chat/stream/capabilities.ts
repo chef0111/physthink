@@ -1,4 +1,4 @@
-import { allTools } from '../../chat-tools';
+import { allTools } from '../agent/tools';
 
 export type ChatCapability = 'default' | 'threejs';
 

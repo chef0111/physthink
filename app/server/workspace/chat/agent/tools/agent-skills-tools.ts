@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { DiscoveredSkill } from '../chat/agent/skills';
-import { loadSkillByName, readSkillResourceByName } from '../chat/agent/skills';
+import type { DiscoveredSkill } from '../skills';
+import { loadSkillByName, readSkillResourceByName } from '../skills';
 
 export function createAgentSkillsTools(skills: DiscoveredSkill[]) {
   return {

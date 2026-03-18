@@ -11,10 +11,10 @@ import {
   wrapLanguageModel,
 } from 'ai';
 import { k2think } from '@/app/server/k2think/provider';
-import { createChatTools } from '../chat-tools';
+import { createChatTools } from './agent/tools';
 import { prisma } from '@/lib/prisma';
 import { SendChatMessageSchema } from './chat.dto';
-import { ELEMENT_REFERENCE } from '../chat-tools/element-reference';
+import { ELEMENT_REFERENCE } from './agent/tools/element-reference';
 import { readCoreMemory } from './agent/memory';
 import {
   DEFAULT_SKILL_DIRECTORIES,

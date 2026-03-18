@@ -3,7 +3,7 @@ import { knowledgeTools } from './knowledge-tools';
 import { ragPipelineTools } from './rag-tools';
 import { createAgentSkillsTools } from './agent-skills-tools';
 import { createMemoryTools } from './memory-tools';
-import type { DiscoveredSkill } from '../chat/agent/skills';
+import type { DiscoveredSkill } from '../skills';
 
 export type ChatToolContext = {
   workspaceId: string;

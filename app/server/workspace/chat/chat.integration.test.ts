@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { getRetryAdviceFromStreamState, responseToUIParts } from './utils';
 import { discoverSkills } from './agent/skills';
-import { createChatTools } from '../chat-tools';
+import { createChatTools } from './agent/tools';
 import {
   getCapabilityAllowedTools,
   resolveCapabilityIntent,

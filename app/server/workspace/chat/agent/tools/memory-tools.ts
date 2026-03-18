@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { MemoryCommand } from '../chat/agent/memory';
-import { runMemoryCommand } from '../chat/agent/memory';
+import type { MemoryCommand } from '../memory';
+import { runMemoryCommand } from '../memory';
 
 type MemoryToolContext = {
   workspaceId: string;
