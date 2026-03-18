@@ -15,11 +15,12 @@ import { createChatTools } from '../chat-tools';
 import { prisma } from '@/lib/prisma';
 import { SendChatMessageSchema } from './chat.dto';
 import { ELEMENT_REFERENCE } from '../chat-tools/element-reference';
+import { readCoreMemory } from './agent/memory';
 import {
   DEFAULT_SKILL_DIRECTORIES,
   buildSkillsPrompt,
   discoverSkills,
-} from './agent-skills';
+} from './agent/skills';
 import {
   getCapabilityAllowedTools,
   getCapabilitySystemContext,
@@ -50,6 +51,8 @@ export const sendChat = authorized
   .input(SendChatMessageSchema)
   .handler(async ({ input, context, errors }) => {
     const { workspaceId, messages, sceneData, capabilityIntent } = input;
+    const userId = context.user.id;
+    const uiMessages = messages as UIMessage[];
     const capabilityResolution = resolveCapabilityIntent(capabilityIntent);
     const capabilitySystemContext = getCapabilitySystemContext(
       capabilityResolution.capability,
@@ -81,7 +84,7 @@ export const sendChat = authorized
 
       // Verify workspace ownership
       const workspace = await prisma.workspace.findFirst({
-        where: { id: workspaceId, userId: context.user.id },
+        where: { id: workspaceId, userId },
         select: { id: true },
       });
       if (!workspace) {
@@ -93,7 +96,7 @@ export const sendChat = authorized
       let modelMessages;
       try {
         modelMessages = await convertToModelMessages(
-          truncateMessages(messages as UIMessage[])
+          truncateMessages(uiMessages)
         );
         logger.logSetup({
           step: 'messages_converted',
@@ -116,7 +119,7 @@ export const sendChat = authorized
         skills: discoveredSkills,
         context: {
           workspaceId,
-          userId: context.user.id,
+          userId,
         },
       });
       const capabilityAllowedTools = getCapabilityAllowedTools(
@@ -127,6 +130,13 @@ export const sendChat = authorized
       logger.logSetup({
         step: 'skills_discovered',
         count: discoveredSkills.length,
+      });
+
+      const coreMemoryRaw = await readCoreMemory({ workspaceId, userId });
+      const coreMemory = coreMemoryRaw.trim();
+      logger.logSetup({
+        step: 'memory_core_loaded',
+        chars: coreMemory.length,
       });
 
       const wrappedModel = wrapLanguageModel({
@@ -141,7 +151,7 @@ export const sendChat = authorized
 
       const result = streamText({
         model: wrappedModel,
-        system: `${WORKSPACE_CHAT_SYSTEM_PROMPT}\n\n${ELEMENT_REFERENCE}${capabilitySystemContext ? `\n\n${capabilitySystemContext}` : ''}\n\n${skillsPrompt}\n\n## Current Scene\n${sceneContext}`,
+        system: `${WORKSPACE_CHAT_SYSTEM_PROMPT}\n\n${ELEMENT_REFERENCE}${capabilitySystemContext ? `\n\n${capabilitySystemContext}` : ''}\n\n${skillsPrompt}${coreMemory ? `\n\n## Core Memory\n${coreMemory}` : ''}\n\n## Current Scene\n${sceneContext}`,
         messages: modelMessages,
         tools,
         temperature: 0.2,
@@ -212,16 +222,19 @@ export const sendChat = authorized
           }
 
           return {
-            activeTools: policy.activeTools,
+            activeTools: policy.activeTools.filter(
+              (toolName): toolName is keyof typeof tools =>
+                Object.prototype.hasOwnProperty.call(tools, toolName)
+            ),
           };
         },
         onFinish: async ({ response }) => {
           await handleChatFinish({
-            response: response as never,
+            response,
             generationStartedAt,
             workspaceId,
-            userId: context.user.id,
-            messages: messages as UIMessage[],
+            userId,
+            messages: uiMessages,
             logger,
             reasoningStartById,
             streamedReasoningDurationsSec,
@@ -232,7 +245,7 @@ export const sendChat = authorized
 
       const uiStream = createChatUiStream({
         logger,
-        result: result as never,
+        result,
         reasoningStartById,
         streamedReasoningDurationsSec,
         latestToolPolicyStats,

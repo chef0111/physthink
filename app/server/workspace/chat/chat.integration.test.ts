@@ -1,13 +1,26 @@
-import { describe, expect, it, vi } from 'vitest';
-import { getRetryAdviceFromStreamState, responseToUIParts } from '../utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { getRetryAdviceFromStreamState, responseToUIParts } from './utils';
+import { discoverSkills } from './agent/skills';
+import { createChatTools } from '../chat-tools';
 import {
   getCapabilityAllowedTools,
   resolveCapabilityIntent,
-} from './capabilities';
+} from './stream/capabilities';
 
 vi.mock('server-only', () => ({}));
 
 describe('workspace chat integration behavior', () => {
+  const tempDirs: string[] = [];
+
+  afterEach(async () => {
+    await Promise.all(
+      tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true }))
+    );
+  });
+
   it('shapes heavy tool-call responses without dropping tool parts', () => {
     const heavyElements = Array.from({ length: 40 }, (_, index) => ({
       type: 'vector',
@@ -242,5 +255,57 @@ describe('workspace chat integration behavior', () => {
     expect(resolution.unknownRequested).toBe(true);
     expect(resolution.requestedRaw).toBe('nonexistent-skill');
     expect(allowedTools.length).toBeGreaterThan(5);
+  });
+
+  it('loads runtime skill content through loadSkill tool call', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'skills-load-ok-'));
+    tempDirs.push(root);
+
+    const skillDir = path.resolve(root, 'cook');
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      path.resolve(skillDir, 'SKILL.md'),
+      [
+        '---',
+        'name: cook',
+        'description: orchestrator',
+        '---',
+        '',
+        '# Cook',
+        'Do steps.',
+      ].join('\n'),
+      'utf8'
+    );
+
+    const skills = await discoverSkills([root]);
+    const tools = createChatTools({
+      skills,
+      context: { workspaceId: 'ws_1', userId: 'usr_1' },
+    });
+
+    const executeLoadSkill = tools.loadSkill.execute as unknown as (
+      input: { name: string },
+      options?: unknown
+    ) => Promise<Record<string, unknown>>;
+    const result = await executeLoadSkill({ name: 'cook' });
+
+    expect(result.found).toBe(true);
+    expect(result.content).toContain('# Cook');
+  });
+
+  it('returns not-found response for unknown loadSkill request', async () => {
+    const tools = createChatTools({
+      skills: [],
+      context: { workspaceId: 'ws_1', userId: 'usr_1' },
+    });
+
+    const executeLoadSkill = tools.loadSkill.execute as unknown as (
+      input: { name: string },
+      options?: unknown
+    ) => Promise<Record<string, unknown>>;
+    const result = await executeLoadSkill({ name: 'missing-skill' });
+
+    expect(result.found).toBe(false);
+    expect(String(result.message)).toContain('not found');
   });
 });

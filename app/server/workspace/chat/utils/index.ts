@@ -10,6 +10,7 @@ export { getRetryAdvice, getRetryAdviceFromStreamState } from './retry-advice';
 export { assistantPartsToText, sanitizePersistedPart } from './sanitize';
 export type {
   GenerationDebugData,
+  ResponseMsg,
   ResponsePart,
   RetryAdviceStage,
 } from './types';

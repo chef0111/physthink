@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { isDev } from '@/lib/utils';
 import type { UIMessage } from 'ai';
 import { formatChatMetricsForClient, type ChatStreamLogger } from './logging';
+import { appendConversationMemory } from '../agent/memory';
 import {
   assignReasoningDurations,
   assistantPartsToText,
@@ -10,15 +11,13 @@ import {
   normalizeFinishReason,
   responseToUIParts,
   sanitizePersistedPart,
+  type ResponseMsg,
 } from '../utils';
 import { extractScenePersistenceData } from './scene-persistence';
 
 type FinishResponse = {
   finishReason?: unknown;
-  messages: ReadonlyArray<{
-    role: string;
-    content: string | readonly Record<string, unknown>[];
-  }>;
+  messages: readonly ResponseMsg[];
   steps?: unknown[];
 };
 
@@ -69,7 +68,7 @@ export async function handleChatFinish(params: HandleChatFinishParams) {
       .map((p) => p.text)
       .join('\n') ?? '';
 
-  const assistantPartsRaw = responseToUIParts(response.messages as never);
+  const assistantPartsRaw = responseToUIParts(response.messages);
   const { assistantPartsWithDurations } = assignReasoningDurations(
     assistantPartsRaw,
     elapsedSec,
@@ -212,6 +211,22 @@ export async function handleChatFinish(params: HandleChatFinishParams) {
     console.log(
       '[CHAT:METRICS]',
       JSON.stringify(formatChatMetricsForClient(finalMetrics), null, 2)
+    );
+  }
+
+  try {
+    await appendConversationMemory(
+      { workspaceId, userId },
+      { role: 'user', content: userContent }
+    );
+    await appendConversationMemory(
+      { workspaceId, userId },
+      { role: 'assistant', content: assistantText }
+    );
+  } catch (memoryErr) {
+    logger.logFinishError(
+      memoryErr instanceof Error ? memoryErr : new Error(String(memoryErr)),
+      'memory_append_conversations'
     );
   }
 }

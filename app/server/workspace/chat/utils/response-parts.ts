@@ -47,6 +47,9 @@ export function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
     toolName === 'addElements' ||
     toolName === 'setSceneSettings';
 
+  const isInvisiblePersistenceTool = (toolName: string) =>
+    toolName === 'memory';
+
   for (const msg of responseMessages) {
     if (msg.role !== 'assistant') continue;
     if (typeof msg.content === 'string') {
@@ -60,6 +63,8 @@ export function responseToUIParts(responseMessages: readonly ResponseMsg[]) {
         parts.push({ type: 'reasoning', text: part.text as string });
       } else if (part.type === 'tool-call') {
         const toolName = part.toolName as string;
+        if (isInvisiblePersistenceTool(toolName)) continue;
+
         const toolCallId = part.toolCallId as string;
         if (seenToolCallIds.has(toolCallId)) continue;
         seenToolCallIds.add(toolCallId);

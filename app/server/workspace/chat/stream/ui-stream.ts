@@ -1,6 +1,6 @@
 import { createUIMessageStream, type UIMessage, type UIMessageChunk } from 'ai';
 import type { ChatStreamLogger } from './logging';
-import { getRetryAdviceFromStreamState, normalizeFinishReason } from './utils';
+import { getRetryAdviceFromStreamState, normalizeFinishReason } from '../utils';
 
 type ToolPolicyStats = {
   totalToolAttempts: number;

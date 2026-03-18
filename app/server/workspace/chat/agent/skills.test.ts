@@ -7,7 +7,7 @@ import {
   discoverSkills,
   readSkillResourceByName,
   stripFrontmatter,
-} from './agent-skills';
+} from './skills';
 
 vi.mock('server-only', () => ({}));
 

@@ -2,14 +2,17 @@ import { sceneTools } from './scene-tools';
 import { knowledgeTools } from './knowledge-tools';
 import { ragPipelineTools } from './rag-tools';
 import { createAgentSkillsTools } from './agent-skills-tools';
-import type { DiscoveredSkill } from '../chat/agent-skills';
+import { createMemoryTools } from './memory-tools';
+import type { DiscoveredSkill } from '../chat/agent/skills';
+
+export type ChatToolContext = {
+  workspaceId: string;
+  userId: string;
+};
 
 type CreateChatToolsOptions = {
   skills?: DiscoveredSkill[];
-  context?: {
-    workspaceId: string;
-    userId: string;
-  };
+  context?: ChatToolContext;
 };
 
 function createBaseTools() {
@@ -32,12 +35,19 @@ function createBaseTools() {
   };
 }
 
-export function createChatTools(options: CreateChatToolsOptions = {}) {
+export type ChatTools = ReturnType<typeof createBaseTools> &
+  ReturnType<typeof createAgentSkillsTools> &
+  ReturnType<typeof createMemoryTools>;
+
+export function createChatTools(
+  options: CreateChatToolsOptions = {}
+): ChatTools {
   const skills = options.skills ?? [];
 
   return {
     ...createBaseTools(),
     ...createAgentSkillsTools(skills),
+    ...createMemoryTools(options.context),
   };
 }
 
