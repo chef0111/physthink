@@ -1,6 +1,6 @@
 ---
 name: bug-fix
-description: "Meta-orchestrator for debugging and fixing. Analyzes bugs/errors and auto-selects the best combination of skills from .github/skills/ to diagnose and resolve. Use when encountering bugs, errors, test failures, performance issues, broken UI, or any code that isn't working as expected."
+description: "Meta-orchestrator for debugging and fixing. Analyzes bugs/errors and auto-selects the best combination of skills from .agents/skills/ to diagnose and resolve. Use when encountering bugs, errors, test failures, performance issues, broken UI, or any code that isn't working as expected."
 argument-hint: "Bug description, e.g. 'login form throws 500 on submit' or 'dashboard chart not rendering'"
 ---
 
