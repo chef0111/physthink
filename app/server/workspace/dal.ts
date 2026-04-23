@@ -5,7 +5,8 @@ import { getPagination } from '../utils';
 import type {
   CreateWorkspaceDTO,
   UpdateWorkspaceDTO,
-  UpdateWorkspaceMessageFeedbackDTO,
+  UpdateResponseFeedbackDTO,
+  UpdateReasoningDurationsDTO,
 } from './dto';
 import { Prisma } from '@/generated/prisma/client';
 
@@ -87,6 +88,7 @@ export class WorkspaceDAL {
             role: true,
             content: true,
             parts: true,
+            reasoningDurations: true,
             codeBlock: true,
             feedback: true,
             feedbackAt: true,
@@ -115,7 +117,7 @@ export class WorkspaceDAL {
   }
 
   static async updateMessageFeedback(
-    data: UpdateWorkspaceMessageFeedbackDTO,
+    data: UpdateResponseFeedbackDTO,
     userId: string
   ) {
     return prisma.workspaceMessage.updateMany({
@@ -129,6 +131,56 @@ export class WorkspaceDAL {
       data: {
         feedback: data.feedback,
         feedbackAt: data.feedback ? new Date() : null,
+      },
+    });
+  }
+
+  static async updateReasoningDurations(
+    data: UpdateReasoningDurationsDTO,
+    userId: string
+  ) {
+    if (data.messageId) {
+      const updated = await prisma.workspaceMessage.updateMany({
+        where: {
+          id: data.messageId,
+          role: 'assistant',
+          workspaceId: data.workspaceId,
+          workspace: {
+            userId,
+          },
+        },
+        data: {
+          reasoningDurations: data.reasoningDurations,
+        },
+      });
+
+      if (updated.count > 0) {
+        return updated;
+      }
+    }
+
+    const latestAssistant = await prisma.workspaceMessage.findFirst({
+      where: {
+        role: 'assistant',
+        workspaceId: data.workspaceId,
+        workspace: {
+          userId,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+
+    if (!latestAssistant) {
+      return { count: 0 };
+    }
+
+    return prisma.workspaceMessage.updateMany({
+      where: {
+        id: latestAssistant.id,
+      },
+      data: {
+        reasoningDurations: data.reasoningDurations,
       },
     });
   }

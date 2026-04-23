@@ -25,15 +25,22 @@ export const WorkspaceMessageSchema = z.object({
   role: z.string(),
   content: z.string(),
   parts: z.any().nullish(),
+  reasoningDurations: z.any().nullish(),
   codeBlock: z.string().nullish(),
   feedback: z.string().nullish(),
   feedbackAt: z.date().nullish(),
   createdAt: z.date(),
 });
 
-export const UpdateWorkspaceMessageFeedbackSchema = z.object({
+export const UpdateResponseFeedbackSchema = z.object({
   messageId: z.string(),
   feedback: z.enum(['like', 'dislike']).nullable(),
+});
+
+export const UpdateReasoningDurationsSchema = z.object({
+  workspaceId: z.string(),
+  messageId: z.string().optional(),
+  reasoningDurations: z.array(z.number().int().positive()).min(1).max(32),
 });
 
 export const WorkspaceSummarySchema = z.object({
@@ -58,6 +65,9 @@ export type UpdateWorkspaceDTO = z.infer<typeof UpdateWorkspaceSchema>;
 export type WorkspaceSummaryDTO = z.infer<typeof WorkspaceSummarySchema>;
 export type WorkspaceDetailDTO = z.infer<typeof WorkspaceDetailSchema>;
 export type WorkspaceListDTO = z.infer<typeof WorkspaceListSchema>;
-export type UpdateWorkspaceMessageFeedbackDTO = z.infer<
-  typeof UpdateWorkspaceMessageFeedbackSchema
+export type UpdateResponseFeedbackDTO = z.infer<
+  typeof UpdateResponseFeedbackSchema
+>;
+export type UpdateReasoningDurationsDTO = z.infer<
+  typeof UpdateReasoningDurationsSchema
 >;

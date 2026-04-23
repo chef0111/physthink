@@ -59,7 +59,7 @@ export function useDeleteWorkspace() {
   );
 }
 
-export function useUpdateWorkspaceMessageFeedback() {
+export function useUpdateResponseFeedback() {
   return useMutation(
     orpc.workspace.message.feedback.mutationOptions({
       onSuccess: () => {
@@ -69,6 +69,18 @@ export function useUpdateWorkspaceMessageFeedback() {
         toast.error('Failed to submit feedback', {
           description: error.message,
         });
+      },
+    })
+  );
+}
+
+export function useUpdateReasoningDurations() {
+  return useMutation(
+    orpc.workspace.message.reasoningDurations.mutationOptions({
+      onError: (error) => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Failed to persist reasoning durations', error.message);
+        }
       },
     })
   );

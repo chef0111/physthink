@@ -3,7 +3,7 @@ import {
   getRetryAdvice,
   getRetryAdviceFromStreamState,
   sanitizePersistedPart,
-} from './chat-utils';
+} from '.';
 
 vi.mock('server-only', () => ({}));
 
@@ -22,6 +22,22 @@ describe('chat retry advice', () => {
     expect(advice.shouldRetry).toBe(true);
     expect(advice.reason).toBe('malformed-tool-call-text');
     expect(advice.stage).toBe('preliminary');
+  });
+
+  it('does not force retry when malformed markers coexist with visible answer text', () => {
+    const advice = getRetryAdviceFromStreamState(
+      {
+        textContent:
+          'The net force along the slope is F = mgsin(theta).\\n{"name":"addElements","arguments":{}}',
+        reasoningContent: 'Thinking...',
+        hasToolCalls: false,
+        stopReason: 'stop',
+      },
+      'final'
+    );
+
+    expect(advice.shouldRetry).toBe(false);
+    expect(advice.reason).toBe('none');
   });
 
   it('computes final retry advice from assistant parts', () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useUpdateWorkspaceMessageFeedback } from '@/queries/workspace';
+import { useUpdateResponseFeedback } from '@/queries/workspace';
 
 export type MessageFeedback = 'like' | 'dislike';
 
@@ -24,7 +24,7 @@ export function useMessageFeedback(
     initialFeedback ?? null
   );
   const { mutate: updateMessageFeedback, isPending: isFeedbackPending } =
-    useUpdateWorkspaceMessageFeedback();
+    useUpdateResponseFeedback();
 
   const handleLike = useCallback(() => {
     if (isFeedbackPending) return;

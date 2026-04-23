@@ -7,7 +7,14 @@ import { client } from '@/lib/orpc';
 import { isDev } from '@/lib/utils';
 import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '@/stores/scene-store';
-import { readDebugGenerationData, readRetryAdviceData } from './utils';
+import {
+  readGenerationMetadataData,
+  normalizeThoughtDuration,
+  readDebugGenerationData,
+  readRetryAdviceData,
+  readStreamErrorData,
+  sanitizeAssistantTextForDisplay,
+} from './utils';
 import TextShimmer from '@/components/ui/text-shimmer';
 import { ChatMessage } from './chat-message';
 import { PromptInput } from './prompt-input';
@@ -17,7 +24,8 @@ import {
   useRegenerateMessage,
   useSceneToolEffects,
   type MessageFeedback,
-} from './hooks';
+} from '@/hooks/chat';
+import { useUpdateReasoningDurations } from '@/queries/workspace';
 
 interface WorkspaceChatProps {
   workspaceId: string;
@@ -31,6 +39,10 @@ export function WorkspaceChat({
   initialMessages,
   initialFeedbackMap,
 }: WorkspaceChatProps) {
+  const persistedReasoningDurationsRef = useRef(new Set<string>());
+  const reasoningDurationPersistInFlightRef = useRef(new Set<string>());
+  const reasoningDurationPersistAttemptsRef = useRef(new Map<string, number>());
+  const capabilityIntentRef = useRef<string | undefined>(undefined);
   const appliedToolCalls = useRef(
     new Set<string>(
       initialMessages.flatMap((m) =>
@@ -82,6 +94,7 @@ export function WorkspaceChat({
         const result = await client.workspace.chat.send(
           {
             workspaceId,
+            capabilityIntent: capabilityIntentRef.current,
             messages: msgs.map((m) => ({
               id: m.id,
               role: m.role,
@@ -101,6 +114,7 @@ export function WorkspaceChat({
           },
           { signal: abortSignal }
         );
+        capabilityIntentRef.current = undefined;
         return eventIteratorToUnproxiedDataStream(result);
       },
       reconnectToStream() {
@@ -116,6 +130,8 @@ export function WorkspaceChat({
       transport,
       messages: initialMessages,
     });
+  const { mutateAsync: persistReasoningDurations } =
+    useUpdateReasoningDurations();
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
@@ -149,7 +165,19 @@ export function WorkspaceChat({
   );
 
   const handleSubmit = () => {
-    const text = input.trim();
+    const raw = input.trim();
+    const slashMatch = raw.match(/^\/([a-z0-9_-]+)\s*(.*)$/i);
+
+    let text = raw;
+    capabilityIntentRef.current = undefined;
+
+    if (slashMatch) {
+      const capability = slashMatch[1].toLowerCase();
+      const rest = slashMatch[2]?.trim() ?? '';
+      capabilityIntentRef.current = capability;
+      text = rest || `Use ${capability} capability for this task.`;
+    }
+
     if (!text || isLoading) return;
     shouldAutoScrollRef.current = true;
     setInput('');
@@ -191,25 +219,83 @@ export function WorkspaceChat({
     return null;
   }, [messages]);
 
+  const latestGenerationMetadata = useMemo(() => {
+    if (!isDev) return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message.role !== 'assistant') continue;
+      for (const part of message.parts) {
+        const metadata = readGenerationMetadataData(part);
+        if (metadata) return metadata;
+      }
+    }
+    return null;
+  }, [messages]);
+
   const shouldShowRetry = useMemo(() => {
-    if (status === 'error') return true;
+    if (status === 'streaming' || status === 'submitted') return false;
     if (messages.length === 0) return false;
 
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage || lastMessage.role !== 'assistant') return false;
 
-    let preliminaryAdvice: ReturnType<typeof readRetryAdviceData> = null;
+    const hasMeaningfulAssistantText = lastMessage.parts.some(
+      (part) =>
+        part.type === 'text' &&
+        typeof part.text === 'string' &&
+        (() => {
+          const cleaned = sanitizeAssistantTextForDisplay(part.text);
+          return Boolean(cleaned && !normalizeThoughtDuration(cleaned));
+        })()
+    );
+
+    let finalAdvice: ReturnType<typeof readRetryAdviceData> = null;
+    let finalMetadata: ReturnType<typeof readGenerationMetadataData> = null;
+    let streamError = false;
 
     for (const part of lastMessage.parts) {
+      if (readStreamErrorData(part)) {
+        streamError = true;
+      }
+
+      const generationMetadata = readGenerationMetadataData(part);
+      if (generationMetadata) {
+        finalMetadata = generationMetadata;
+      }
+
       const retryAdvice = readRetryAdviceData(part);
       if (retryAdvice) {
-        if (retryAdvice.stage === 'final') return retryAdvice.shouldRetry;
-        preliminaryAdvice = retryAdvice;
+        if (retryAdvice.stage === 'final') {
+          finalAdvice = retryAdvice;
+          break;
+        }
       }
     }
 
-    return preliminaryAdvice?.shouldRetry ?? false;
+    if (finalAdvice) return finalAdvice.shouldRetry;
+
+    if (streamError) return true;
+
+    if (status === 'error') {
+      // If server already classified this as successful output, do not keep a stale error banner.
+      if (
+        finalMetadata?.finishReason === 'stop' &&
+        finalMetadata.visibleTextChars > 0
+      ) {
+        return false;
+      }
+
+      return !hasMeaningfulAssistantText;
+    }
+
+    return false;
   }, [status, messages]);
+
+  useEffect(() => {
+    if (status !== 'error') return;
+    if (shouldShowRetry) return;
+    clearError();
+  }, [status, shouldShowRetry, clearError]);
 
   const handleRetry = useCallback(() => {
     if (isLoading) return;
@@ -243,6 +329,54 @@ export function WorkspaceChat({
     shouldAutoScrollRef
   );
 
+  const handlePersistReasoningDurations = useCallback(
+    function persistReasoningDurationsForMessage(
+      messageId: string,
+      durations: number[]
+    ) {
+      if (durations.length === 0) return;
+
+      const key = `${messageId}:${durations.join(',')}`;
+      if (persistedReasoningDurationsRef.current.has(key)) return;
+      if (reasoningDurationPersistInFlightRef.current.has(key)) return;
+
+      const attempt =
+        (reasoningDurationPersistAttemptsRef.current.get(key) ?? 0) + 1;
+      reasoningDurationPersistAttemptsRef.current.set(key, attempt);
+      reasoningDurationPersistInFlightRef.current.add(key);
+
+      const payload =
+        attempt === 1
+          ? {
+              workspaceId,
+              messageId,
+              reasoningDurations: durations,
+            }
+          : {
+              workspaceId,
+              reasoningDurations: durations,
+            };
+
+      void persistReasoningDurations(payload)
+        .then(() => {
+          persistedReasoningDurationsRef.current.add(key);
+          reasoningDurationPersistAttemptsRef.current.delete(key);
+        })
+        .catch(() => {
+          if (attempt < 3) {
+            const delayMs = attempt * 600;
+            window.setTimeout(() => {
+              persistReasoningDurationsForMessage(messageId, durations);
+            }, delayMs);
+          }
+        })
+        .finally(() => {
+          reasoningDurationPersistInFlightRef.current.delete(key);
+        });
+    },
+    [persistReasoningDurations, workspaceId]
+  );
+
   return (
     <div className="flex h-full flex-col">
       <div
@@ -269,6 +403,11 @@ export function WorkspaceChat({
                   message={message}
                   isStreaming={isLoading && index === messages.length - 1}
                   initialFeedback={initialFeedbackMap?.get(message.id)}
+                  onPersistReasoningDurations={
+                    message.role === 'assistant'
+                      ? handlePersistReasoningDurations
+                      : undefined
+                  }
                   onRegenerate={
                     message.role === 'assistant'
                       ? () => handleRegenerateAtIndex(index)
@@ -293,6 +432,9 @@ export function WorkspaceChat({
             {latestGenerationDebug.stopReason} ; tools=
             {latestGenerationDebug.toolCallCount} ; elapsed=
             {latestGenerationDebug.elapsedSec}s
+            {latestGenerationMetadata
+              ? ` ; status=${status} ; finish=${latestGenerationMetadata.finishReason} ; attempts=${latestGenerationMetadata.totalToolAttempts} ; forced=${latestGenerationMetadata.forceTextOnly ? 'yes' : 'no'} ; textChars=${latestGenerationMetadata.textChars} ; visibleChars=${latestGenerationMetadata.visibleTextChars} ; visibleLines=${latestGenerationMetadata.visibleTextLineCount} ; reasoningChars=${latestGenerationMetadata.reasoningChars}${latestGenerationMetadata.detectedIssue ? ` ; issue=${latestGenerationMetadata.detectedIssue}` : ''}`
+              : ''}
           </div>
         )}
         <PromptInput

@@ -7,6 +7,8 @@ const TOKEN_RE = /\b[A-Za-z0-9+/_-]{32,}\b/g;
 const TOOL_CALL_BLOCK_RE = /<tool_call>[\s\S]*?<\/tool_call>/gi;
 const TOOL_CALL_SENTINEL_RE =
   /<\/??tool_call>|FN_CALL\s*=\s*TRUE|"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:/i;
+const REASONING_LEAK_LINE_RE =
+  /^(we need to\b|the user asked\b|let me think\b|i should\b|internal plan\b|analysis\s*:|reasoning\s*:)/i;
 const SECRET_KV_RE =
   /\b(api[_-]?key|access[_-]?token|refresh[_-]?token|authorization|bearer|secret|password)\b\s*[:=]\s*(["'])?[^\s,'"}]+\2?/gi;
 
@@ -51,7 +53,13 @@ export function sanitizeAssistantTextForDisplay(text: string): string {
     .replace(TOKEN_RE, '[redacted]')
     .replace(SECRET_KV_RE, '$1: [redacted]')
     .split('\n')
-    .filter((line) => !TOOL_CALL_SENTINEL_RE.test(line))
+    .map((line) => line.trim())
+    .filter(
+      (line) =>
+        line.length > 0 &&
+        !TOOL_CALL_SENTINEL_RE.test(line) &&
+        !REASONING_LEAK_LINE_RE.test(line)
+    )
     .join('\n')
     .trim();
 }
@@ -95,6 +103,25 @@ type RetryAdviceData = {
   stage: 'preliminary' | 'final';
 };
 
+type StreamErrorData = {
+  recoverable: boolean;
+  stage: string;
+  reason: string;
+};
+
+type GenerationMetadataData = {
+  finishReason: string;
+  totalToolAttempts: number;
+  attemptCountByTool: Record<string, number>;
+  forceTextOnly: boolean;
+  fallbackReason: string | null;
+  textChars: number;
+  visibleTextChars: number;
+  visibleTextLineCount: number;
+  reasoningChars: number;
+  detectedIssue: string | null;
+};
+
 export function readDebugGenerationData(
   part: UIMessage['parts'][number]
 ): DebugGenerationData | null {
@@ -130,22 +157,111 @@ export function readRetryAdviceData(
   };
 }
 
+export function readStreamErrorData(
+  part: UIMessage['parts'][number]
+): StreamErrorData | null {
+  if (part.type !== 'data-stream-error') return null;
+  if (!('data' in part) || !part.data || typeof part.data !== 'object') {
+    return null;
+  }
+
+  const data = part.data as Record<string, unknown>;
+  return {
+    recoverable: data.recoverable !== false,
+    stage: typeof data.stage === 'string' ? data.stage : 'unknown',
+    reason: typeof data.reason === 'string' ? data.reason : 'stream-error',
+  };
+}
+
+export function readGenerationMetadataData(
+  part: UIMessage['parts'][number]
+): GenerationMetadataData | null {
+  if (part.type !== 'data-generation-metadata') return null;
+  if (!('data' in part) || !part.data || typeof part.data !== 'object') {
+    return null;
+  }
+
+  const data = part.data as Record<string, unknown>;
+  return {
+    finishReason:
+      typeof data.finishReason === 'string' ? data.finishReason : 'unknown',
+    totalToolAttempts:
+      typeof data.totalToolAttempts === 'number' ? data.totalToolAttempts : 0,
+    attemptCountByTool:
+      data.attemptCountByTool && typeof data.attemptCountByTool === 'object'
+        ? (data.attemptCountByTool as Record<string, number>)
+        : {},
+    forceTextOnly: Boolean(data.forceTextOnly),
+    fallbackReason:
+      typeof data.fallbackReason === 'string' ? data.fallbackReason : null,
+    textChars: typeof data.textChars === 'number' ? data.textChars : 0,
+    visibleTextChars:
+      typeof data.visibleTextChars === 'number' ? data.visibleTextChars : 0,
+    visibleTextLineCount:
+      typeof data.visibleTextLineCount === 'number'
+        ? data.visibleTextLineCount
+        : 0,
+    reasoningChars:
+      typeof data.reasoningChars === 'number' ? data.reasoningChars : 0,
+    detectedIssue:
+      typeof data.detectedIssue === 'string' && data.detectedIssue !== 'none'
+        ? data.detectedIssue
+        : null,
+  };
+}
+
 export function dbMessagesToAiMessages(
   dbMessages: Array<{
     id: string;
     role: string;
     content: string;
     parts?: unknown;
+    reasoningDurations?: unknown;
     createdAt: Date;
   }>
 ): UIMessage[] {
-  return dbMessages.map((m) => ({
-    id: m.id,
-    role: m.role as UIMessage['role'],
-    parts: Array.isArray(m.parts)
+  return dbMessages.map((m) => {
+    const baseParts = Array.isArray(m.parts)
       ? (m.parts as UIMessage['parts'])
-      : [{ type: 'text' as const, text: m.content }],
-  }));
+      : ([{ type: 'text' as const, text: m.content }] as UIMessage['parts']);
+
+    const persistedDurations = Array.isArray(m.reasoningDurations)
+      ? (m.reasoningDurations as unknown[])
+      : [];
+
+    let reasoningCursor = 0;
+    const hydratedParts = baseParts.map((part) => {
+      if (part.type !== 'reasoning') return part;
+
+      const existingDuration =
+        typeof (part as { durationText?: unknown }).durationText === 'string'
+          ? (part as { durationText?: string }).durationText
+          : null;
+      if (existingDuration) {
+        reasoningCursor += 1;
+        return part;
+      }
+
+      const raw = persistedDurations[reasoningCursor];
+      reasoningCursor += 1;
+
+      if (typeof raw !== 'number' || !Number.isFinite(raw)) {
+        return part;
+      }
+
+      const rounded = Math.max(1, Math.round(raw));
+      return {
+        ...part,
+        durationText: `Thought for ${rounded}s`,
+      };
+    });
+
+    return {
+      id: m.id,
+      role: m.role as UIMessage['role'],
+      parts: hydratedParts,
+    };
+  });
 }
 
 /**

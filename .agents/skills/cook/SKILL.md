@@ -1,6 +1,6 @@
 ---
 name: cook
-description: 'Meta-orchestrator for feature implementation. Analyzes feature requests and auto-selects the best combination of skills from .github/skills/ to execute. Use when building new features, adding functionality, creating UI components, implementing APIs, or any constructive development task.'
+description: 'Meta-orchestrator for feature implementation. Analyzes feature requests and auto-selects the best combination of skills from .agents/skills/ to execute. Use when building new features, adding functionality, creating UI components, implementing APIs, or any constructive development task.'
 argument-hint: "Feature description, e.g. 'add comment system with real-time updates' or 'build admin analytics dashboard'"
 ---
 
@@ -62,7 +62,7 @@ Analyze user's feature request, select the optimal skill combination, then execu
 Match request against the catalog above. Select **1–4 skills** — minimum needed. Always check:
 
 - New data model → `physthink-feature`
-- New UI → `ui-ux-pro-max` + `ui-styling` + `shadcn` + `ai-elements` (if AI components) + `threejs` (if 3D)
+- New UI → `ui-ux-pro-max` + `ui-styling` + `shadcn` + `ai-elements` (for AI components) + `threejs` (for 3D)
 - Unfamiliar API → `docs-seeker` first
 - Complex scope → `sequential-thinking` first
 
@@ -75,7 +75,7 @@ Match request against the catalog above. Select **1–4 skills** — minimum nee
 
 ### 4. Load & Follow
 
-For each selected skill, read its `SKILL.md` from `.github/skills/<name>/SKILL.md` and follow its procedure. Skills may reference sub-files — load those as needed.
+For each selected skill, read its `SKILL.md` from `.agents/skills/<name>/SKILL.md` and follow its procedure. Skills may reference sub-files — load those as needed.
 
 ## Example Dispatch
 
