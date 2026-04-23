@@ -30,6 +30,12 @@ type VerifyFormProps = {
   onStateChange: (state: ButtonState) => void;
 };
 
+type SignInError = {
+  error?: {
+    message?: string;
+  };
+};
+
 export const VerifyForm = ({ formId, onStateChange }: VerifyFormProps) => {
   const router = useRouter();
   const { email, callbackUrl, goToLogin } = useLoginStep();
@@ -64,7 +70,7 @@ export const VerifyForm = ({ formId, onStateChange }: VerifyFormProps) => {
             form.reset();
             router.push(callbackUrl as Route);
           },
-          onError: (err) => {
+          onError: (err: SignInError) => {
             setError(err.error?.message || 'Login failed. Please try again.');
           },
         },

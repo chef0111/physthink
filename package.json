@@ -120,8 +120,8 @@
     "uuid": "^13.0.0",
     "vaul": "^1.1.2",
     "zod": "^4.3.6",
-    "zundo": "2.3.0",
-    "zustand": "^5.0.11"
+    "zundo": "^2.3.0",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.1",
@@ -144,7 +144,7 @@
     "prettier-plugin-tailwindcss": "^0.0.0-insiders.f7d2598",
     "prisma": "^7.8.0",
     "tailwindcss": "^4.2.4",
-    "typescript": "^5",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.0"
   },
   "ignoreScripts": [
