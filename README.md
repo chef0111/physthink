@@ -1,8 +1,8 @@
-# PhysThink - Interactive LMS powered by K2Think AI
+# PhysThink • ![License](https://img.shields.io/badge/License-MIT-blue)
 
 Official repository of PhysThink - An intuitive Learning Management System built with Next.js 16, powered by K2Think V2.
 
-## <a name="quick-start">🤸 Quick Start</a>
+## 🤸 Quick Start
 
 Follow these steps to set up the project locally on your machine.
 
@@ -70,7 +70,7 @@ UPLOADTHING_TOKEN=
 
 Replace the placeholder values with your actual credentials. You can obtain these credentials by signing up on the respective websites.
 
-## 🗄️ <a name="database-setup">Database Setup</a>
+## Database Setup
 
 This project uses PostgreSQL hosted on Neon for the database, with Prisma ORM for schema management.
 
@@ -92,7 +92,7 @@ bunx prisma db push
 
 This will create the necessary tables and indexes in your Neon database.
 
-## <a name="run-project">👨‍💻 Run the Project</a>
+## 👨‍💻 Run the Project
 
 Run the development server with the following command:
 
@@ -108,6 +108,6 @@ bun run next
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the project.
 
----
+## License
 
-🚀 Happy coding!
+Licensed under the [MIT License](./LICENSE).
