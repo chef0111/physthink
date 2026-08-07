@@ -1,9 +1,8 @@
 import { orpc } from '@/lib/orpc';
 import { getQueryClient } from '@/lib/query/hydration';
-import { PublicCourseListDTO } from '@/app/server/course/dto';
 import { DataRenderer } from '@/components/data-renderer';
 import { NextPagination } from '@/components/ui/next-pagination';
-import { resolveData, queryFetch } from '@/lib/query/helper';
+import { queryFetch } from '@/lib/query/helper';
 import CourseCard from '@/modules/home/courses/components/course-card';
 import { EmptyCourseList } from '@/modules/home/courses/layout/empty';
 
@@ -24,29 +23,21 @@ export async function CourseList({
     },
   });
 
-  const result = await queryFetch<PublicCourseListDTO>(
-    queryClient.fetchQuery(queryOptions),
-    'Failed to get courses'
-  );
+  const result = await queryFetch({
+    promise: queryClient.fetchQuery(queryOptions),
+    fallbackMessage: 'Failed to get courses',
+  });
 
-  const {
-    data: courses,
-    success,
-    error,
-  } = resolveData(result, (data) => data.courses, []);
-
-  const { data: totalCourses } = resolveData(
-    result,
-    (data) => data.totalCourses,
-    0
-  );
+  const { courses, totalCourses } = result.success
+    ? result.data
+    : { courses: [], totalCourses: 0 };
 
   return (
     <>
       <DataRenderer
         data={courses}
-        success={success}
-        error={error}
+        success={result.success}
+        error={result.error}
         renderEmpty={() => <EmptyCourseList />}
         render={(courses) => (
           <div className="grid grid-cols-1 gap-6 max-sm:pt-24 md:grid-cols-2 xl:grid-cols-3">
