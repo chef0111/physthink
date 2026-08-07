@@ -1,9 +1,8 @@
 import { orpc } from '@/lib/orpc';
 import { requireSession } from '@/lib/session';
 import { getQueryClient } from '@/lib/query/hydration';
-import { PublicCourseListDTO } from '@/app/server/course/dto';
 import { DataRenderer } from '@/components/data-renderer';
-import { resolveData, queryFetch } from '@/lib/query/helper';
+import { queryFetch } from '@/lib/query/helper';
 import CourseCard from '@/modules/home/courses/components/course-card';
 import { EmptyEnrolledCourses } from '@/modules/home/courses/layout/empty';
 import { NextPagination } from '@/components/ui/next-pagination';
@@ -84,14 +83,14 @@ export function getDashboardCourses({
     });
 
     const [enrolledResult, availableResult] = await Promise.all([
-      queryFetch<PublicCourseListDTO>(
-        queryClient.fetchQuery(enrolledOptions),
-        'Failed to fetch enrolled courses'
-      ),
-      queryFetch<PublicCourseListDTO>(
-        queryClient.fetchQuery(availableOptions),
-        'Failed to fetch available courses'
-      ),
+      queryFetch({
+        promise: queryClient.fetchQuery(enrolledOptions),
+        fallbackMessage: 'Failed to fetch enrolled courses',
+      }),
+      queryFetch({
+        promise: queryClient.fetchQuery(availableOptions),
+        fallbackMessage: 'Failed to fetch available courses',
+      }),
     ]);
 
     return { enrolledResult, availableResult };
@@ -101,24 +100,16 @@ export function getDashboardCourses({
     const { page, pageSize } = await searchParams;
     const { enrolledResult } = await courseData();
 
-    const {
-      data: enrolledCourses,
-      success,
-      error,
-    } = resolveData(enrolledResult, (data) => data.courses, []);
-
-    const { data: totalCourses } = resolveData(
-      enrolledResult,
-      (data) => data.totalCourses,
-      0
-    );
+    const { courses: enrolledCourses, totalCourses } = enrolledResult.success
+      ? enrolledResult.data
+      : { courses: [], totalCourses: 0 };
 
     return (
       <>
         <DataRenderer
           data={enrolledCourses}
-          success={success}
-          error={error}
+          success={enrolledResult.success}
+          error={enrolledResult.error}
           renderEmpty={() => (
             <div className="bg-muted/30 flex flex-col items-center justify-center rounded-xl border border-dashed">
               <EmptyEnrolledCourses />
@@ -150,17 +141,16 @@ export function getDashboardCourses({
   async function AvailableCourses() {
     const { availableResult } = await courseData();
 
-    const {
-      data: publicCourses,
-      success,
-      error,
-    } = resolveData(availableResult, (data) => data.courses, []);
+    const availableData = availableResult.success
+      ? availableResult.data
+      : { courses: [], totalCourses: 0 };
+    const publicCourses = availableData.courses;
 
     return (
       <DataRenderer
         data={publicCourses}
-        success={success}
-        error={error}
+        success={availableResult.success}
+        error={availableResult.error}
         renderEmpty={() => (
           <div className="text-muted-foreground py-8 text-center">
             No new available courses at the moment.
